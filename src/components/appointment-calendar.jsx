@@ -612,14 +612,14 @@ export default function AppointmentCalendar({
                                       )?.name
                                     }
                                   </div>
-                                  <div className="text-xs opacity-75 truncate">
+                                  {/* <div className="text-xs opacity-75 truncate">
                                     {
                                       appointmentTypes.find(
                                         (t) =>
                                           t.id === appointment.appointmentTypeId
                                       )?.name
                                     }
-                                  </div>
+                                  </div> */}
                                 </div>
                               )}
                             {isOpen && isAvailable && !appointment && (
