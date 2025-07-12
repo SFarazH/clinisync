@@ -96,6 +96,12 @@ export default function ClinicDashboard() {
       duration: 15,
       color: "#06b6d4",
     },
+    {
+      id: "7",
+      name: "Operation",
+      duration: 120,
+      color: "#FF69B4",
+    },
   ]);
 
   const [clinicHours, setClinicHours] = useState({

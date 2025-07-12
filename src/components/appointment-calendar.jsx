@@ -1,7 +1,7 @@
 "use client";
 
 import { DialogFooter } from "@/components/ui/dialog";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -179,7 +179,7 @@ export default function AppointmentCalendar({
     const endTime = new Date(`2000-01-01T${appointment.endTime}:00`);
     const durationMinutes =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    return Math.max(1, durationMinutes / 15); // Each slot is now 15 minutes
+    return Math.max(1, durationMinutes / 15);
   };
 
   // Check if this is the first slot of an appointment
@@ -504,7 +504,7 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      <Card>
+      <Card className="p-0 border-black overflow-hidden">
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
             <div className="p-4 border-r bg-gray-50"></div>
@@ -539,7 +539,7 @@ export default function AppointmentCalendar({
                     isMainSlot
                       ? "border-b border-gray-100"
                       : "border-b-2 border-gray-200"
-                  } last:border-b-0 min-h-[40px]`}
+                  } last:border-b-0 h-[30px]`}
                 >
                   <div
                     className={`p-2 border-r text-sm flex items-start ${
@@ -563,9 +563,11 @@ export default function AppointmentCalendar({
                         return (
                           <div
                             key={`${dayIndex}-${timeIndex}`}
-                            className={`border-r last:border-r-0 relative ${
+                            className={`group ${
+                              isAvailable ? "border-r" : ""
+                            } last:border-r-0 relative h-[30px] ${
                               isOpen && isAvailable
-                                ? "hover:bg-blue-50 cursor-pointer"
+                                ? "hover:bg-blue-100 cursor-pointer"
                                 : "bg-gray-100"
                             } ${
                               dragOverSlot?.date ===
@@ -581,6 +583,11 @@ export default function AppointmentCalendar({
                             onDragLeave={handleDragLeave}
                             onDrop={(e) => handleDrop(e, day, time)}
                           >
+                            {!appointment && isMainSlot && isAvailable && (
+                              <span className="opacity-20 text-sm flex justify-center items-center h-full w-full group-hover:hidden">
+                                {time}
+                              </span>
+                            )}
                             {appointment &&
                               isAppointmentStart(appointment, time) && (
                                 <div
@@ -589,14 +596,14 @@ export default function AppointmentCalendar({
                                     handleDragStart(e, appointment)
                                   }
                                   onDragEnd={handleDragEnd}
-                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
+                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden cursor-move hover:shadow-md transition-shadow"
                                   style={{
                                     backgroundColor: appointmentTypes.find(
                                       (t) =>
                                         t.id === appointment.appointmentTypeId
                                     )?.color,
                                     height: `${
-                                      getAppointmentHeight(appointment) * 40 - 4
+                                      getAppointmentHeight(appointment) * 30 - 3
                                     }px`,
                                     zIndex: 10,
                                   }}
@@ -624,7 +631,7 @@ export default function AppointmentCalendar({
                               )}
                             {isOpen && isAvailable && !appointment && (
                               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                <Plus className="w-3 h-3 text-blue-600" />
+                                <Plus className="w-2 h-2 text-blue-600" />
                               </div>
                             )}
                           </div>
@@ -747,15 +754,21 @@ export default function AppointmentCalendar({
                       value={selectedTime}
                       onValueChange={setSelectedTime}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select start time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeOptions.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
+                        {timeOptions.length > 0 ? (
+                          timeOptions.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="na" disabled>
+                            Please select a date
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
