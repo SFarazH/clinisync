@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 const DB_URL = process.env.DB_URL;
 
 let cached = global.mongoose;
