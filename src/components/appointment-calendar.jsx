@@ -42,7 +42,9 @@ export default function AppointmentCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDoctorId, setSelectedDoctorId] = useState("all");
+  const [selectedDoctorId, setSelectedDoctorId] = useState(
+    doctors.length > 0 ? doctors[0].id : ""
+  );
   const [viewMode, setViewMode] = useState("individual");
   const [formData, setFormData] = useState({
     patientId: "",
@@ -323,7 +325,7 @@ export default function AppointmentCalendar({
       appointmentTypeId: appointment.appointmentTypeId,
       notes: appointment.notes || "",
     });
-    setErrorMessage(""); // Clear error message
+    setErrorMessage("");
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
   };
@@ -334,17 +336,18 @@ export default function AppointmentCalendar({
     const existingAppointment = getAppointmentForSlot(date, time);
     if (existingAppointment) return; // Don't allow clicking on occupied slots
 
-    setEditingAppointment(null); // Reset editing state
+    setEditingAppointment(null);
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
     setFormData({
       patientId: "",
-      doctorId: "",
+      doctorId:
+        doctors.filter((doctor) => selectedDoctorId === doctor.id)[0].id ?? "",
       appointmentTypeId: "",
       notes: "",
-    }); // Reset form
-    setErrorMessage(""); // Clear error message
-    setIsFromCalendarSlot(true); // Mark as coming from calendar slot
+    });
+    setErrorMessage("");
+    setIsFromCalendarSlot(true);
     setIsDialogOpen(true);
   };
 
@@ -501,6 +504,9 @@ export default function AppointmentCalendar({
   const timeOptions = selectedDate ? generateTimeOptions(selectedDate) : [];
 
   const handleAddAppointmentClick = () => {
+    console.log(
+      doctors.filter((doctor) => selectedDoctorId === doctor.id)[0].id
+    );
     setEditingAppointment(null);
     setSelectedDate("");
     setSelectedTime("");
@@ -540,7 +546,6 @@ export default function AppointmentCalendar({
                 <SelectValue placeholder="Select doctor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Doctors</SelectItem>
                 {doctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
                     {doctor.name}
@@ -548,21 +553,6 @@ export default function AppointmentCalendar({
                 ))}
               </SelectContent>
             </Select>
-
-            {selectedDoctorId === "all" && (
-              <Select
-                value={viewMode}
-                onValueChange={(value) => setViewMode(value)}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="combined">Combined</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
           </div>
 
           <Button onClick={() => handleAddAppointmentClick()}>
@@ -804,18 +794,18 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, doctorId: value })
                   }
                 >
-                  <SelectTrigger className='w-full'>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a doctor" />
                   </SelectTrigger>
                   <SelectContent>
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         <div className="flex items-center gap-2">
-                          <div
+                          {/* <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: doctor.color }}
-                          />
-                          {doctor.name} - {doctor.specialization}
+                          /> */}
+                          {doctor.name}
                         </div>
                       </SelectItem>
                     ))}

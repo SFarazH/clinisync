@@ -41,7 +41,7 @@ export default function DoctorManagement({
   onDeleteDoctor,
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingDoctor, setEditingDoctor] = (useState < Doctor) | (null > null);
+  const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     specialization: "",
