@@ -104,45 +104,69 @@ export default function ClinicDashboard() {
       duration: 15,
       color: "#06b6d4",
     },
+    {
+      id: "7",
+      name: "Operation",
+      duration: 120,
+      color: "#FF69B4",
+    },
   ]);
 
   const [clinicHours, setClinicHours] = useState({
     monday: {
       isOpen: true,
-      shifts: [{ start: "09:00", end: "17:00" }],
-      breaks: [{ start: "12:00", end: "13:00" }],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
+      breaks: [],
     },
     tuesday: {
       isOpen: true,
       shifts: [
-        { start: "08:00", end: "12:00" },
-        { start: "14:00", end: "18:00" },
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
       ],
       breaks: [],
     },
     wednesday: {
       isOpen: true,
-      shifts: [{ start: "09:00", end: "17:00" }],
-      breaks: [{ start: "12:30", end: "13:30" }],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
+      breaks: [],
     },
     thursday: {
       isOpen: true,
-      shifts: [{ start: "09:00", end: "17:00" }],
-      breaks: [{ start: "12:00", end: "13:00" }],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
+      breaks: [],
     },
     friday: {
       isOpen: true,
-      shifts: [{ start: "09:00", end: "17:00" }],
-      breaks: [{ start: "12:00", end: "13:00" }],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
+      breaks: [],
     },
     saturday: {
       isOpen: true,
-      shifts: [{ start: "09:00", end: "13:00" }],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
       breaks: [],
     },
     sunday: {
       isOpen: false,
-      shifts: [],
+      shifts: [
+        { start: "12:00", end: "17:00" },
+        { start: "19:00", end: "22:00" },
+      ],
       breaks: [],
     },
   });
