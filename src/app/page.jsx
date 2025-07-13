@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Clock, Settings, Plus } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Clock,
+  Settings,
+  Plus,
+  Stethoscope,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +21,7 @@ import PatientManagement from "@/components/patient-management";
 import AppointmentTypes from "@/components/appointment-types";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
+import DoctorManagement from "@/components/doctor-management";
 
 export default function ClinicDashboard() {
   const [patients, setPatients] = useState([
@@ -96,69 +104,45 @@ export default function ClinicDashboard() {
       duration: 15,
       color: "#06b6d4",
     },
-    {
-      id: "7",
-      name: "Operation",
-      duration: 120,
-      color: "#FF69B4",
-    },
   ]);
 
   const [clinicHours, setClinicHours] = useState({
     monday: {
       isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
+      shifts: [{ start: "09:00", end: "17:00" }],
+      breaks: [{ start: "12:00", end: "13:00" }],
     },
     tuesday: {
       isOpen: true,
       shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
+        { start: "08:00", end: "12:00" },
+        { start: "14:00", end: "18:00" },
       ],
       breaks: [],
     },
     wednesday: {
       isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
+      shifts: [{ start: "09:00", end: "17:00" }],
+      breaks: [{ start: "12:30", end: "13:30" }],
     },
     thursday: {
       isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
+      shifts: [{ start: "09:00", end: "17:00" }],
+      breaks: [{ start: "12:00", end: "13:00" }],
     },
     friday: {
       isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
+      shifts: [{ start: "09:00", end: "17:00" }],
+      breaks: [{ start: "12:00", end: "13:00" }],
     },
     saturday: {
       isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
+      shifts: [{ start: "09:00", end: "13:00" }],
       breaks: [],
     },
     sunday: {
       isOpen: false,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
+      shifts: [],
       breaks: [],
     },
   });
@@ -168,6 +152,7 @@ export default function ClinicDashboard() {
     {
       id: "1",
       patientId: "1",
+      doctorId: "1",
       appointmentTypeId: "1",
       date: "2024-12-30",
       startTime: "09:00",
@@ -177,6 +162,7 @@ export default function ClinicDashboard() {
     {
       id: "2",
       patientId: "3",
+      doctorId: "2",
       appointmentTypeId: "4",
       date: "2024-12-30",
       startTime: "10:15",
@@ -186,6 +172,7 @@ export default function ClinicDashboard() {
     {
       id: "3",
       patientId: "5",
+      doctorId: "3",
       appointmentTypeId: "2",
       date: "2024-12-30",
       startTime: "14:30",
@@ -195,6 +182,7 @@ export default function ClinicDashboard() {
     {
       id: "4",
       patientId: "2",
+      doctorId: "1",
       appointmentTypeId: "5",
       date: "2024-12-30",
       startTime: "16:00",
@@ -206,6 +194,7 @@ export default function ClinicDashboard() {
     {
       id: "5",
       patientId: "4",
+      doctorId: "2",
       appointmentTypeId: "6",
       date: "2024-12-31",
       startTime: "09:30",
@@ -215,6 +204,7 @@ export default function ClinicDashboard() {
     {
       id: "6",
       patientId: "1",
+      doctorId: "3",
       appointmentTypeId: "3",
       date: "2024-12-31",
       startTime: "15:00",
@@ -224,6 +214,7 @@ export default function ClinicDashboard() {
     {
       id: "7",
       patientId: "3",
+      doctorId: "1",
       appointmentTypeId: "1",
       date: "2024-12-31",
       startTime: "16:30",
@@ -235,6 +226,7 @@ export default function ClinicDashboard() {
     {
       id: "8",
       patientId: "2",
+      doctorId: "2",
       appointmentTypeId: "2",
       date: "2025-01-02",
       startTime: "09:15",
@@ -244,6 +236,7 @@ export default function ClinicDashboard() {
     {
       id: "9",
       patientId: "5",
+      doctorId: "3",
       appointmentTypeId: "1",
       date: "2025-01-02",
       startTime: "10:00",
@@ -253,6 +246,7 @@ export default function ClinicDashboard() {
     {
       id: "10",
       patientId: "4",
+      doctorId: "1",
       appointmentTypeId: "4",
       date: "2025-01-02",
       startTime: "13:15",
@@ -262,6 +256,7 @@ export default function ClinicDashboard() {
     {
       id: "11",
       patientId: "1",
+      doctorId: "2",
       appointmentTypeId: "5",
       date: "2025-01-02",
       startTime: "15:45",
@@ -273,6 +268,7 @@ export default function ClinicDashboard() {
     {
       id: "12",
       patientId: "3",
+      doctorId: "3",
       appointmentTypeId: "6",
       date: "2025-01-03",
       startTime: "09:00",
@@ -282,6 +278,7 @@ export default function ClinicDashboard() {
     {
       id: "13",
       patientId: "2",
+      doctorId: "1",
       appointmentTypeId: "1",
       date: "2025-01-03",
       startTime: "14:30",
@@ -291,6 +288,7 @@ export default function ClinicDashboard() {
     {
       id: "14",
       patientId: "4",
+      doctorId: "2",
       appointmentTypeId: "2",
       date: "2025-01-03",
       startTime: "16:00",
@@ -302,6 +300,7 @@ export default function ClinicDashboard() {
     {
       id: "15",
       patientId: "5",
+      doctorId: "3",
       appointmentTypeId: "1",
       date: "2025-01-04",
       startTime: "10:30",
@@ -311,11 +310,39 @@ export default function ClinicDashboard() {
     {
       id: "16",
       patientId: "1",
+      doctorId: "1",
       appointmentTypeId: "2",
       date: "2025-01-04",
       startTime: "12:00",
       endTime: "12:15",
       notes: "Quick check-up before weekend",
+    },
+  ]);
+
+  const [doctors, setDoctors] = useState([
+    {
+      id: "1",
+      name: "Dr. Sarah Johnson",
+      specialization: "General Medicine",
+      email: "sarah.johnson@clinic.com",
+      phone: "+1234567890",
+      color: "#3b82f6",
+    },
+    {
+      id: "2",
+      name: "Dr. Michael Chen",
+      specialization: "Cardiology",
+      email: "michael.chen@clinic.com",
+      phone: "+1234567891",
+      color: "#10b981",
+    },
+    {
+      id: "3",
+      name: "Dr. Emily Rodriguez",
+      specialization: "Pediatrics",
+      email: "emily.rodriguez@clinic.com",
+      phone: "+1234567892",
+      color: "#f59e0b",
     },
   ]);
 
@@ -392,10 +419,18 @@ export default function ClinicDashboard() {
     setAppointments(appointments.filter((apt) => apt.id !== appointmentId));
   };
 
-  const checkAppointmentOverlap = (date, startTime, endTime, excludeId) => {
+  // Updated overlap checking function - now doctor-specific
+  const checkAppointmentOverlap = (
+    date,
+    startTime,
+    endTime,
+    doctorId,
+    excludeId
+  ) => {
     return appointments.some((apt) => {
       if (excludeId && apt.id === excludeId) return false;
       if (apt.date !== date) return false;
+      if (apt.doctorId !== doctorId) return false; // Only check overlaps for the same doctor
 
       const aptStart = new Date(`${date}T${apt.startTime}`);
       const aptEnd = new Date(`${date}T${apt.endTime}`);
@@ -404,6 +439,27 @@ export default function ClinicDashboard() {
 
       return newStart < aptEnd && newEnd > aptStart;
     });
+  };
+
+  // Doctor functions
+  const addDoctor = (doctor) => {
+    const newDoctor = {
+      ...doctor,
+      id: Date.now().toString(),
+    };
+    setDoctors([...doctors, newDoctor]);
+  };
+
+  const updateDoctor = (doctorId, updatedDoctor) => {
+    setDoctors(
+      doctors.map((doctor) =>
+        doctor.id === doctorId ? { ...updatedDoctor, id: doctorId } : doctor
+      )
+    );
+  };
+
+  const deleteDoctor = (doctorId) => {
+    setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
   };
 
   return (
@@ -434,7 +490,7 @@ export default function ClinicDashboard() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Calendar
@@ -442,6 +498,10 @@ export default function ClinicDashboard() {
             <TabsTrigger value="patients" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Patients
+            </TabsTrigger>
+            <TabsTrigger value="doctors" className="flex items-center gap-2">
+              <Stethoscope className="w-4 h-4" />
+              Doctors
             </TabsTrigger>
             <TabsTrigger
               value="appointments"
@@ -469,6 +529,7 @@ export default function ClinicDashboard() {
                 <AppointmentCalendar
                   appointments={appointments}
                   patients={patients}
+                  doctors={doctors}
                   appointmentTypes={appointmentTypes}
                   clinicHours={clinicHours}
                   onAddAppointment={addAppointment}
@@ -486,6 +547,15 @@ export default function ClinicDashboard() {
               onAddPatient={addPatient}
               onUpdatePatient={updatePatient}
               onDeletePatient={deletePatient}
+            />
+          </TabsContent>
+
+          <TabsContent value="doctors" className="space-y-6">
+            <DoctorManagement
+              doctors={doctors}
+              onAddDoctor={addDoctor}
+              onUpdateDoctor={updateDoctor}
+              onDeleteDoctor={deleteDoctor}
             />
           </TabsContent>
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { DialogFooter } from "@/components/ui/dialog";
-import React, { useEffect } from "react";
+
+import React from "react";
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -29,6 +30,7 @@ import { toast } from "@/hooks/use-toast";
 export default function AppointmentCalendar({
   appointments,
   patients,
+  doctors,
   appointmentTypes,
   clinicHours,
   onAddAppointment,
@@ -40,8 +42,11 @@ export default function AppointmentCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("all");
+  const [viewMode, setViewMode] = useState("individual");
   const [formData, setFormData] = useState({
     patientId: "",
+    doctorId: "",
     appointmentTypeId: "",
     notes: "",
   });
@@ -76,7 +81,7 @@ export default function AppointmentCalendar({
   // Generate time slots for the week (15-minute intervals grouped by 30-minute blocks)
   const generateTimeSlots = () => {
     const slots = [];
-    const startHour = 11;
+    const startHour = 8;
 
     // Find the latest end time across all days to determine the calendar range
     const getLatestEndTime = () => {
@@ -111,12 +116,7 @@ export default function AppointmentCalendar({
     // Add final boundary time (non-clickable) - one hour after the latest end time
     const boundaryHour = endHour + 1;
     const boundaryTime = `${boundaryHour.toString().padStart(2, "0")}:00`;
-    slots.push({
-      time: boundaryTime,
-      isMainSlot: true,
-      isClickable: false,
-      isBoundary: true,
-    });
+    slots.push({ time: boundaryTime, isMainSlot: true, isClickable: false });
 
     return slots;
   };
@@ -164,7 +164,18 @@ export default function AppointmentCalendar({
   // Get appointments for a specific date and time
   const getAppointmentForSlot = (date, time) => {
     const dateString = date.toISOString().split("T")[0];
-    return appointments.find((apt) => {
+
+    // Filter appointments based on selected doctor
+    const getFilteredAppointments = () => {
+      if (selectedDoctorId === "all") {
+        return appointments;
+      }
+      return appointments.filter((apt) => apt.doctorId === selectedDoctorId);
+    };
+
+    const filteredAppointments = getFilteredAppointments();
+
+    return filteredAppointments.find((apt) => {
       if (apt.date !== dateString) return false;
       const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
       const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
@@ -179,7 +190,7 @@ export default function AppointmentCalendar({
     const endTime = new Date(`2000-01-01T${appointment.endTime}:00`);
     const durationMinutes =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    return Math.max(1, durationMinutes / 15);
+    return Math.max(1, durationMinutes / 15); // Each slot is now 15 minutes
   };
 
   // Check if this is the first slot of an appointment
@@ -254,11 +265,20 @@ export default function AppointmentCalendar({
       return;
     }
 
-    // Check for overlaps (exclude the current appointment being moved)
-    if (onCheckOverlap(dateString, time, newEndTime, draggedAppointment.id)) {
+    // Check for overlaps with the same doctor (exclude the current appointment being moved)
+    if (
+      onCheckOverlap(
+        dateString,
+        time,
+        newEndTime,
+        draggedAppointment.doctorId,
+        draggedAppointment.id
+      )
+    ) {
       toast({
         title: "Scheduling Conflict",
-        description: "This time slot conflicts with an existing appointment.",
+        description:
+          "This time slot conflicts with an existing appointment for this doctor.",
         variant: "destructive",
       });
       return;
@@ -267,6 +287,7 @@ export default function AppointmentCalendar({
     // Update the appointment
     onUpdateAppointment(draggedAppointment.id, {
       patientId: draggedAppointment.patientId,
+      doctorId: draggedAppointment.doctorId,
       appointmentTypeId: draggedAppointment.appointmentTypeId,
       date: dateString,
       startTime: time,
@@ -293,6 +314,7 @@ export default function AppointmentCalendar({
     setSelectedTime(appointment.startTime);
     setFormData({
       patientId: appointment.patientId,
+      doctorId: appointment.doctorId,
       appointmentTypeId: appointment.appointmentTypeId,
       notes: appointment.notes || "",
     });
@@ -310,7 +332,12 @@ export default function AppointmentCalendar({
     setEditingAppointment(null); // Reset editing state
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" }); // Reset form
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    }); // Reset form
     setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(true); // Mark as coming from calendar slot
     setIsDialogOpen(true);
@@ -325,7 +352,12 @@ export default function AppointmentCalendar({
       });
       setIsDialogOpen(false);
       setEditingAppointment(null);
-      setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+      setFormData({
+        patientId: "",
+        doctorId: "",
+        appointmentTypeId: "",
+        notes: "",
+      });
     }
   };
 
@@ -345,12 +377,18 @@ export default function AppointmentCalendar({
     );
     const endTime = endDateTime.toTimeString().slice(0, 5);
 
-    // Check for overlaps (exclude current appointment if editing)
+    // Check for overlaps with the same doctor (exclude current appointment if editing)
     if (
-      onCheckOverlap(selectedDate, startTime, endTime, editingAppointment?.id)
+      onCheckOverlap(
+        selectedDate,
+        startTime,
+        endTime,
+        formData.doctorId,
+        editingAppointment?.id
+      )
     ) {
       setErrorMessage(
-        "This time slot conflicts with an existing appointment. Please select a different time."
+        "This time slot conflicts with an existing appointment for this doctor. Please select a different time."
       );
       return;
     }
@@ -358,6 +396,7 @@ export default function AppointmentCalendar({
     if (editingAppointment) {
       onUpdateAppointment(editingAppointment.id, {
         patientId: formData.patientId,
+        doctorId: formData.doctorId,
         appointmentTypeId: formData.appointmentTypeId,
         date: selectedDate,
         startTime,
@@ -371,6 +410,7 @@ export default function AppointmentCalendar({
     } else {
       onAddAppointment({
         patientId: formData.patientId,
+        doctorId: formData.doctorId,
         appointmentTypeId: formData.appointmentTypeId,
         date: selectedDate,
         startTime,
@@ -383,7 +423,12 @@ export default function AppointmentCalendar({
       });
     }
 
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    });
     setEditingAppointment(null);
     setErrorMessage("");
     setIsDialogOpen(false);
@@ -418,7 +463,7 @@ export default function AppointmentCalendar({
 
     // Find the latest end time for this specific day
     const getLatestEndTimeForDay = () => {
-      let latestHour = clinicEndHour ?? 23;
+      let latestHour = clinicEndHour ?? 23; // default fallback
       dayHours.shifts.forEach((shift) => {
         const endHour = Number.parseInt(shift.end.split(":")[0]);
         if (endHour > latestHour) {
@@ -454,7 +499,12 @@ export default function AppointmentCalendar({
     setEditingAppointment(null);
     setSelectedDate("");
     setSelectedTime("");
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    });
     setErrorMessage("");
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
@@ -475,7 +525,41 @@ export default function AppointmentCalendar({
             year: "numeric",
           })}
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="flex gap-2">
+            <Select
+              value={selectedDoctorId}
+              onValueChange={setSelectedDoctorId}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Doctors</SelectItem>
+                {doctors.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id}>
+                    {doctor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {selectedDoctorId === "all" && (
+              <Select
+                value={viewMode}
+                onValueChange={(value) => setViewMode(value)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="combined">Combined</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           <Button onClick={() => handleAddAppointmentClick()}>
             <Plus className="w-4 h-4 mr-2" />
             Add Appointment
@@ -504,7 +588,7 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      <Card className="p-0 border-black overflow-hidden">
+      <Card>
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
             <div className="p-4 border-r bg-gray-50"></div>
@@ -539,23 +623,20 @@ export default function AppointmentCalendar({
                     isMainSlot
                       ? "border-b border-gray-100"
                       : "border-b-2 border-gray-200"
-                  } last:border-b-0 h-[30px]`}
+                  } last:border-b-0 min-h-[40px]`}
                 >
                   <div
-                    className={`p-2 border-r text-sm flex items-start ${
-                      isMainSlot ? "font-medium" : "font-medium text-sm"
-                    } ${
-                      !isClickable
-                        ? slot.isBoundary
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-500"
-                        : ""
-                    }`}
+                    className={`p-2 border-r bg-gray-50 text-sm text-muted-foreground flex items-start ${
+                      isMainSlot
+                        ? "font-medium text-black"
+                        : "font-medium text-sm"
+                    } ${!isClickable ? "bg-gray-100 text-gray-500" : ""}`}
                   >
-                    {slot.isBoundary ? `END - ${time}` : time}
+                    {isMainSlot ? time : time}
                   </div>
                   {isClickable
-                    ? weekDays.map((day, dayIndex) => {
+                    ? // Render normal clickable slots
+                      weekDays.map((day, dayIndex) => {
                         const appointment = getAppointmentForSlot(day, time);
                         const isAvailable = isTimeSlotAvailable(day, time);
                         const isOpen = isDayOpen(day);
@@ -563,11 +644,9 @@ export default function AppointmentCalendar({
                         return (
                           <div
                             key={`${dayIndex}-${timeIndex}`}
-                            className={`group ${
-                              isAvailable ? "border-r" : ""
-                            } last:border-r-0 relative h-[30px] ${
+                            className={`border-r last:border-r-0 relative ${
                               isOpen && isAvailable
-                                ? "hover:bg-blue-100 cursor-pointer"
+                                ? "hover:bg-blue-50 cursor-pointer"
                                 : "bg-gray-100"
                             } ${
                               dragOverSlot?.date ===
@@ -583,11 +662,6 @@ export default function AppointmentCalendar({
                             onDragLeave={handleDragLeave}
                             onDrop={(e) => handleDrop(e, day, time)}
                           >
-                            {!appointment && isMainSlot && isAvailable && (
-                              <span className="opacity-20 text-sm flex justify-center items-center h-full w-full group-hover:hidden">
-                                {time}
-                              </span>
-                            )}
                             {appointment &&
                               isAppointmentStart(appointment, time) && (
                                 <div
@@ -596,14 +670,21 @@ export default function AppointmentCalendar({
                                     handleDragStart(e, appointment)
                                   }
                                   onDragEnd={handleDragEnd}
-                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden cursor-move hover:shadow-md transition-shadow"
+                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
                                   style={{
-                                    backgroundColor: appointmentTypes.find(
-                                      (t) =>
-                                        t.id === appointment.appointmentTypeId
-                                    )?.color,
+                                    backgroundColor:
+                                      selectedDoctorId === "all" &&
+                                      viewMode === "combined"
+                                        ? doctors.find(
+                                            (d) => d.id === appointment.doctorId
+                                          )?.color
+                                        : appointmentTypes.find(
+                                            (t) =>
+                                              t.id ===
+                                              appointment.appointmentTypeId
+                                          )?.color,
                                     height: `${
-                                      getAppointmentHeight(appointment) * 30 - 3
+                                      getAppointmentHeight(appointment) * 40 - 4
                                     }px`,
                                     zIndex: 10,
                                   }}
@@ -619,19 +700,23 @@ export default function AppointmentCalendar({
                                       )?.name
                                     }
                                   </div>
-                                  {/* <div className="text-xs opacity-75 truncate">
-                                    {
-                                      appointmentTypes.find(
-                                        (t) =>
-                                          t.id === appointment.appointmentTypeId
-                                      )?.name
-                                    }
-                                  </div> */}
+                                  <div className="text-xs opacity-75 truncate">
+                                    {selectedDoctorId === "all" &&
+                                    viewMode === "combined"
+                                      ? doctors.find(
+                                          (d) => d.id === appointment.doctorId
+                                        )?.name
+                                      : appointmentTypes.find(
+                                          (t) =>
+                                            t.id ===
+                                            appointment.appointmentTypeId
+                                        )?.name}
+                                  </div>
                                 </div>
                               )}
                             {isOpen && isAvailable && !appointment && (
                               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                <Plus className="w-2 h-2 text-blue-600" />
+                                <Plus className="w-3 h-3 text-blue-600" />
                               </div>
                             )}
                           </div>
@@ -641,9 +726,7 @@ export default function AppointmentCalendar({
                       weekDays.map((day, dayIndex) => (
                         <div
                           key={`${dayIndex}-${timeIndex}`}
-                          className={`border-r last:border-r-0 ${
-                            slot.isBoundary ? "bg-red-100" : "bg-gray-100"
-                          }`}
+                          className="border-r last:border-r-0 bg-gray-100"
                         />
                       ))}
                 </div>
@@ -683,13 +766,40 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, patientId: value })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select a patient" />
                   </SelectTrigger>
                   <SelectContent>
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="doctor">Doctor</Label>
+                <Select
+                  value={formData.doctorId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, doctorId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctors.map((doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: doctor.color }}
+                          />
+                          {doctor.name} - {doctor.specialization}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -704,7 +814,7 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, appointmentTypeId: value })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -754,21 +864,15 @@ export default function AppointmentCalendar({
                       value={selectedTime}
                       onValueChange={setSelectedTime}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select start time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeOptions.length > 0 ? (
-                          timeOptions.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="na" disabled>
-                            Please select a date
+                        {timeOptions.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
                           </SelectItem>
-                        )}
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -806,6 +910,7 @@ export default function AppointmentCalendar({
                     setEditingAppointment(null);
                     setFormData({
                       patientId: "",
+                      doctorId: "",
                       appointmentTypeId: "",
                       notes: "",
                     });
@@ -819,6 +924,7 @@ export default function AppointmentCalendar({
                   type="submit"
                   disabled={
                     !formData.patientId ||
+                    !formData.doctorId ||
                     !formData.appointmentTypeId ||
                     !selectedTime
                   }
