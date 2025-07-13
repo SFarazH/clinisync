@@ -1,7 +1,8 @@
 "use client";
 
 import { DialogFooter } from "@/components/ui/dialog";
-import React, { useEffect } from "react";
+
+import React from "react";
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -29,6 +30,7 @@ import { toast } from "@/hooks/use-toast";
 export default function AppointmentCalendar({
   appointments,
   patients,
+  doctors,
   appointmentTypes,
   clinicHours,
   onAddAppointment,
@@ -40,8 +42,11 @@ export default function AppointmentCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("all");
+  const [viewMode, setViewMode] = useState("individual");
   const [formData, setFormData] = useState({
     patientId: "",
+    doctorId: "",
     appointmentTypeId: "",
     notes: "",
   });
@@ -164,7 +169,18 @@ export default function AppointmentCalendar({
   // Get appointments for a specific date and time
   const getAppointmentForSlot = (date, time) => {
     const dateString = date.toISOString().split("T")[0];
-    return appointments.find((apt) => {
+
+    // Filter appointments based on selected doctor
+    const getFilteredAppointments = () => {
+      if (selectedDoctorId === "all") {
+        return appointments;
+      }
+      return appointments.filter((apt) => apt.doctorId === selectedDoctorId);
+    };
+
+    const filteredAppointments = getFilteredAppointments();
+
+    return filteredAppointments.find((apt) => {
       if (apt.date !== dateString) return false;
       const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
       const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
@@ -254,11 +270,20 @@ export default function AppointmentCalendar({
       return;
     }
 
-    // Check for overlaps (exclude the current appointment being moved)
-    if (onCheckOverlap(dateString, time, newEndTime, draggedAppointment.id)) {
+    // Check for overlaps with the same doctor (exclude the current appointment being moved)
+    if (
+      onCheckOverlap(
+        dateString,
+        time,
+        newEndTime,
+        draggedAppointment.doctorId,
+        draggedAppointment.id
+      )
+    ) {
       toast({
         title: "Scheduling Conflict",
-        description: "This time slot conflicts with an existing appointment.",
+        description:
+          "This time slot conflicts with an existing appointment for this doctor.",
         variant: "destructive",
       });
       return;
@@ -267,6 +292,7 @@ export default function AppointmentCalendar({
     // Update the appointment
     onUpdateAppointment(draggedAppointment.id, {
       patientId: draggedAppointment.patientId,
+      doctorId: draggedAppointment.doctorId,
       appointmentTypeId: draggedAppointment.appointmentTypeId,
       date: dateString,
       startTime: time,
@@ -293,6 +319,7 @@ export default function AppointmentCalendar({
     setSelectedTime(appointment.startTime);
     setFormData({
       patientId: appointment.patientId,
+      doctorId: appointment.doctorId,
       appointmentTypeId: appointment.appointmentTypeId,
       notes: appointment.notes || "",
     });
@@ -310,7 +337,12 @@ export default function AppointmentCalendar({
     setEditingAppointment(null); // Reset editing state
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" }); // Reset form
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    }); // Reset form
     setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(true); // Mark as coming from calendar slot
     setIsDialogOpen(true);
@@ -325,7 +357,12 @@ export default function AppointmentCalendar({
       });
       setIsDialogOpen(false);
       setEditingAppointment(null);
-      setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+      setFormData({
+        patientId: "",
+        doctorId: "",
+        appointmentTypeId: "",
+        notes: "",
+      });
     }
   };
 
@@ -345,12 +382,18 @@ export default function AppointmentCalendar({
     );
     const endTime = endDateTime.toTimeString().slice(0, 5);
 
-    // Check for overlaps (exclude current appointment if editing)
+    // Check for overlaps with the same doctor (exclude current appointment if editing)
     if (
-      onCheckOverlap(selectedDate, startTime, endTime, editingAppointment?.id)
+      onCheckOverlap(
+        selectedDate,
+        startTime,
+        endTime,
+        formData.doctorId,
+        editingAppointment?.id
+      )
     ) {
       setErrorMessage(
-        "This time slot conflicts with an existing appointment. Please select a different time."
+        "This time slot conflicts with an existing appointment for this doctor. Please select a different time."
       );
       return;
     }
@@ -358,6 +401,7 @@ export default function AppointmentCalendar({
     if (editingAppointment) {
       onUpdateAppointment(editingAppointment.id, {
         patientId: formData.patientId,
+        doctorId: formData.doctorId,
         appointmentTypeId: formData.appointmentTypeId,
         date: selectedDate,
         startTime,
@@ -371,6 +415,7 @@ export default function AppointmentCalendar({
     } else {
       onAddAppointment({
         patientId: formData.patientId,
+        doctorId: formData.doctorId,
         appointmentTypeId: formData.appointmentTypeId,
         date: selectedDate,
         startTime,
@@ -383,7 +428,12 @@ export default function AppointmentCalendar({
       });
     }
 
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    });
     setEditingAppointment(null);
     setErrorMessage("");
     setIsDialogOpen(false);
@@ -454,7 +504,12 @@ export default function AppointmentCalendar({
     setEditingAppointment(null);
     setSelectedDate("");
     setSelectedTime("");
-    setFormData({ patientId: "", appointmentTypeId: "", notes: "" });
+    setFormData({
+      patientId: "",
+      doctorId: "",
+      appointmentTypeId: "",
+      notes: "",
+    });
     setErrorMessage("");
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
@@ -475,7 +530,41 @@ export default function AppointmentCalendar({
             year: "numeric",
           })}
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="flex gap-2">
+            <Select
+              value={selectedDoctorId}
+              onValueChange={setSelectedDoctorId}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select doctor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Doctors</SelectItem>
+                {doctors.map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.id}>
+                    {doctor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {selectedDoctorId === "all" && (
+              <Select
+                value={viewMode}
+                onValueChange={(value) => setViewMode(value)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="combined">Combined</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           <Button onClick={() => handleAddAppointmentClick()}>
             <Plus className="w-4 h-4 mr-2" />
             Add Appointment
@@ -598,10 +687,17 @@ export default function AppointmentCalendar({
                                   onDragEnd={handleDragEnd}
                                   className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden cursor-move hover:shadow-md transition-shadow"
                                   style={{
-                                    backgroundColor: appointmentTypes.find(
-                                      (t) =>
-                                        t.id === appointment.appointmentTypeId
-                                    )?.color,
+                                    backgroundColor:
+                                      selectedDoctorId === "all" &&
+                                      viewMode === "combined"
+                                        ? doctors.find(
+                                            (d) => d.id === appointment.doctorId
+                                          )?.color
+                                        : appointmentTypes.find(
+                                            (t) =>
+                                              t.id ===
+                                              appointment.appointmentTypeId
+                                          )?.color,
                                     height: `${
                                       getAppointmentHeight(appointment) * 30 - 3
                                     }px`,
@@ -620,12 +716,16 @@ export default function AppointmentCalendar({
                                     }
                                   </div>
                                   {/* <div className="text-xs opacity-75 truncate">
-                                    {
-                                      appointmentTypes.find(
-                                        (t) =>
-                                          t.id === appointment.appointmentTypeId
-                                      )?.name
-                                    }
+                                    {selectedDoctorId === "all" &&
+                                    viewMode === "combined"
+                                      ? doctors.find(
+                                          (d) => d.id === appointment.doctorId
+                                        )?.name
+                                      : appointmentTypes.find(
+                                          (t) =>
+                                            t.id ===
+                                            appointment.appointmentTypeId
+                                        )?.name}
                                   </div> */}
                                 </div>
                               )}
@@ -690,6 +790,33 @@ export default function AppointmentCalendar({
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="doctor">Doctor</Label>
+                <Select
+                  value={formData.doctorId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, doctorId: value })
+                  }
+                >
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder="Select a doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctors.map((doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: doctor.color }}
+                          />
+                          {doctor.name} - {doctor.specialization}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -806,6 +933,7 @@ export default function AppointmentCalendar({
                     setEditingAppointment(null);
                     setFormData({
                       patientId: "",
+                      doctorId: "",
                       appointmentTypeId: "",
                       notes: "",
                     });
@@ -819,6 +947,7 @@ export default function AppointmentCalendar({
                   type="submit"
                   disabled={
                     !formData.patientId ||
+                    !formData.doctorId ||
                     !formData.appointmentTypeId ||
                     !selectedTime
                   }
