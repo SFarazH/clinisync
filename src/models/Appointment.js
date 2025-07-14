@@ -12,7 +12,11 @@ const appointmentSchema = new mongoose.Schema(
       ref: "Doctor",
       required: true,
     },
-    // serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service" },
+    procedureId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Procedure",
+      required: true,
+    },
     date: { type: Date, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
@@ -21,7 +25,7 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["scheduled", "cancelled", "completed"],
       default: "scheduled",
     },
-    reason: String,
+    notes: String,
   },
   { timestamps: true }
 );
