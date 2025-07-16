@@ -15,7 +15,11 @@ export async function POST(req) {
     }
 
     const jwtToken = jwt.sign(
-      result.data.toObject(),
+      {
+        id: result.data._id,
+        role: result.data.role,
+        email: result.data.email,
+      },
       process.env.JWT_SECRET_KEY,
       {
         expiresIn: "1d",
