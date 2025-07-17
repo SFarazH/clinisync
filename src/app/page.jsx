@@ -108,7 +108,7 @@ export default function ClinicDashboard() {
     {
       id: "5",
       name: "Lab Results Review",
-      duration: 20,
+      duration: 15,
       color: "#8b5cf6",
     },
     {
@@ -121,7 +121,7 @@ export default function ClinicDashboard() {
       id: "7",
       name: "Operation",
       duration: 120,
-      color: "#FF69B4",
+      color: "#84cc16",
     },
   ]);
 
