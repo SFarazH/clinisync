@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Clock, Settings, Plus } from "lucide-react";
+import { Calendar, Users, Clock, Settings, Plus, Stethoscope } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import PatientManagement from "@/components/patient-management";
 import AppointmentTypes from "@/components/appointment-types";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
+import DoctorManagement from "@/components/doctor-management";
 
 export default function ClinicDashboard() {
   const [patients, setPatients] = useState([
@@ -451,6 +452,27 @@ export default function ClinicDashboard() {
     });
   };
 
+  // Doctor functions
+  const addDoctor = (doctor) => {
+    const newDoctor = {
+      ...doctor,
+      id: Date.now().toString(),
+    };
+    setDoctors([...doctors, newDoctor]);
+  };
+
+  const updateDoctor = (doctorId, updatedDoctor) => {
+    setDoctors(
+      doctors.map((doctor) =>
+        doctor.id === doctorId ? { ...updatedDoctor, id: doctorId } : doctor
+      )
+    );
+  };
+
+  const deleteDoctor = (doctorId) => {
+    setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -479,7 +501,7 @@ export default function ClinicDashboard() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Calendar
@@ -487,6 +509,10 @@ export default function ClinicDashboard() {
             <TabsTrigger value="patients" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Patients
+            </TabsTrigger>
+            <TabsTrigger value="doctors" className="flex items-center gap-2">
+              <Stethoscope className="w-4 h-4" />
+              Doctors
             </TabsTrigger>
             <TabsTrigger
               value="appointments"
@@ -532,6 +558,15 @@ export default function ClinicDashboard() {
               onAddPatient={addPatient}
               onUpdatePatient={updatePatient}
               onDeletePatient={deletePatient}
+            />
+          </TabsContent>
+
+          <TabsContent value="doctors" className="space-y-6">
+            <DoctorManagement
+              doctors={doctors}
+              onAddDoctor={addDoctor}
+              onUpdateDoctor={updateDoctor}
+              onDeleteDoctor={deleteDoctor}
             />
           </TabsContent>
 
