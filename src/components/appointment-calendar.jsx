@@ -120,7 +120,12 @@ export default function AppointmentCalendar({
     // Add final boundary time (non-clickable) - one hour after the latest end time
     const boundaryHour = endHour + 1;
     const boundaryTime = `${boundaryHour.toString().padStart(2, "0")}:00`;
-    slots.push({ time: boundaryTime, isMainSlot: true, isClickable: false });
+    slots.push({
+      time: boundaryTime,
+      isMainSlot: true,
+      isClickable: false,
+      isBoundary: true,
+    });
 
     return slots;
   };
@@ -194,7 +199,6 @@ export default function AppointmentCalendar({
       const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
 
       // Check for overlap: (startA < endB) && (endA > startB)
-      // console.log(aptStart < currentSlotEnd && aptEnd > currentSlotStart);
       return aptStart < currentSlotEnd && aptEnd > currentSlotStart;
     });
   };
@@ -255,13 +259,12 @@ export default function AppointmentCalendar({
 
     if (!draggedAppointment) return;
 
+    const dateString = date.toISOString().split("T")[0];
     const appointmentType = appointmentTypes.find(
       (t) => t.id === draggedAppointment.appointmentTypeId
     );
 
     if (!appointmentType) return;
-
-    const dateString = date.toISOString().split("T")[0];
 
     // Calculate new end time
     const startDateTime = new Date(`${dateString}T${time}:00`);
@@ -362,9 +365,9 @@ export default function AppointmentCalendar({
       doctorId: "",
       appointmentTypeId: "",
       notes: "",
-    }); // Reset form
-    setErrorMessage(""); // Clear error message
-    setIsFromCalendarSlot(true); // Mark as coming from calendar slot
+    });
+    setErrorMessage("");
+    setIsFromCalendarSlot(true);
     setIsDialogOpen(true);
   };
 
@@ -388,7 +391,7 @@ export default function AppointmentCalendar({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Clear any previous error
+    setErrorMessage("");
 
     const appointmentType = appointmentTypes.find(
       (type) => type.id === formData.appointmentTypeId
@@ -598,7 +601,7 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      <Card>
+      <Card className="p-0 border-black overflow-hidden">
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
             <div className="p-4 border-r bg-gray-50"></div>
@@ -633,80 +636,48 @@ export default function AppointmentCalendar({
                     isMainSlot
                       ? "border-b border-gray-100"
                       : "border-b-2 border-gray-200"
-                  } last:border-b-0 min-h-[40px]`}
+                  } last:border-b-0 h-[30px]`}
                 >
                   <div
-                    className={`p-2 border-r bg-gray-50 text-sm text-muted-foreground flex items-start ${
-                      isMainSlot
-                        ? "font-medium text-black"
-                        : "font-medium text-sm"
-                    } ${!isClickable ? "bg-gray-100 text-gray-500" : ""}`}
+                    className={`p-2 border-r text-sm flex items-start ${
+                      isMainSlot ? "font-medium" : "font-medium text-sm"
+                    } ${
+                      !isClickable
+                        ? slot.isBoundary
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-500"
+                        : ""
+                    }`}
                   >
-                    {isMainSlot ? time : time}
+                    {slot.isBoundary ? `END - ${time}` : time}
                   </div>
                   {isClickable
-                    ? // Render normal clickable slots
-                      weekDays.map((day, dayIndex) => {
+                    ? weekDays.map((day, dayIndex) => {
                         const isAvailable = isTimeSlotAvailable(day, time);
                         const isOpen = isDayOpen(day);
 
                         return (
                           <div
                             key={`${dayIndex}-${timeIndex}`}
-                            className={`border-r last:border-r-0 relative ${
-                              isOpen &&
-                              isAvailable &&
-                              !(selectedDoctorId !== "all"
-                                ? getSingleAppointmentForSlot(day, time)
-                                : false)
-                                ? "hover:bg-blue-50 cursor-pointer"
+                            className={`group ${
+                              isAvailable ? "border-r" : ""
+                            } last:border-r-0 relative h-[30px] ${
+                              isOpen && isAvailable
+                                ? "hover:bg-blue-100 cursor-pointer"
                                 : "bg-gray-100"
                             } ${
                               dragOverSlot?.date ===
                                 day.toISOString().split("T")[0] &&
                               dragOverSlot?.time === time &&
                               isOpen &&
-                              isAvailable &&
-                              !(selectedDoctorId !== "all"
-                                ? getSingleAppointmentForSlot(day, time)
-                                : false)
+                              isAvailable
                                 ? "bg-green-100 border-2 border-green-400 border-dashed"
                                 : ""
                             }`}
-                            onClick={() => {
-                              if (
-                                isOpen &&
-                                isAvailable &&
-                                !(selectedDoctorId !== "all"
-                                  ? getSingleAppointmentForSlot(day, time)
-                                  : false)
-                              ) {
-                                handleTimeSlotClick(day, time);
-                              }
-                            }}
-                            onDragOver={(e) => {
-                              if (
-                                isOpen &&
-                                isAvailable &&
-                                !(selectedDoctorId !== "all"
-                                  ? getSingleAppointmentForSlot(day, time)
-                                  : false)
-                              ) {
-                                handleDragOver(e, day, time);
-                              }
-                            }}
+                            onClick={() => handleTimeSlotClick(day, time)}
+                            onDragOver={(e) => handleDragOver(e, day, time)}
                             onDragLeave={handleDragLeave}
-                            onDrop={(e) => {
-                              if (
-                                isOpen &&
-                                isAvailable &&
-                                !(selectedDoctorId !== "all"
-                                  ? getSingleAppointmentForSlot(day, time)
-                                  : false)
-                              ) {
-                                handleDrop(e, day, time);
-                              }
-                            }}
+                            onDrop={(e) => handleDrop(e, day, time)}
                           >
                             {selectedDoctorId === "all"
                               ? (() => {
@@ -730,7 +701,7 @@ export default function AppointmentCalendar({
                                                 )
                                               : "#FFEBC6"
                                           }`,
-                                          height: `${40 - 4}px`,
+                                          height: `${30 - 3}px`,
                                           zIndex: 10,
                                           display: "flex",
                                           alignItems: "center",
@@ -818,8 +789,8 @@ export default function AppointmentCalendar({
                                             )?.color,
                                           height: `${
                                             getAppointmentHeight(appointment) *
-                                              40 -
-                                            4
+                                              30 -
+                                            3
                                           }px`,
                                           zIndex: 10,
                                         }}
@@ -865,7 +836,9 @@ export default function AppointmentCalendar({
                       weekDays.map((day, dayIndex) => (
                         <div
                           key={`${dayIndex}-${timeIndex}`}
-                          className="border-r last:border-r-0 bg-gray-100"
+                          className={`border-r last:border-r-0 ${
+                            slot.isBoundary ? "bg-red-100" : "bg-gray-100"
+                          }`}
                         />
                       ))}
                 </div>
@@ -905,7 +878,7 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, patientId: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a patient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -926,18 +899,18 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, doctorId: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a doctor" />
                   </SelectTrigger>
                   <SelectContent>
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         <div className="flex items-center gap-2">
-                          <div
+                          {/* <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: doctor.color }}
-                          />
-                          {doctor.name} - {doctor.specialization}
+                          /> */}
+                          {doctor.name}
                         </div>
                       </SelectItem>
                     ))}
@@ -953,7 +926,7 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, appointmentTypeId: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1003,15 +976,21 @@ export default function AppointmentCalendar({
                       value={selectedTime}
                       onValueChange={setSelectedTime}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select start time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeOptions.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
+                        {timeOptions.length > 0 ? (
+                          timeOptions.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="na" disabled>
+                            Please select a date
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
