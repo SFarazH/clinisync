@@ -1,7 +1,4 @@
 "use client";
-
-import { DialogFooter } from "@/components/ui/dialog";
-
 import React from "react";
 
 import { useState } from "react";
@@ -14,6 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -42,10 +40,7 @@ export default function AppointmentCalendar({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDoctorId, setSelectedDoctorId] = useState(
-    doctors.length > 0 ? doctors[0].id : ""
-  );
-  const [viewMode, setViewMode] = useState("individual");
+  const [selectedDoctorId, setSelectedDoctorId] = useState("all");
   const [formData, setFormData] = useState({
     patientId: "",
     doctorId: "",
@@ -57,8 +52,16 @@ export default function AppointmentCalendar({
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragOverSlot, setDragOverSlot] = useState(null);
+  const [overlappingAppointmentsDialog, setOverlappingAppointmentsDialog] =
+    useState({
+      isOpen: false,
+      appointments: [],
+      timeSlot: "",
+      date: "",
+    });
 
-  const clinicEndHour = 23;
+  const slotsStartHour = 9;
+  const slotsEndHour = 23;
 
   // Get the start of the week (Sunday)
   const getWeekStart = (date) => {
@@ -83,11 +86,10 @@ export default function AppointmentCalendar({
   // Generate time slots for the week (15-minute intervals grouped by 30-minute blocks)
   const generateTimeSlots = () => {
     const slots = [];
-    const startHour = 11;
 
     // Find the latest end time across all days to determine the calendar range
     const getLatestEndTime = () => {
-      let latestHour = clinicEndHour ?? 23; // default fallback
+      let latestHour = slotsEndHour ?? 23; // default fallback
 
       Object.values(clinicHours).forEach((dayHours) => {
         if (dayHours.isOpen && dayHours.shifts.length > 0) {
@@ -105,12 +107,12 @@ export default function AppointmentCalendar({
 
     const endHour = getLatestEndTime();
 
-    for (let hour = startHour; hour <= endHour; hour++) {
+    for (let hour = slotsStartHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
         const timeString = `${hour.toString().padStart(2, "0")}:${minute
           .toString()
           .padStart(2, "0")}`;
-        const isMainSlot = minute === 0 || minute === 30; // Main slots at :00 and :30
+        const isMainSlot = minute === 0 || minute === 30;
         slots.push({ time: timeString, isMainSlot, isClickable: true });
       }
     }
@@ -118,12 +120,7 @@ export default function AppointmentCalendar({
     // Add final boundary time (non-clickable) - one hour after the latest end time
     const boundaryHour = endHour + 1;
     const boundaryTime = `${boundaryHour.toString().padStart(2, "0")}:00`;
-    slots.push({
-      time: boundaryTime,
-      isMainSlot: true,
-      isClickable: false,
-      isBoundary: true,
-    });
+    slots.push({ time: boundaryTime, isMainSlot: true, isClickable: false });
 
     return slots;
   };
@@ -168,36 +165,47 @@ export default function AppointmentCalendar({
     return !isDuringBreak;
   };
 
-  // Get appointments for a specific date and time
-  const getAppointmentForSlot = (date, time) => {
+  const getSingleAppointmentForSlot = (date, time) => {
     const dateString = date.toISOString().split("T")[0];
 
-    // Filter appointments based on selected doctor
-    const getFilteredAppointments = () => {
-      if (selectedDoctorId === "all") {
-        return appointments;
-      }
-      return appointments.filter((apt) => apt.doctorId === selectedDoctorId);
-    };
+    const appointmentsToConsider =
+      selectedDoctorId === "all"
+        ? appointments
+        : appointments.filter((apt) => apt.doctorId === selectedDoctorId);
 
-    const filteredAppointments = getFilteredAppointments();
-
-    return filteredAppointments.find((apt) => {
+    return appointmentsToConsider.find((apt) => {
       if (apt.date !== dateString) return false;
       const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
       const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
-      const slotTime = new Date(`2000-01-01T${time}:00`);
-      return slotTime >= aptStart && slotTime < aptEnd;
+      const slotTimeObj = new Date(`2000-01-01T${time}:00`);
+      return slotTimeObj >= aptStart && slotTimeObj < aptEnd;
     });
   };
 
-  // Calculate appointment height based on duration (each slot is now 15 minutes)
+  // Get all appointments that overlap with a specific 15-minute slot for the combined view.
+  const getAppointmentsForCombinedSlot = (date, slotTime) => {
+    const dateString = date.toISOString().split("T")[0];
+    const currentSlotStart = new Date(`2000-01-01T${slotTime}:00`);
+    const currentSlotEnd = new Date(currentSlotStart.getTime() + 15 * 60000);
+
+    return appointments.filter((apt) => {
+      if (apt.date !== dateString) return false;
+      const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
+      const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
+
+      // Check for overlap: (startA < endB) && (endA > startB)
+      // console.log(aptStart < currentSlotEnd && aptEnd > currentSlotStart);
+      return aptStart < currentSlotEnd && aptEnd > currentSlotStart;
+    });
+  };
+
+  // Calculate appointment height based on duration
   const getAppointmentHeight = (appointment) => {
     const startTime = new Date(`2000-01-01T${appointment.startTime}:00`);
     const endTime = new Date(`2000-01-01T${appointment.endTime}:00`);
     const durationMinutes =
       (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    return Math.max(1, durationMinutes / 15);
+    return Math.max(1, durationMinutes / 15); // Each slot is now 15 minutes
   };
 
   // Check if this is the first slot of an appointment
@@ -247,12 +255,13 @@ export default function AppointmentCalendar({
 
     if (!draggedAppointment) return;
 
-    const dateString = date.toISOString().split("T")[0];
     const appointmentType = appointmentTypes.find(
       (t) => t.id === draggedAppointment.appointmentTypeId
     );
 
     if (!appointmentType) return;
+
+    const dateString = date.toISOString().split("T")[0];
 
     // Calculate new end time
     const startDateTime = new Date(`${dateString}T${time}:00`);
@@ -325,29 +334,37 @@ export default function AppointmentCalendar({
       appointmentTypeId: appointment.appointmentTypeId,
       notes: appointment.notes || "",
     });
-    setErrorMessage("");
+    setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
+  };
+
+  const getAppointmentColor = (appointment) => {
+    return appointmentTypes.filter(
+      (appt) => appt.id === appointment.appointmentTypeId
+    )[0].color;
   };
 
   const handleTimeSlotClick = (date, time) => {
     if (!isDayOpen(date) || !isTimeSlotAvailable(date, time)) return;
 
-    const existingAppointment = getAppointmentForSlot(date, time);
-    if (existingAppointment) return; // Don't allow clicking on occupied slots
+    // In individual view, prevent clicking on occupied slots
+    if (selectedDoctorId !== "all") {
+      const existingAppointment = getSingleAppointmentForSlot(date, time);
+      if (existingAppointment) return; // Don't allow clicking on occupied slots for individual view
+    }
 
-    setEditingAppointment(null);
+    setEditingAppointment(null); // Reset editing state
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
     setFormData({
       patientId: "",
-      doctorId:
-        doctors.filter((doctor) => selectedDoctorId === doctor.id)[0].id ?? "",
+      doctorId: "",
       appointmentTypeId: "",
       notes: "",
-    });
-    setErrorMessage("");
-    setIsFromCalendarSlot(true);
+    }); // Reset form
+    setErrorMessage(""); // Clear error message
+    setIsFromCalendarSlot(true); // Mark as coming from calendar slot
     setIsDialogOpen(true);
   };
 
@@ -471,7 +488,7 @@ export default function AppointmentCalendar({
 
     // Find the latest end time for this specific day
     const getLatestEndTimeForDay = () => {
-      let latestHour = clinicEndHour ?? 23;
+      let latestHour = slotsEndHour ?? 23; // default fallback
       dayHours.shifts.forEach((shift) => {
         const endHour = Number.parseInt(shift.end.split(":")[0]);
         if (endHour > latestHour) {
@@ -504,9 +521,6 @@ export default function AppointmentCalendar({
   const timeOptions = selectedDate ? generateTimeOptions(selectedDate) : [];
 
   const handleAddAppointmentClick = () => {
-    console.log(
-      doctors.filter((doctor) => selectedDoctorId === doctor.id)[0].id
-    );
     setEditingAppointment(null);
     setSelectedDate("");
     setSelectedTime("");
@@ -546,6 +560,7 @@ export default function AppointmentCalendar({
                 <SelectValue placeholder="Select doctor" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Doctors</SelectItem>
                 {doctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
                     {doctor.name}
@@ -583,7 +598,7 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      <Card className="p-0 border-black overflow-hidden">
+      <Card>
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
             <div className="p-4 border-r bg-gray-50"></div>
@@ -618,112 +633,231 @@ export default function AppointmentCalendar({
                     isMainSlot
                       ? "border-b border-gray-100"
                       : "border-b-2 border-gray-200"
-                  } last:border-b-0 h-[30px]`}
+                  } last:border-b-0 min-h-[40px]`}
                 >
                   <div
-                    className={`p-2 border-r text-sm flex items-start ${
-                      isMainSlot ? "font-medium" : "font-medium text-sm"
-                    } ${
-                      !isClickable
-                        ? slot.isBoundary
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-500"
-                        : ""
-                    }`}
+                    className={`p-2 border-r bg-gray-50 text-sm text-muted-foreground flex items-start ${
+                      isMainSlot
+                        ? "font-medium text-black"
+                        : "font-medium text-sm"
+                    } ${!isClickable ? "bg-gray-100 text-gray-500" : ""}`}
                   >
-                    {slot.isBoundary ? `END - ${time}` : time}
+                    {isMainSlot ? time : time}
                   </div>
                   {isClickable
-                    ? weekDays.map((day, dayIndex) => {
-                        const appointment = getAppointmentForSlot(day, time);
+                    ? // Render normal clickable slots
+                      weekDays.map((day, dayIndex) => {
                         const isAvailable = isTimeSlotAvailable(day, time);
                         const isOpen = isDayOpen(day);
 
                         return (
                           <div
                             key={`${dayIndex}-${timeIndex}`}
-                            className={`group ${
-                              isAvailable ? "border-r" : ""
-                            } last:border-r-0 relative h-[30px] ${
-                              isOpen && isAvailable
-                                ? "hover:bg-blue-100 cursor-pointer"
+                            className={`border-r last:border-r-0 relative ${
+                              isOpen &&
+                              isAvailable &&
+                              !(selectedDoctorId !== "all"
+                                ? getSingleAppointmentForSlot(day, time)
+                                : false)
+                                ? "hover:bg-blue-50 cursor-pointer"
                                 : "bg-gray-100"
                             } ${
                               dragOverSlot?.date ===
                                 day.toISOString().split("T")[0] &&
                               dragOverSlot?.time === time &&
                               isOpen &&
-                              isAvailable
+                              isAvailable &&
+                              !(selectedDoctorId !== "all"
+                                ? getSingleAppointmentForSlot(day, time)
+                                : false)
                                 ? "bg-green-100 border-2 border-green-400 border-dashed"
                                 : ""
                             }`}
-                            onClick={() => handleTimeSlotClick(day, time)}
-                            onDragOver={(e) => handleDragOver(e, day, time)}
+                            onClick={() => {
+                              if (
+                                isOpen &&
+                                isAvailable &&
+                                !(selectedDoctorId !== "all"
+                                  ? getSingleAppointmentForSlot(day, time)
+                                  : false)
+                              ) {
+                                handleTimeSlotClick(day, time);
+                              }
+                            }}
+                            onDragOver={(e) => {
+                              if (
+                                isOpen &&
+                                isAvailable &&
+                                !(selectedDoctorId !== "all"
+                                  ? getSingleAppointmentForSlot(day, time)
+                                  : false)
+                              ) {
+                                handleDragOver(e, day, time);
+                              }
+                            }}
                             onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, day, time)}
+                            onDrop={(e) => {
+                              if (
+                                isOpen &&
+                                isAvailable &&
+                                !(selectedDoctorId !== "all"
+                                  ? getSingleAppointmentForSlot(day, time)
+                                  : false)
+                              ) {
+                                handleDrop(e, day, time);
+                              }
+                            }}
                           >
-                            {!appointment && isMainSlot && isAvailable && (
-                              <span className="opacity-20 text-sm flex justify-center items-center h-full w-full group-hover:hidden">
-                                {time}
-                              </span>
-                            )}
-                            {appointment &&
-                              isAppointmentStart(appointment, time) && (
-                                <div
-                                  draggable
-                                  onDragStart={(e) =>
-                                    handleDragStart(e, appointment)
-                                  }
-                                  onDragEnd={handleDragEnd}
-                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden cursor-move hover:shadow-md transition-shadow"
-                                  style={{
-                                    backgroundColor:
-                                      selectedDoctorId === "all" &&
-                                      viewMode === "combined"
-                                        ? doctors.find(
-                                            (d) => d.id === appointment.doctorId
-                                          )?.color
-                                        : appointmentTypes.find(
-                                            (t) =>
-                                              t.id ===
-                                              appointment.appointmentTypeId
-                                          )?.color,
-                                    height: `${
-                                      getAppointmentHeight(appointment) * 30 - 3
-                                    }px`,
-                                    zIndex: 10,
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAppointmentClick(appointment);
-                                  }}
-                                >
-                                  <div className="font-medium truncate">
-                                    {
-                                      patients.find(
-                                        (p) => p.id === appointment.patientId
-                                      )?.name
-                                    }
-                                  </div>
-                                  {/* <div className="text-xs opacity-75 truncate">
-                                    {selectedDoctorId === "all" &&
-                                    viewMode === "combined"
-                                      ? doctors.find(
-                                          (d) => d.id === appointment.doctorId
-                                        )?.name
-                                      : appointmentTypes.find(
-                                          (t) =>
-                                            t.id ===
-                                            appointment.appointmentTypeId
-                                        )?.name}
-                                  </div> */}
+                            {selectedDoctorId === "all"
+                              ? (() => {
+                                  const appointmentsInThisSlot =
+                                    getAppointmentsForCombinedSlot(day, time);
+                                  if (appointmentsInThisSlot.length === 0)
+                                    return null;
+                                  return (
+                                    appointmentsInThisSlot.length > 0 && (
+                                      <div
+                                        className={`absolute inset-x-1 rounded-md p-1 text-sm overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center ${
+                                          appointmentsInThisSlot.length === 1
+                                            ? "text-white"
+                                            : "text-black"
+                                        }`}
+                                        style={{
+                                          backgroundColor: `${
+                                            appointmentsInThisSlot.length === 1
+                                              ? getAppointmentColor(
+                                                  appointmentsInThisSlot[0]
+                                                )
+                                              : "#FFEBC6"
+                                          }`,
+                                          height: `${40 - 4}px`,
+                                          zIndex: 10,
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          flexWrap: "wrap",
+                                          gap: "2px",
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setOverlappingAppointmentsDialog({
+                                            isOpen: true,
+                                            appointments:
+                                              appointmentsInThisSlot,
+                                            timeSlot: time,
+                                            date: day
+                                              .toISOString()
+                                              .split("T")[0],
+                                          });
+                                        }}
+                                      >
+                                        {appointmentsInThisSlot.length === 1 ? (
+                                          <div className="font-medium truncate">
+                                            {
+                                              patients.find(
+                                                (p) =>
+                                                  p.id ===
+                                                  appointmentsInThisSlot[0]
+                                                    .patientId
+                                              )?.name
+                                            }
+                                          </div>
+                                        ) : (
+                                          <div className="font-medium">
+                                            {appointmentsInThisSlot.length}{" "}
+                                          </div>
+                                        )}
+                                        {appointmentsInThisSlot.map(
+                                          (apt, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="w-3 h-3 rounded-full"
+                                              style={{
+                                                backgroundColor:
+                                                  appointmentTypes.find(
+                                                    (app) =>
+                                                      app.id ===
+                                                      apt.appointmentTypeId
+                                                  ).color,
+                                              }}
+                                              title={`${
+                                                patients.find(
+                                                  (p) => p.id === apt.patientId
+                                                )?.name
+                                              } (${
+                                                doctors.find(
+                                                  (d) => d.id === apt.doctorId
+                                                )?.name
+                                              })`}
+                                            />
+                                          )
+                                        )}
+                                      </div>
+                                    )
+                                  );
+                                })()
+                              : (() => {
+                                  const appointment =
+                                    getSingleAppointmentForSlot(day, time);
+                                  return (
+                                    appointment &&
+                                    isAppointmentStart(appointment, time) && (
+                                      <div
+                                        draggable
+                                        onDragStart={(e) =>
+                                          handleDragStart(e, appointment)
+                                        }
+                                        onDragEnd={handleDragEnd}
+                                        className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
+                                        style={{
+                                          backgroundColor:
+                                            appointmentTypes.find(
+                                              (t) =>
+                                                t.id ===
+                                                appointment.appointmentTypeId
+                                            )?.color,
+                                          height: `${
+                                            getAppointmentHeight(appointment) *
+                                              40 -
+                                            4
+                                          }px`,
+                                          zIndex: 10,
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAppointmentClick(appointment);
+                                        }}
+                                      >
+                                        <div className="font-medium truncate">
+                                          {
+                                            patients.find(
+                                              (p) =>
+                                                p.id === appointment.patientId
+                                            )?.name
+                                          }
+                                        </div>
+                                        <div className="text-xs opacity-75 truncate">
+                                          {
+                                            appointmentTypes.find(
+                                              (t) =>
+                                                t.id ===
+                                                appointment.appointmentTypeId
+                                            )?.name
+                                          }
+                                        </div>
+                                      </div>
+                                    )
+                                  );
+                                })()}
+                            {isOpen &&
+                              isAvailable &&
+                              !(selectedDoctorId !== "all"
+                                ? getSingleAppointmentForSlot(day, time)
+                                : false) && (
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                  <Plus className="w-3 h-3 text-blue-600" />
                                 </div>
                               )}
-                            {isOpen && isAvailable && !appointment && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                <Plus className="w-2 h-2 text-blue-600" />
-                              </div>
-                            )}
                           </div>
                         );
                       })
@@ -731,9 +865,7 @@ export default function AppointmentCalendar({
                       weekDays.map((day, dayIndex) => (
                         <div
                           key={`${dayIndex}-${timeIndex}`}
-                          className={`border-r last:border-r-0 ${
-                            slot.isBoundary ? "bg-red-100" : "bg-gray-100"
-                          }`}
+                          className="border-r last:border-r-0 bg-gray-100"
                         />
                       ))}
                 </div>
@@ -773,7 +905,7 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, patientId: value })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select a patient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -794,18 +926,18 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, doctorId: value })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select a doctor" />
                   </SelectTrigger>
                   <SelectContent>
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         <div className="flex items-center gap-2">
-                          {/* <div
+                          <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: doctor.color }}
-                          /> */}
-                          {doctor.name}
+                          />
+                          {doctor.name} - {doctor.specialization}
                         </div>
                       </SelectItem>
                     ))}
@@ -821,7 +953,7 @@ export default function AppointmentCalendar({
                     setFormData({ ...formData, appointmentTypeId: value })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -871,21 +1003,15 @@ export default function AppointmentCalendar({
                       value={selectedTime}
                       onValueChange={setSelectedTime}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select start time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeOptions.length > 0 ? (
-                          timeOptions.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="na" disabled>
-                            Please select a date
+                        {timeOptions.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
                           </SelectItem>
-                        )}
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -947,6 +1073,112 @@ export default function AppointmentCalendar({
               </div>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={overlappingAppointmentsDialog.isOpen}
+        onOpenChange={(open) =>
+          setOverlappingAppointmentsDialog((prev) => ({
+            ...prev,
+            isOpen: open,
+          }))
+        }
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Overlapping Appointments</DialogTitle>
+            <DialogDescription>
+              Multiple appointments scheduled for{" "}
+              {new Date(overlappingAppointmentsDialog.date).toLocaleDateString(
+                "en-US",
+                {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )}{" "}
+              at {overlappingAppointmentsDialog.timeSlot}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 max-h-1/2">
+            {overlappingAppointmentsDialog.appointments.map((appointment) => {
+              const patient = patients.find(
+                (p) => p.id === appointment.patientId
+              );
+              const doctor = doctors.find((d) => d.id === appointment.doctorId);
+              const appointmentType = appointmentTypes.find(
+                (t) => t.id === appointment.appointmentTypeId
+              );
+
+              return (
+                <div
+                  key={appointment.id}
+                  className="border rounded-lg p-4 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: doctor?.color }}
+                      />
+                      <span className="font-medium">{patient?.name}</span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {appointment.startTime} - {appointment.endTime}
+                    </div>
+                  </div>
+
+                  <div className="text-sm space-y-1">
+                    <div>
+                      <strong>Doctor:</strong> {doctor?.name} (
+                      {doctor?.specialization})
+                    </div>
+                    <div>
+                      <strong>Type:</strong> {appointmentType?.name} (
+                      {appointmentType?.duration} min)
+                    </div>
+                    {appointment.notes && (
+                      <div>
+                        <strong>Notes:</strong> {appointment.notes}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setOverlappingAppointmentsDialog((prev) => ({
+                          ...prev,
+                          isOpen: false,
+                        }));
+                        handleAppointmentClick(appointment);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setOverlappingAppointmentsDialog((prev) => ({
+                  ...prev,
+                  isOpen: false,
+                }))
+              }
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
