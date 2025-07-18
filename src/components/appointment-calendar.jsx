@@ -2,7 +2,8 @@
 import React, { useEffect } from "react";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, ChevronsUpDown } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,7 +24,19 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 export default function AppointmentCalendar({
   appointments,
@@ -60,6 +73,7 @@ export default function AppointmentCalendar({
       date: "",
     });
   const [mergedAppointments, setMergedAppointments] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const slotsStartHour = 9;
   const slotsEndHour = 23;
@@ -1002,23 +1016,52 @@ export default function AppointmentCalendar({
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="patient">Patient</Label>
-                <Select
-                  value={formData.patientId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, patientId: value })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a patient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients.map((patient) => (
-                      <SelectItem key={patient.id} value={patient.id}>
-                        {patient.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={open} onOpenChange={setOpen} className="w-full">
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between font-normal"
+                    >
+                      {formData.patientId
+                        ? patients.find((p) => p.id === formData.patientId)
+                            ?.name
+                        : "Select Patient"}
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
+                    <Command className="w-full">
+                      <CommandInput placeholder="Search Patient" />
+                      <CommandList>
+                        <CommandEmpty>No framework found.</CommandEmpty>
+                        <CommandGroup>
+                          {patients.map((patient) => (
+                            <CommandItem
+                              key={patient.id}
+                              value={patient.name.toLowerCase()}
+                              onSelect={() => {
+                                setFormData({
+                                  ...formData,
+                                  patientId: patient.id,
+                                });
+                                setOpen(false);
+                              }}
+                              className={
+                                formData.patientId === patient.id
+                                  ? "bg-gray-200"
+                                  : ""
+                              }
+                            >
+                              {patient.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="grid gap-2">
