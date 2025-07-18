@@ -1226,7 +1226,9 @@ export default function AppointmentCalendar({
                     <div className="flex items-center gap-2">
                       <div
                         className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: doctor?.color }}
+                        style={{
+                          backgroundColor: getAppointmentColor(appointment),
+                        }}
                       />
                       <span className="font-medium">{patient?.name}</span>
                     </div>
@@ -1237,8 +1239,7 @@ export default function AppointmentCalendar({
 
                   <div className="text-sm space-y-1">
                     <div>
-                      <strong>Doctor:</strong> {doctor?.name} (
-                      {doctor?.specialization})
+                      <strong>Doctor:</strong> {doctor?.name}
                     </div>
                     <div>
                       <strong>Type:</strong> {appointmentType?.name} (
