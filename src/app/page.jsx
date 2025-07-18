@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Clock, Settings, Plus, Stethoscope } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Clock,
+  Settings,
+  Plus,
+  Stethoscope,
+  XCircle,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -190,174 +200,213 @@ export default function ClinicDashboard() {
     {
       id: "1",
       patientId: "1",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "1",
-      date: "2024-12-30",
-      startTime: "09:00",
-      endTime: "09:30",
+      date: "2025-07-18",
+      startTime: "12:00",
+      endTime: "12:30",
       notes: "New patient consultation",
+      status: "scheduled",
     },
     {
       id: "2",
       patientId: "3",
-      doctorId: "doc2", // Assign a doctor
+      doctorId: "doc2",
       appointmentTypeId: "4",
-      date: "2024-12-30",
-      startTime: "10:15",
-      endTime: "11:00",
+      date: "2025-07-18",
+      startTime: "12:45",
+      endTime: "13:30",
       notes: "Annual physical examination",
+      status: "completed",
     },
     {
       id: "3",
       patientId: "5",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "2",
-      date: "2024-12-30",
+      date: "2025-07-18",
       startTime: "14:30",
       endTime: "14:45",
       notes: "Blood pressure follow-up",
+      status: "cancelled",
     },
     {
       id: "4",
       patientId: "2",
-      doctorId: "doc3", // Assign a doctor
+      doctorId: "doc3",
       appointmentTypeId: "5",
-      date: "2024-12-30",
+      date: "2025-07-18",
       startTime: "16:00",
       endTime: "16:20",
       notes: "Lab results discussion",
+      status: "missed",
     },
 
     // Tuesday, December 31, 2024
     {
       id: "5",
       patientId: "4",
-      doctorId: "doc2", // Assign a doctor
+      doctorId: "doc2",
       appointmentTypeId: "6",
-      date: "2024-12-31",
-      startTime: "09:30",
-      endTime: "09:45",
+      date: "2025-07-19",
+      startTime: "12:30",
+      endTime: "12:45",
       notes: "Flu vaccination",
+      status: "scheduled",
     },
     {
       id: "6",
       patientId: "1",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "3",
-      date: "2024-12-31",
+      date: "2025-07-19",
       startTime: "15:00",
       endTime: "16:00",
       notes: "Minor surgical procedure",
+      status: "scheduled",
     },
     {
       id: "7",
       patientId: "3",
-      doctorId: "doc3", // Assign a doctor
+      doctorId: "doc3",
       appointmentTypeId: "1",
-      date: "2024-12-31",
+      date: "2025-07-19",
       startTime: "16:30",
       endTime: "17:00",
       notes: "Consultation for knee pain",
+      status: "completed",
     },
 
     // Thursday, January 2, 2025
     {
       id: "8",
       patientId: "2",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "2",
-      date: "2025-01-02",
-      startTime: "09:15",
-      endTime: "09:30",
+      date: "2025-07-16",
+      startTime: "12:15",
+      endTime: "12:30",
       notes: "Post-procedure follow-up",
+      status: "scheduled",
     },
     {
       id: "9",
       patientId: "5",
-      doctorId: "doc2", // Assign a doctor
+      doctorId: "doc2",
       appointmentTypeId: "1",
-      date: "2025-01-02",
-      startTime: "10:00",
-      endTime: "10:30",
+      date: "2025-07-16",
+      startTime: "14:00",
+      endTime: "14:30",
       notes: "Diabetes management consultation",
+      status: "scheduled",
     },
     {
       id: "10",
       patientId: "4",
-      doctorId: "doc3", // Assign a doctor
+      doctorId: "doc3",
       appointmentTypeId: "4",
-      date: "2025-01-02",
+      date: "2025-07-16",
       startTime: "13:15",
       endTime: "14:00",
       notes: "Pre-employment physical",
+      status: "scheduled",
     },
     {
       id: "11",
       patientId: "1",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "5",
-      date: "2025-01-02",
+      date: "2025-07-16",
       startTime: "15:45",
       endTime: "16:05",
       notes: "Cholesterol test results",
+      status: "completed",
     },
 
     // Friday, January 3, 2025
     {
       id: "12",
       patientId: "3",
-      doctorId: "doc2", // Assign a doctor
+      doctorId: "doc2",
       appointmentTypeId: "6",
       date: "2025-01-03",
       startTime: "09:00",
       endTime: "09:15",
       notes: "COVID booster shot",
+      status: "scheduled",
     },
     {
       id: "13",
       patientId: "2",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "1",
       date: "2025-01-03",
       startTime: "14:30",
       endTime: "15:00",
       notes: "Headache consultation",
+      status: "missed",
     },
     {
       id: "14",
       patientId: "4",
-      doctorId: "doc3", // Assign a doctor
+      doctorId: "doc3",
       appointmentTypeId: "2",
       date: "2025-01-03",
       startTime: "16:00",
       endTime: "16:15",
       notes: "Medication adjustment follow-up",
+      status: "scheduled",
     },
 
     // Saturday, January 4, 2025
     {
       id: "15",
       patientId: "5",
-      doctorId: "doc1", // Assign a doctor
+      doctorId: "doc1",
       appointmentTypeId: "1",
       date: "2025-01-04",
       startTime: "10:30",
       endTime: "11:00",
       notes: "Weekend urgent consultation",
+      status: "scheduled",
     },
     {
       id: "16",
       patientId: "1",
-      doctorId: "doc2", // Assign a doctor
+      doctorId: "doc2",
       appointmentTypeId: "2",
       date: "2025-01-04",
       startTime: "12:00",
       endTime: "12:15",
       notes: "Quick check-up before weekend",
+      status: "cancelled",
     },
   ]);
 
   const [activeTab, setActiveTab] = useState("calendar");
+
+  const statusConfig = {
+      scheduled: {
+        label: "Scheduled",
+        color: "bg-blue-100 text-blue-800 border-blue-200",
+        icon: Clock,
+      },
+      cancelled: {
+        label: "Cancelled",
+        color: "bg-red-100 text-red-800 border-red-200",
+        icon: XCircle,
+      },
+      missed: {
+        label: "Missed",
+        color: "bg-orange-100 text-orange-800 border-orange-200",
+        icon: AlertCircle,
+      },
+      completed: {
+        label: "Completed",
+        color: "bg-green-100 text-green-800 border-green-200",
+        icon: CheckCircle,
+      },
+    };
 
   // Patient functions
   const addPatient = (patient) => {
@@ -437,19 +486,21 @@ export default function ClinicDashboard() {
     doctorId,
     excludeId
   ) => {
-    return appointments.some((apt) => {
-      if (excludeId && apt.id === excludeId) return false;
-      if (apt.date !== date) return false;
-      // Only check for overlap with appointments for the SAME doctor
-      if (apt.doctorId !== doctorId) return false;
+    return appointments
+      .filter((appt) => appt.status !== "cancelled")
+      .some((apt) => {
+        if (excludeId && apt.id === excludeId) return false;
+        if (apt.date !== date) return false;
+        // Only check for overlap with appointments for the SAME doctor
+        if (apt.doctorId !== doctorId) return false;
 
-      const aptStart = new Date(`${date}T${apt.startTime}`);
-      const aptEnd = new Date(`${date}T${apt.endTime}`);
-      const newStart = new Date(`${date}T${startTime}`);
-      const newEnd = new Date(`${date}T${endTime}`);
+        const aptStart = new Date(`${date}T${apt.startTime}`);
+        const aptEnd = new Date(`${date}T${apt.endTime}`);
+        const newStart = new Date(`${date}T${startTime}`);
+        const newEnd = new Date(`${date}T${endTime}`);
 
-      return newStart < aptEnd && newEnd > aptStart;
-    });
+        return newStart < aptEnd && newEnd > aptStart;
+      });
   };
 
   // Doctor functions
@@ -538,7 +589,9 @@ export default function ClinicDashboard() {
               </CardHeader>
               <CardContent>
                 <AppointmentCalendar
-                  appointments={appointments}
+                  appointments={appointments.filter(
+                    (appt) => appt.status !== "cancelled"
+                  )}
                   patients={patients}
                   doctors={doctors}
                   appointmentTypes={appointmentTypes}
@@ -547,6 +600,7 @@ export default function ClinicDashboard() {
                   onUpdateAppointment={updateAppointment}
                   onDeleteAppointment={deleteAppointment}
                   onCheckOverlap={checkAppointmentOverlap}
+                  statusConfig={statusConfig}
                 />
               </CardContent>
             </Card>

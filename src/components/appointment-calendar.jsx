@@ -35,6 +35,7 @@ export default function AppointmentCalendar({
   onUpdateAppointment,
   onDeleteAppointment,
   onCheckOverlap,
+  statusConfig
 }) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
@@ -313,6 +314,7 @@ export default function AppointmentCalendar({
       startTime: time,
       endTime: newEndTime,
       notes: draggedAppointment.notes,
+      status: draggedAppointment.status || "scheduled",
     });
 
     toast({
@@ -332,6 +334,7 @@ export default function AppointmentCalendar({
       doctorId: appointment.doctorId,
       appointmentTypeId: appointment.appointmentTypeId,
       notes: appointment.notes || "",
+      status: appointment.status || "scheduled",
     });
     setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
@@ -362,6 +365,7 @@ export default function AppointmentCalendar({
       doctorId: selectedDoctorId !== "all" ? selectedDoctorId : "",
       appointmentTypeId: "",
       notes: "",
+      status: "scheduled",
     });
     setErrorMessage("");
     setIsFromCalendarSlot(true);
@@ -382,6 +386,7 @@ export default function AppointmentCalendar({
         doctorId: "",
         appointmentTypeId: "",
         notes: "",
+        status: "scheduled",
       });
     }
   };
@@ -427,6 +432,7 @@ export default function AppointmentCalendar({
         startTime,
         endTime,
         notes: formData.notes,
+        status: formData.status,
       });
       toast({
         title: "Appointment Updated",
@@ -441,6 +447,7 @@ export default function AppointmentCalendar({
         startTime,
         endTime,
         notes: formData.notes,
+        status: formData.status,
       });
       toast({
         title: "Appointment Scheduled",
@@ -453,6 +460,7 @@ export default function AppointmentCalendar({
       doctorId: "",
       appointmentTypeId: "",
       notes: "",
+      status: "scheduled",
     });
     setEditingAppointment(null);
     setErrorMessage("");
@@ -528,6 +536,7 @@ export default function AppointmentCalendar({
       doctorId: "",
       appointmentTypeId: "",
       notes: "",
+      status: "scheduled",
     });
     setErrorMessage("");
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
@@ -910,6 +919,9 @@ export default function AppointmentCalendar({
                                         }
                                         onDragEnd={handleDragEnd}
                                         className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
+                                        title={
+                                          statusConfig[appointment.status].label
+                                        }
                                         style={{
                                           backgroundColor:
                                             appointmentTypes.find(
@@ -934,15 +946,6 @@ export default function AppointmentCalendar({
                                             patients.find(
                                               (p) =>
                                                 p.id === appointment.patientId
-                                            )?.name
-                                          }
-                                        </div>
-                                        <div className="text-xs opacity-75 truncate">
-                                          {
-                                            appointmentTypes.find(
-                                              (t) =>
-                                                t.id ===
-                                                appointment.appointmentTypeId
                                             )?.name
                                           }
                                         </div>
@@ -1065,8 +1068,36 @@ export default function AppointmentCalendar({
                 </Select>
               </div>
 
+              {editingAppointment && (
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, status: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(statusConfig).map(([status, config]) => {
+                        const IconComponent = config.icon;
+                        return (
+                          <SelectItem key={status} value={status}>
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="w-4 h-4" />
+                              {config.label}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {isFromCalendarSlot && !editingAppointment ? (
-                // Show read-only date and time ONLY when creating NEW appointment from calendar slot
                 <>
                   <div className="gap-2">
                     <div className="p-3 bg-blue-50 border rounded-md flex justify-between">
@@ -1083,7 +1114,6 @@ export default function AppointmentCalendar({
                   </div>
                 </>
               ) : (
-                // Show editable date and time fields for ALL other cases
                 <>
                   <div className="grid gap-2">
                     <Label htmlFor="date">Date</Label>
@@ -1157,6 +1187,7 @@ export default function AppointmentCalendar({
                       doctorId: "",
                       appointmentTypeId: "",
                       notes: "",
+                      status: "scheduled",
                     });
                     setErrorMessage(""); // Clear error message
                     setIsFromCalendarSlot(false); // Reset flag
@@ -1216,11 +1247,21 @@ export default function AppointmentCalendar({
               const appointmentType = appointmentTypes.find(
                 (t) => t.id === appointment.appointmentTypeId
               );
+              const status = appointment.status || "scheduled";
+              const StatusIcon = statusConfig[status].icon;
 
               return (
                 <div
                   key={appointment.id}
                   className="border rounded-lg p-4 space-y-2"
+                  style={{
+                    backgroundColor:
+                      status === "completed"
+                        ? "#D0F0C0"
+                        : status === "missed"
+                        ? "#FDBCB4"
+                        : "",
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1231,6 +1272,9 @@ export default function AppointmentCalendar({
                         }}
                       />
                       <span className="font-medium">{patient?.name}</span>
+                      <span title={statusConfig[status].label}>
+                        <StatusIcon />
+                      </span>
                     </div>
                     <div className="text-sm text-gray-500">
                       {appointment.startTime} - {appointment.endTime}
