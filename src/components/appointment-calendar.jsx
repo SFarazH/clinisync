@@ -324,11 +324,6 @@ export default function AppointmentCalendar({
   };
 
   const handleAppointmentClick = (appointment) => {
-    const patient = patients.find((p) => p.id === appointment.patientId);
-    const appointmentType = appointmentTypes.find(
-      (t) => t.id === appointment.appointmentTypeId
-    );
-
     setEditingAppointment(appointment);
     setSelectedDate(appointment.date);
     setSelectedTime(appointment.startTime);
@@ -343,27 +338,28 @@ export default function AppointmentCalendar({
     setIsDialogOpen(true);
   };
 
+  // get appointment type color
   const getAppointmentColor = (appointment) => {
     return appointmentTypes.filter(
       (appt) => appt.id === appointment.appointmentTypeId
     )[0].color;
   };
 
+  // add appointment using empty time slot in calendar view
   const handleTimeSlotClick = (date, time) => {
     if (!isDayOpen(date) || !isTimeSlotAvailable(date, time)) return;
-
     // In individual view, prevent clicking on occupied slots
     if (selectedDoctorId !== "all") {
       const existingAppointment = getSingleAppointmentForSlot(date, time);
-      if (existingAppointment) return; // Don't allow clicking on occupied slots for individual view
+      if (existingAppointment) return;
     }
 
-    setEditingAppointment(null); // Reset editing state
+    setEditingAppointment(null);
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
     setFormData({
       patientId: "",
-      doctorId: "",
+      doctorId: selectedDoctorId !== "all" ? selectedDoctorId : "",
       appointmentTypeId: "",
       notes: "",
     });
@@ -837,15 +833,23 @@ export default function AppointmentCalendar({
                                         }}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          setOverlappingAppointmentsDialog({
-                                            isOpen: true,
-                                            appointments:
-                                              appointmentsInThisSlot,
-                                            timeSlot: time,
-                                            date: day
-                                              .toISOString()
-                                              .split("T")[0],
-                                          });
+                                          if (
+                                            appointmentsInThisSlot.length === 1
+                                          ) {
+                                            handleAppointmentClick(
+                                              appointmentsInThisSlot[0]
+                                            );
+                                          } else {
+                                            setOverlappingAppointmentsDialog({
+                                              isOpen: true,
+                                              appointments:
+                                                appointmentsInThisSlot,
+                                              timeSlot: time,
+                                              date: day
+                                                .toISOString()
+                                                .split("T")[0],
+                                            });
+                                          }
                                         }}
                                       >
                                         {appointmentsInThisSlot.length === 1 ? (
@@ -1032,10 +1036,6 @@ export default function AppointmentCalendar({
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         <div className="flex items-center gap-2">
-                          {/* <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: doctor.color }}
-                          /> */}
                           {doctor.name}
                         </div>
                       </SelectItem>
