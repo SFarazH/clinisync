@@ -391,27 +391,27 @@ export default function ClinicDashboard() {
   const [activeTab, setActiveTab] = useState("calendar");
 
   const statusConfig = {
-      scheduled: {
-        label: "Scheduled",
-        color: "bg-blue-100 text-blue-800 border-blue-200",
-        icon: Clock,
-      },
-      cancelled: {
-        label: "Cancelled",
-        color: "bg-red-100 text-red-800 border-red-200",
-        icon: XCircle,
-      },
-      missed: {
-        label: "Missed",
-        color: "bg-orange-100 text-orange-800 border-orange-200",
-        icon: AlertCircle,
-      },
-      completed: {
-        label: "Completed",
-        color: "bg-green-100 text-green-800 border-green-200",
-        icon: CheckCircle,
-      },
-    };
+    scheduled: {
+      label: "Scheduled",
+      color: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: Clock,
+    },
+    cancelled: {
+      label: "Cancelled",
+      color: "bg-red-100 text-red-800 border-red-200",
+      icon: XCircle,
+    },
+    missed: {
+      label: "Missed",
+      color: "bg-orange-100 text-orange-800 border-orange-200",
+      icon: AlertCircle,
+    },
+    completed: {
+      label: "Completed",
+      color: "bg-green-100 text-green-800 border-green-200",
+      icon: CheckCircle,
+    },
+  };
 
   // Patient functions
   const addPatient = (patient) => {
