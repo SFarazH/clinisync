@@ -679,7 +679,7 @@ export default function AppointmentCalendar({
           </div>
 
           <Button onClick={() => handleAddAppointmentClick()}>
-            <Plus className="w-4 h-4 mr-2 text-green-500" />
+            <Plus className="w-4 h-4 mr-2" />
             Add Appointment
           </Button>
           <Button
