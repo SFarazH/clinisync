@@ -35,6 +35,7 @@ export default function ClinicDashboard() {
       phone: "+1234567890",
       dateOfBirth: "1990-05-15",
       address: "123 Main St, City, State",
+      age: 24,
     },
     {
       id: "2",
@@ -43,6 +44,7 @@ export default function ClinicDashboard() {
       phone: "+1234567891",
       dateOfBirth: "1985-08-22",
       address: "456 Oak Ave, City, State",
+      age: 12,
     },
     {
       id: "3",
@@ -51,6 +53,7 @@ export default function ClinicDashboard() {
       phone: "+1234567892",
       dateOfBirth: "1978-12-03",
       address: "789 Pine St, City, State",
+      age: 15,
     },
     {
       id: "4",
@@ -59,6 +62,7 @@ export default function ClinicDashboard() {
       phone: "+1234567893",
       dateOfBirth: "1992-07-18",
       address: "321 Elm St, City, State",
+      age: 43,
     },
     {
       id: "5",
@@ -67,6 +71,7 @@ export default function ClinicDashboard() {
       phone: "+1234567894",
       dateOfBirth: "1965-03-25",
       address: "654 Maple Ave, City, State",
+      age: 59,
     },
   ]);
 
