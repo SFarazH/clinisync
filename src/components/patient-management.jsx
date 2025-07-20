@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import { emptyPatient } from "./data";
 
 export default function PatientManagement({
   patients,
@@ -40,14 +41,7 @@ export default function PatientManagement({
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    age: 0,
-    dateOfBirth: "",
-    address: "",
-  });
+  const [formData, setFormData] = useState(emptyPatient);
 
   const filteredPatients = patients.filter(
     (patient) =>
@@ -79,14 +73,7 @@ export default function PatientManagement({
 
   const handleAddNew = () => {
     setEditingPatient(null);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      age: 0,
-      dateOfBirth: "",
-      address: "",
-    });
+    setFormData(emptyPatient);
     setIsDialogOpen(true);
   };
 
@@ -105,14 +92,7 @@ export default function PatientManagement({
         description: "The new patient has been successfully added.",
       });
     }
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      age: 0,
-      dateOfBirth: "",
-      address: "",
-    });
+    setFormData(emptyPatient);
     setEditingPatient(null);
     setIsDialogOpen(false);
   };
@@ -160,9 +140,9 @@ export default function PatientManagement({
                 </TableHeader>
                 <TableBody>
                   {filteredPatients.length > 0 &&
-                    filteredPatients.map((patient) => (
+                    filteredPatients.map((patient, index) => (
                       <TableRow key={patient.id}>
-                        <TableCell>{patient.id}</TableCell>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell>{patient.name}</TableCell>
                         <TableCell>{patient?.age}</TableCell>
                         <TableCell>{patient?.dateOfBirth}</TableCell>

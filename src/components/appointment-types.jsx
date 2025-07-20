@@ -3,6 +3,7 @@ import React from "react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import AppointmentTypeForm from "./forms/appointment-types.form";
+import { emptyAppointmentType } from "./data";
 
 export default function AppointmentTypes({
   appointmentTypes,
@@ -12,11 +13,7 @@ export default function AppointmentTypes({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointmentType, setEditingAppointmentType] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    duration: 30,
-    color: "#3b82f6",
-  });
+  const [formData, setFormData] = useState(emptyAppointmentType);
 
   const handleEditAppointmentType = (appointmentType) => {
     setEditingAppointmentType(appointmentType);
@@ -38,11 +35,7 @@ export default function AppointmentTypes({
 
   const handleAddNew = () => {
     setEditingAppointmentType(null);
-    setFormData({
-      name: "",
-      duration: 30,
-      color: "#3b82f6",
-    });
+    setFormData(emptyAppointmentType);
     setIsDialogOpen(true);
   };
 
@@ -61,11 +54,7 @@ export default function AppointmentTypes({
         description: "The new appointment type has been successfully added.",
       });
     }
-    setFormData({
-      name: "",
-      duration: 30,
-      color: "#3b82f6",
-    });
+    setFormData(emptyAppointmentType);
     setEditingAppointmentType(null);
     setIsDialogOpen(false);
   };

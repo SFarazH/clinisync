@@ -19,7 +19,7 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { appointmentTypeColorOptions } from "./data";
+import { appointmentTypeColorOptions } from "../data";
 
 export default function AppointmentTypeForm({
   appointmentTypes,
