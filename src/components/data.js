@@ -9,6 +9,16 @@ export const appointmentTypeColorOptions = [
   "#f97316",
 ];
 
+export const daysOfWeek = [
+  { key: "monday", label: "Monday" },
+  { key: "tuesday", label: "Tuesday" },
+  { key: "wednesday", label: "Wednesday" },
+  { key: "thursday", label: "Thursday" },
+  { key: "friday", label: "Friday" },
+  { key: "saturday", label: "Saturday" },
+  { key: "sunday", label: "Sunday" },
+];
+
 export const emptyPatient = {
   name: "",
   email: "",
