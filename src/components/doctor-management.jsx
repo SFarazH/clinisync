@@ -11,28 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-
-const colorOptions = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#84cc16",
-  "#f97316",
-];
+import { emptyDoctor } from "./data";
+import DoctorForm from "./forms/doctor.form";
 
 export default function DoctorManagement({
   doctors,
@@ -42,13 +23,7 @@ export default function DoctorManagement({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    specialization: "",
-    email: "",
-    phone: "",
-    color: "#3b82f6",
-  });
+  const [formData, setFormData] = useState(emptyDoctor);
 
   const handleEditDoctor = (doctor) => {
     setEditingDoctor(doctor);
@@ -72,13 +47,7 @@ export default function DoctorManagement({
 
   const handleAddNew = () => {
     setEditingDoctor(null);
-    setFormData({
-      name: "",
-      specialization: "",
-      email: "",
-      phone: "",
-      color: "#3b82f6",
-    });
+    setFormData(emptyDoctor);
     setIsDialogOpen(true);
   };
 
@@ -97,13 +66,7 @@ export default function DoctorManagement({
         description: "The new doctor has been successfully added.",
       });
     }
-    setFormData({
-      name: "",
-      specialization: "",
-      email: "",
-      phone: "",
-      color: "#3b82f6",
-    });
+    setFormData(emptyDoctor);
     setEditingDoctor(null);
     setIsDialogOpen(false);
   };
@@ -170,111 +133,11 @@ export default function DoctorManagement({
           </div>
         </CardContent>
       </Card>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingDoctor ? "Edit Doctor" : "Add New Doctor"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingDoctor
-                ? "Update the doctor's information below."
-                : "Enter the doctor's information below."}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="specialization">Specialization</Label>
-                <Input
-                  id="specialization"
-                  value={formData.specialization}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specialization: e.target.value })
-                  }
-                  placeholder="e.g., General Medicine, Cardiology"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Color</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {colorOptions.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        formData.color === color
-                          ? "border-gray-900"
-                          : "border-gray-300"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setFormData({ ...formData, color })}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsDialogOpen(false);
-                  setEditingDoctor(null);
-                  setFormData({
-                    name: "",
-                    specialization: "",
-                    email: "",
-                    phone: "",
-                    color: "#3b82f6",
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {editingDoctor ? "Update" : "Add"} Doctor
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DoctorForm
+        dialogOptions={{ isDialogOpen, setIsDialogOpen }}
+        form={{ formData, setFormData, handleSubmit }}
+        doctorOptions={{ editingDoctor, setEditingDoctor }}
+      />
     </div>
   );
 }
