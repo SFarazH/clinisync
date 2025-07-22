@@ -14,6 +14,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "CliniSync",
   description: "Manage appointments with ease",
+  icons: {
+    icon: "/clinisync-t.png",
+  },
 };
 
 export default function RootLayout({ children }) {
