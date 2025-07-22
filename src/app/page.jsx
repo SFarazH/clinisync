@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Clock, Settings, Plus } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Clock,
+  Settings,
+  Stethoscope,
+  XCircle,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +23,9 @@ import PatientManagement from "@/components/patient-management";
 import AppointmentTypes from "@/components/appointment-types";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
+import DoctorManagement from "@/components/doctor-management";
+import Image from "next/image";
+import logo from "../../public/clinisync-t.png";
 
 export default function ClinicDashboard() {
   const [patients, setPatients] = useState([
@@ -24,6 +36,7 @@ export default function ClinicDashboard() {
       phone: "+1234567890",
       dateOfBirth: "1990-05-15",
       address: "123 Main St, City, State",
+      age: 24,
     },
     {
       id: "2",
@@ -32,6 +45,7 @@ export default function ClinicDashboard() {
       phone: "+1234567891",
       dateOfBirth: "1985-08-22",
       address: "456 Oak Ave, City, State",
+      age: 12,
     },
     {
       id: "3",
@@ -40,6 +54,7 @@ export default function ClinicDashboard() {
       phone: "+1234567892",
       dateOfBirth: "1978-12-03",
       address: "789 Pine St, City, State",
+      age: 15,
     },
     {
       id: "4",
@@ -48,6 +63,7 @@ export default function ClinicDashboard() {
       phone: "+1234567893",
       dateOfBirth: "1992-07-18",
       address: "321 Elm St, City, State",
+      age: 43,
     },
     {
       id: "5",
@@ -56,6 +72,28 @@ export default function ClinicDashboard() {
       phone: "+1234567894",
       dateOfBirth: "1965-03-25",
       address: "654 Maple Ave, City, State",
+      age: 59,
+    },
+  ]);
+
+  const [doctors, setDoctors] = useState([
+    {
+      id: "doc1",
+      name: "Dr. Alice Smith",
+      specialization: "General Practice",
+      color: "#3b82f6", // Blue
+    },
+    {
+      id: "doc2",
+      name: "Dr. Bob Johnson",
+      specialization: "Pediatrics",
+      color: "#10b981", // Green
+    },
+    {
+      id: "doc3",
+      name: "Dr. Carol White",
+      specialization: "Dermatology",
+      color: "#f59e0b", // Amber
     },
   ]);
 
@@ -87,7 +125,7 @@ export default function ClinicDashboard() {
     {
       id: "5",
       name: "Lab Results Review",
-      duration: 20,
+      duration: 15,
       color: "#8b5cf6",
     },
     {
@@ -100,7 +138,7 @@ export default function ClinicDashboard() {
       id: "7",
       name: "Operation",
       duration: 120,
-      color: "#FF69B4",
+      color: "#84cc16",
     },
   ]);
 
@@ -168,158 +206,213 @@ export default function ClinicDashboard() {
     {
       id: "1",
       patientId: "1",
+      doctorId: "doc1",
       appointmentTypeId: "1",
-      date: "2024-12-30",
-      startTime: "09:00",
-      endTime: "09:30",
+      date: "2025-07-18",
+      startTime: "12:00",
+      endTime: "12:30",
       notes: "New patient consultation",
+      status: "scheduled",
     },
     {
       id: "2",
       patientId: "3",
+      doctorId: "doc2",
       appointmentTypeId: "4",
-      date: "2024-12-30",
-      startTime: "10:15",
-      endTime: "11:00",
+      date: "2025-07-18",
+      startTime: "12:45",
+      endTime: "13:30",
       notes: "Annual physical examination",
+      status: "completed",
     },
     {
       id: "3",
       patientId: "5",
+      doctorId: "doc1",
       appointmentTypeId: "2",
-      date: "2024-12-30",
+      date: "2025-07-18",
       startTime: "14:30",
       endTime: "14:45",
       notes: "Blood pressure follow-up",
+      status: "cancelled",
     },
     {
       id: "4",
       patientId: "2",
+      doctorId: "doc3",
       appointmentTypeId: "5",
-      date: "2024-12-30",
+      date: "2025-07-18",
       startTime: "16:00",
       endTime: "16:20",
       notes: "Lab results discussion",
+      status: "missed",
     },
 
     // Tuesday, December 31, 2024
     {
       id: "5",
       patientId: "4",
+      doctorId: "doc2",
       appointmentTypeId: "6",
-      date: "2024-12-31",
-      startTime: "09:30",
-      endTime: "09:45",
+      date: "2025-07-19",
+      startTime: "12:30",
+      endTime: "12:45",
       notes: "Flu vaccination",
+      status: "scheduled",
     },
     {
       id: "6",
       patientId: "1",
+      doctorId: "doc1",
       appointmentTypeId: "3",
-      date: "2024-12-31",
+      date: "2025-07-19",
       startTime: "15:00",
       endTime: "16:00",
       notes: "Minor surgical procedure",
+      status: "scheduled",
     },
     {
       id: "7",
       patientId: "3",
+      doctorId: "doc3",
       appointmentTypeId: "1",
-      date: "2024-12-31",
+      date: "2025-07-19",
       startTime: "16:30",
       endTime: "17:00",
       notes: "Consultation for knee pain",
+      status: "completed",
     },
 
     // Thursday, January 2, 2025
     {
       id: "8",
       patientId: "2",
+      doctorId: "doc1",
       appointmentTypeId: "2",
-      date: "2025-01-02",
-      startTime: "09:15",
-      endTime: "09:30",
+      date: "2025-07-16",
+      startTime: "12:15",
+      endTime: "12:30",
       notes: "Post-procedure follow-up",
+      status: "scheduled",
     },
     {
       id: "9",
       patientId: "5",
+      doctorId: "doc2",
       appointmentTypeId: "1",
-      date: "2025-01-02",
-      startTime: "10:00",
-      endTime: "10:30",
+      date: "2025-07-16",
+      startTime: "14:00",
+      endTime: "14:30",
       notes: "Diabetes management consultation",
+      status: "scheduled",
     },
     {
       id: "10",
       patientId: "4",
+      doctorId: "doc3",
       appointmentTypeId: "4",
-      date: "2025-01-02",
+      date: "2025-07-16",
       startTime: "13:15",
       endTime: "14:00",
       notes: "Pre-employment physical",
+      status: "scheduled",
     },
     {
       id: "11",
       patientId: "1",
+      doctorId: "doc1",
       appointmentTypeId: "5",
-      date: "2025-01-02",
+      date: "2025-07-16",
       startTime: "15:45",
       endTime: "16:05",
       notes: "Cholesterol test results",
+      status: "completed",
     },
 
     // Friday, January 3, 2025
     {
       id: "12",
       patientId: "3",
+      doctorId: "doc2",
       appointmentTypeId: "6",
       date: "2025-01-03",
       startTime: "09:00",
       endTime: "09:15",
       notes: "COVID booster shot",
+      status: "scheduled",
     },
     {
       id: "13",
       patientId: "2",
+      doctorId: "doc1",
       appointmentTypeId: "1",
       date: "2025-01-03",
       startTime: "14:30",
       endTime: "15:00",
       notes: "Headache consultation",
+      status: "missed",
     },
     {
       id: "14",
       patientId: "4",
+      doctorId: "doc3",
       appointmentTypeId: "2",
       date: "2025-01-03",
       startTime: "16:00",
       endTime: "16:15",
       notes: "Medication adjustment follow-up",
+      status: "scheduled",
     },
 
     // Saturday, January 4, 2025
     {
       id: "15",
       patientId: "5",
+      doctorId: "doc1",
       appointmentTypeId: "1",
       date: "2025-01-04",
       startTime: "10:30",
       endTime: "11:00",
       notes: "Weekend urgent consultation",
+      status: "scheduled",
     },
     {
       id: "16",
       patientId: "1",
+      doctorId: "doc2",
       appointmentTypeId: "2",
       date: "2025-01-04",
       startTime: "12:00",
       endTime: "12:15",
       notes: "Quick check-up before weekend",
+      status: "cancelled",
     },
   ]);
 
   const [activeTab, setActiveTab] = useState("calendar");
+
+  const statusConfig = {
+    scheduled: {
+      label: "Scheduled",
+      color: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: Clock,
+    },
+    cancelled: {
+      label: "Cancelled",
+      color: "bg-red-100 text-red-800 border-red-200",
+      icon: XCircle,
+    },
+    missed: {
+      label: "Missed",
+      color: "bg-orange-100 text-orange-800 border-orange-200",
+      icon: AlertCircle,
+    },
+    completed: {
+      label: "Completed",
+      color: "bg-green-100 text-green-800 border-green-200",
+      icon: CheckCircle,
+    },
+  };
 
   // Patient functions
   const addPatient = (patient) => {
@@ -392,36 +485,64 @@ export default function ClinicDashboard() {
     setAppointments(appointments.filter((apt) => apt.id !== appointmentId));
   };
 
-  const checkAppointmentOverlap = (date, startTime, endTime, excludeId) => {
-    return appointments.some((apt) => {
-      if (excludeId && apt.id === excludeId) return false;
-      if (apt.date !== date) return false;
+  const checkAppointmentOverlap = (
+    date,
+    startTime,
+    endTime,
+    doctorId,
+    excludeId
+  ) => {
+    return appointments
+      .filter((appt) => appt.status !== "cancelled")
+      .some((apt) => {
+        if (excludeId && apt.id === excludeId) return false;
+        if (apt.date !== date) return false;
+        // Only check for overlap with appointments for the SAME doctor
+        if (apt.doctorId !== doctorId) return false;
 
-      const aptStart = new Date(`${date}T${apt.startTime}`);
-      const aptEnd = new Date(`${date}T${apt.endTime}`);
-      const newStart = new Date(`${date}T${startTime}`);
-      const newEnd = new Date(`${date}T${endTime}`);
+        const aptStart = new Date(`${date}T${apt.startTime}`);
+        const aptEnd = new Date(`${date}T${apt.endTime}`);
+        const newStart = new Date(`${date}T${startTime}`);
+        const newEnd = new Date(`${date}T${endTime}`);
 
-      return newStart < aptEnd && newEnd > aptStart;
-    });
+        return newStart < aptEnd && newEnd > aptStart;
+      });
+  };
+
+  // Doctor functions
+  const addDoctor = (doctor) => {
+    const newDoctor = {
+      ...doctor,
+      id: Date.now().toString(),
+    };
+    setDoctors([...doctors, newDoctor]);
+  };
+
+  const updateDoctor = (doctorId, updatedDoctor) => {
+    setDoctors(
+      doctors.map((doctor) =>
+        doctor.id === doctorId ? { ...updatedDoctor, id: doctorId } : doctor
+      )
+    );
+  };
+
+  const deleteDoctor = (doctorId) => {
+    setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-3">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-white" />
+                <div className="w-14  h-14 rounded-lg flex items-center justify-center">
+                  <Image src={logo} alt="logo" />
                 </div>
               </div>
               <div className="ml-4">
                 <h1 className="text-2xl font-bold text-gray-900">ClinicSync</h1>
-                <p className="text-sm text-gray-500">
-                  Clinic Management System
-                </p>
               </div>
             </div>
           </div>
@@ -434,7 +555,7 @@ export default function ClinicDashboard() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Calendar
@@ -442,6 +563,10 @@ export default function ClinicDashboard() {
             <TabsTrigger value="patients" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Patients
+            </TabsTrigger>
+            <TabsTrigger value="doctors" className="flex items-center gap-2">
+              <Stethoscope className="w-4 h-4" />
+              Doctors
             </TabsTrigger>
             <TabsTrigger
               value="appointments"
@@ -467,14 +592,18 @@ export default function ClinicDashboard() {
               </CardHeader>
               <CardContent>
                 <AppointmentCalendar
-                  appointments={appointments}
+                  appointments={appointments.filter(
+                    (appt) => appt.status !== "cancelled"
+                  )}
                   patients={patients}
+                  doctors={doctors}
                   appointmentTypes={appointmentTypes}
                   clinicHours={clinicHours}
                   onAddAppointment={addAppointment}
                   onUpdateAppointment={updateAppointment}
                   onDeleteAppointment={deleteAppointment}
                   onCheckOverlap={checkAppointmentOverlap}
+                  statusConfig={statusConfig}
                 />
               </CardContent>
             </Card>
@@ -486,6 +615,15 @@ export default function ClinicDashboard() {
               onAddPatient={addPatient}
               onUpdatePatient={updatePatient}
               onDeletePatient={deletePatient}
+            />
+          </TabsContent>
+
+          <TabsContent value="doctors" className="space-y-6">
+            <DoctorManagement
+              doctors={doctors}
+              onAddDoctor={addDoctor}
+              onUpdateDoctor={updateDoctor}
+              onDeleteDoctor={deleteDoctor}
             />
           </TabsContent>
 

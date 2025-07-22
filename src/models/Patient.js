@@ -8,6 +8,7 @@ const patientSchema = new mongoose.Schema(
     age:Number,
     gender: String,
     dob: Date,
+    age: Number,
     address: String,
     medicalHistory: String,
     allergies: [String],
