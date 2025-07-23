@@ -37,10 +37,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPatients } from "@/lib/patientApi";
 
 export default function AppointmentCalendar({
   appointments,
-  patients,
   doctors,
   appointmentTypes,
   clinicHours,
@@ -48,7 +49,7 @@ export default function AppointmentCalendar({
   onUpdateAppointment,
   onDeleteAppointment,
   onCheckOverlap,
-  statusConfig
+  statusConfig,
 }) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
@@ -75,6 +76,11 @@ export default function AppointmentCalendar({
     });
   const [mergedAppointments, setMergedAppointments] = useState([]);
   const [open, setOpen] = useState(false);
+
+  const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
+    queryKey: ["patients"],
+    queryFn: fetchPatients,
+  });
 
   const slotsStartHour = 9;
   const slotsEndHour = 23;
@@ -878,9 +884,9 @@ export default function AppointmentCalendar({
                                         {appointmentsInThisSlot.length === 1 ? (
                                           <div className="font-medium truncate">
                                             {
-                                              patients.find(
+                                              patientsData.find(
                                                 (p) =>
-                                                  p.id ===
+                                                  p._id ===
                                                   appointmentsInThisSlot[0]
                                                     .patientId
                                               )?.name
@@ -905,8 +911,8 @@ export default function AppointmentCalendar({
                                                   ).color,
                                               }}
                                               title={`${
-                                                patients.find(
-                                                  (p) => p.id === apt.patientId
+                                                patientsData.find(
+                                                  (p) => p._id === apt.patientId
                                                 )?.name
                                               } (${
                                                 doctors.find(
@@ -957,9 +963,9 @@ export default function AppointmentCalendar({
                                       >
                                         <div className="font-medium truncate">
                                           {
-                                            patients.find(
+                                            patientsData.find(
                                               (p) =>
-                                                p.id === appointment.patientId
+                                                p._id === appointment.patientId
                                             )?.name
                                           }
                                         </div>
@@ -1028,7 +1034,7 @@ export default function AppointmentCalendar({
                       className="w-full justify-between font-normal"
                     >
                       {formData.patientId
-                        ? patients.find((p) => p.id === formData.patientId)
+                        ? patientsData.find((p) => p._id === formData.patientId)
                             ?.name
                         : "Select Patient"}
                       <ChevronsUpDown className="opacity-50" />
@@ -1038,21 +1044,21 @@ export default function AppointmentCalendar({
                     <Command className="w-full">
                       <CommandInput placeholder="Search Patient" />
                       <CommandList>
-                        <CommandEmpty>No framework found.</CommandEmpty>
+                        <CommandEmpty>No patient found.</CommandEmpty>
                         <CommandGroup>
-                          {patients.map((patient) => (
+                          {patientsData.map((patient) => (
                             <CommandItem
-                              key={patient.id}
+                              key={patient._id}
                               value={patient.name.toLowerCase()}
                               onSelect={() => {
                                 setFormData({
                                   ...formData,
-                                  patientId: patient.id,
+                                  patientId: patient._id,
                                 });
                                 setOpen(false);
                               }}
                               className={
-                                formData.patientId === patient.id
+                                formData.patientId === patient._id
                                   ? "bg-gray-200"
                                   : ""
                               }
@@ -1283,8 +1289,8 @@ export default function AppointmentCalendar({
 
           <div className="space-y-4 max-h-1/2">
             {overlappingAppointmentsDialog.appointments.map((appointment) => {
-              const patient = patients.find(
-                (p) => p.id === appointment.patientId
+              const patient = patientsData.find(
+                (p) => p._id === appointment.patientId
               );
               const doctor = doctors.find((d) => d.id === appointment.doctorId);
               const appointmentType = appointmentTypes.find(

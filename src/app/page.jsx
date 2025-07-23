@@ -28,54 +28,6 @@ import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
 
 export default function ClinicDashboard() {
-  const [patients, setPatients] = useState([
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      dateOfBirth: "1990-05-15",
-      address: "123 Main St, City, State",
-      age: 24,
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1234567891",
-      dateOfBirth: "1985-08-22",
-      address: "456 Oak Ave, City, State",
-      age: 12,
-    },
-    {
-      id: "3",
-      name: "Michael Johnson",
-      email: "michael.j@example.com",
-      phone: "+1234567892",
-      dateOfBirth: "1978-12-03",
-      address: "789 Pine St, City, State",
-      age: 15,
-    },
-    {
-      id: "4",
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-      phone: "+1234567893",
-      dateOfBirth: "1992-07-18",
-      address: "321 Elm St, City, State",
-      age: 43,
-    },
-    {
-      id: "5",
-      name: "Robert Brown",
-      email: "robert.brown@example.com",
-      phone: "+1234567894",
-      dateOfBirth: "1965-03-25",
-      address: "654 Maple Ave, City, State",
-      age: 59,
-    },
-  ]);
-
   const [doctors, setDoctors] = useState([
     {
       id: "doc1",
@@ -414,29 +366,6 @@ export default function ClinicDashboard() {
     },
   };
 
-  // Patient functions
-  const addPatient = (patient) => {
-    const newPatient = {
-      ...patient,
-      id: Date.now().toString(),
-    };
-    setPatients([...patients, newPatient]);
-  };
-
-  const updatePatient = (patientId, updatedPatient) => {
-    setPatients(
-      patients.map((patient) =>
-        patient.id === patientId
-          ? { ...updatedPatient, id: patientId }
-          : patient
-      )
-    );
-  };
-
-  const deletePatient = (patientId) => {
-    setPatients(patients.filter((patient) => patient.id !== patientId));
-  };
-
   // Appointment type functions
   const addAppointmentType = (appointmentType) => {
     const newAppointmentType = {
@@ -595,7 +524,6 @@ export default function ClinicDashboard() {
                   appointments={appointments.filter(
                     (appt) => appt.status !== "cancelled"
                   )}
-                  patients={patients}
                   doctors={doctors}
                   appointmentTypes={appointmentTypes}
                   clinicHours={clinicHours}
@@ -610,12 +538,7 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="patients" className="space-y-6">
-            <PatientManagement
-              patients={patients}
-              onAddPatient={addPatient}
-              onUpdatePatient={updatePatient}
-              onDeletePatient={deletePatient}
-            />
+            <PatientManagement />
           </TabsContent>
 
           <TabsContent value="doctors" className="space-y-6">
