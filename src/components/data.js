@@ -1,4 +1,4 @@
-export const appointmentTypeColorOptions = [
+export const procedureColorOptions = [
   "#3b82f6",
   "#10b981",
   "#f59e0b",
@@ -40,7 +40,7 @@ export const emptyPatient = {
   address: "",
 };
 
-export const emptyAppointmentType = {
+export const emptyProcedure = {
   name: "",
   duration: 30,
   color: "#3b82f6",
@@ -52,4 +52,12 @@ export const emptyDoctor = {
   email: "",
   phone: "",
   color: "#3b82f6",
+};
+
+export const emptyAppointment = {
+  patientId: "",
+  doctorId: "",
+  procedureId: "",
+  notes: "",
+  status: "scheduled",
 };

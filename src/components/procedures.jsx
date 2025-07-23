@@ -9,62 +9,62 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import AppointmentTypeForm from "./forms/appointment-types.form";
-import { emptyAppointmentType } from "./data";
+import ProcedureForm from "./forms/procedure.form";
+import { emptyProcedure } from "./data";
 import { Button } from "./ui/button";
 import { Clock, Edit, Plus, Trash2 } from "lucide-react";
 
-export default function AppointmentTypes({
-  appointmentTypes,
-  onAddAppointmentType,
-  onUpdateAppointmentType,
-  onDeleteAppointmentType,
+export default function Procedures({
+  procedures,
+  onAddProcedure,
+  onUpdateProcedure,
+  onDeleteProcedure,
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingAppointmentType, setEditingAppointmentType] = useState(null);
-  const [formData, setFormData] = useState(emptyAppointmentType);
+  const [editingProcedure, setEditingProcedure] = useState(null);
+  const [formData, setFormData] = useState(emptyProcedure);
 
-  const handleEditAppointmentType = (appointmentType) => {
-    setEditingAppointmentType(appointmentType);
+  const handleEditProcedure = (procedure) => {
+    setEditingProcedure(procedure);
     setFormData({
-      name: appointmentType.name,
-      duration: appointmentType.duration,
-      color: appointmentType.color,
+      name: procedure.name,
+      duration: procedure.duration,
+      color: procedure.color,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDeleteAppointmentType = (appointmentTypeId) => {
-    onDeleteAppointmentType(appointmentTypeId);
+  const handleDeleteProcedure = (procedureId) => {
+    onDeleteProcedure(procedureId);
     toast({
-      title: "Appointment Type Deleted",
-      description: "The appointment type has been successfully deleted.",
+      title: "Procedure Deleted",
+      description: "The procedure has been successfully deleted.",
     });
   };
 
   const handleAddNew = () => {
-    setEditingAppointmentType(null);
-    setFormData(emptyAppointmentType);
+    setEditingProcedure(null);
+    setFormData(emptyProcedure);
     setIsDialogOpen(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingAppointmentType) {
-      onUpdateAppointmentType(editingAppointmentType.id, formData);
+    if (editingProcedure) {
+      onUpdateProcedure(editingProcedure.id, formData);
       toast({
-        title: "Appointment Type Updated",
-        description: "The appointment type has been successfully updated.",
+        title: "Procedure Updated",
+        description: "The procedure has been successfully updated.",
       });
     } else {
-      onAddAppointmentType(formData);
+      onAddProcedure(formData);
       toast({
-        title: "Appointment Type Added",
-        description: "The new appointment type has been successfully added.",
+        title: "Procedure Added",
+        description: "The new procedure has been successfully added.",
       });
     }
-    setFormData(emptyAppointmentType);
-    setEditingAppointmentType(null);
+    setFormData(emptyProcedure);
+    setEditingProcedure(null);
     setIsDialogOpen(false);
   };
 
@@ -74,9 +74,9 @@ export default function AppointmentTypes({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Appointment Types</CardTitle>
+              <CardTitle>Procedures</CardTitle>
               <CardDescription>
-                Manage different types of appointments and their durations
+                Manage different types of procedures and their durations
               </CardDescription>
             </div>
             <Button onClick={handleAddNew}>
@@ -87,7 +87,7 @@ export default function AppointmentTypes({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {appointmentTypes.map((type) => (
+            {procedures.map((type) => (
               <Card key={type.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-4">
@@ -106,14 +106,14 @@ export default function AppointmentTypes({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditAppointmentType(type)}
+                        onClick={() => handleEditProcedure(type)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDeleteAppointmentType(type.id)}
+                        onClick={() => handleDeleteProcedure(type.id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -125,12 +125,12 @@ export default function AppointmentTypes({
           </div>
         </CardContent>
       </Card>
-      <AppointmentTypeForm
+      <ProcedureForm
         dialogState={{
           isDialogOpen,
           setIsDialogOpen,
-          editingAppointmentType,
-          setEditingAppointmentType,
+          editingProcedure,
+          setEditingProcedure,
         }}
         formState={{
           formData,

@@ -20,15 +20,15 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientManagement from "@/components/patient-management";
-import AppointmentTypes from "@/components/appointment-types";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
 import DoctorManagement from "@/components/doctor-management";
 import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
+import Procedures from "@/components/procedures";
 
 export default function ClinicDashboard() {
-  const [appointmentTypes, setAppointmentTypes] = useState([
+  const [procedures, setProcedures] = useState([
     {
       id: "1",
       name: "General Consultation",
@@ -138,7 +138,7 @@ export default function ClinicDashboard() {
       id: "1",
       patientId: "1",
       doctorId: "doc1",
-      appointmentTypeId: "1",
+      procedureId: "1",
       date: "2025-07-18",
       startTime: "12:00",
       endTime: "12:30",
@@ -149,7 +149,7 @@ export default function ClinicDashboard() {
       id: "2",
       patientId: "3",
       doctorId: "doc2",
-      appointmentTypeId: "4",
+      procedureId: "4",
       date: "2025-07-18",
       startTime: "12:45",
       endTime: "13:30",
@@ -160,7 +160,7 @@ export default function ClinicDashboard() {
       id: "3",
       patientId: "5",
       doctorId: "doc1",
-      appointmentTypeId: "2",
+      procedureId: "2",
       date: "2025-07-18",
       startTime: "14:30",
       endTime: "14:45",
@@ -171,7 +171,7 @@ export default function ClinicDashboard() {
       id: "4",
       patientId: "2",
       doctorId: "doc3",
-      appointmentTypeId: "5",
+      procedureId: "5",
       date: "2025-07-18",
       startTime: "16:00",
       endTime: "16:20",
@@ -184,7 +184,7 @@ export default function ClinicDashboard() {
       id: "5",
       patientId: "4",
       doctorId: "doc2",
-      appointmentTypeId: "6",
+      procedureId: "6",
       date: "2025-07-19",
       startTime: "12:30",
       endTime: "12:45",
@@ -195,7 +195,7 @@ export default function ClinicDashboard() {
       id: "6",
       patientId: "1",
       doctorId: "doc1",
-      appointmentTypeId: "3",
+      procedureId: "3",
       date: "2025-07-19",
       startTime: "15:00",
       endTime: "16:00",
@@ -206,7 +206,7 @@ export default function ClinicDashboard() {
       id: "7",
       patientId: "3",
       doctorId: "doc3",
-      appointmentTypeId: "1",
+      procedureId: "1",
       date: "2025-07-19",
       startTime: "16:30",
       endTime: "17:00",
@@ -219,7 +219,7 @@ export default function ClinicDashboard() {
       id: "8",
       patientId: "2",
       doctorId: "doc1",
-      appointmentTypeId: "2",
+      procedureId: "2",
       date: "2025-07-16",
       startTime: "12:15",
       endTime: "12:30",
@@ -230,7 +230,7 @@ export default function ClinicDashboard() {
       id: "9",
       patientId: "5",
       doctorId: "doc2",
-      appointmentTypeId: "1",
+      procedureId: "1",
       date: "2025-07-16",
       startTime: "14:00",
       endTime: "14:30",
@@ -241,7 +241,7 @@ export default function ClinicDashboard() {
       id: "10",
       patientId: "4",
       doctorId: "doc3",
-      appointmentTypeId: "4",
+      procedureId: "4",
       date: "2025-07-16",
       startTime: "13:15",
       endTime: "14:00",
@@ -252,7 +252,7 @@ export default function ClinicDashboard() {
       id: "11",
       patientId: "1",
       doctorId: "doc1",
-      appointmentTypeId: "5",
+      procedureId: "5",
       date: "2025-07-16",
       startTime: "15:45",
       endTime: "16:05",
@@ -265,7 +265,7 @@ export default function ClinicDashboard() {
       id: "12",
       patientId: "3",
       doctorId: "doc2",
-      appointmentTypeId: "6",
+      procedureId: "6",
       date: "2025-01-03",
       startTime: "09:00",
       endTime: "09:15",
@@ -276,7 +276,7 @@ export default function ClinicDashboard() {
       id: "13",
       patientId: "2",
       doctorId: "doc1",
-      appointmentTypeId: "1",
+      procedureId: "1",
       date: "2025-01-03",
       startTime: "14:30",
       endTime: "15:00",
@@ -287,7 +287,7 @@ export default function ClinicDashboard() {
       id: "14",
       patientId: "4",
       doctorId: "doc3",
-      appointmentTypeId: "2",
+      procedureId: "2",
       date: "2025-01-03",
       startTime: "16:00",
       endTime: "16:15",
@@ -300,7 +300,7 @@ export default function ClinicDashboard() {
       id: "15",
       patientId: "5",
       doctorId: "doc1",
-      appointmentTypeId: "1",
+      procedureId: "1",
       date: "2025-01-04",
       startTime: "10:30",
       endTime: "11:00",
@@ -311,7 +311,7 @@ export default function ClinicDashboard() {
       id: "16",
       patientId: "1",
       doctorId: "doc2",
-      appointmentTypeId: "2",
+      procedureId: "2",
       date: "2025-01-04",
       startTime: "12:00",
       endTime: "12:15",
@@ -346,28 +346,26 @@ export default function ClinicDashboard() {
   };
 
   // Appointment type functions
-  const addAppointmentType = (appointmentType) => {
-    const newAppointmentType = {
-      ...appointmentType,
+  const addProcedure = (procedure) => {
+    const newProcedure = {
+      ...procedure,
       id: Date.now().toString(),
     };
-    setAppointmentTypes([...appointmentTypes, newAppointmentType]);
+    setProcedures([...procedures, newProcedure]);
   };
 
-  const updateAppointmentType = (appointmentTypeId, updatedAppointmentType) => {
-    setAppointmentTypes(
-      appointmentTypes.map((type) =>
-        type.id === appointmentTypeId
-          ? { ...updatedAppointmentType, id: appointmentTypeId }
+  const updateProcedure = (procedureId, updatedProcedure) => {
+    setProcedures(
+      procedures.map((type) =>
+        type.id === procedureId
+          ? { ...updatedProcedure, id: procedureId }
           : type
       )
     );
   };
 
-  const deleteAppointmentType = (appointmentTypeId) => {
-    setAppointmentTypes(
-      appointmentTypes.filter((type) => type.id !== appointmentTypeId)
-    );
+  const deleteProcedure = (procedureId) => {
+    setProcedures(procedures.filter((type) => type.id !== procedureId));
   };
 
   // Appointment functions
@@ -460,7 +458,7 @@ export default function ClinicDashboard() {
               className="flex items-center gap-2"
             >
               <Clock className="w-4 h-4" />
-              Appointment Types
+              Procedures
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -482,7 +480,7 @@ export default function ClinicDashboard() {
                   appointments={appointments.filter(
                     (appt) => appt.status !== "cancelled"
                   )}
-                  appointmentTypes={appointmentTypes}
+                  procedures={procedures}
                   clinicHours={clinicHours}
                   onAddAppointment={addAppointment}
                   onUpdateAppointment={updateAppointment}
@@ -503,11 +501,11 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="appointments" className="space-y-6">
-            <AppointmentTypes
-              appointmentTypes={appointmentTypes}
-              onAddAppointmentType={addAppointmentType}
-              onUpdateAppointmentType={updateAppointmentType}
-              onDeleteAppointmentType={deleteAppointmentType}
+            <Procedures
+              procedures={procedures}
+              onAddProcedure={addProcedure}
+              onUpdateProcedure={updateProcedure}
+              onDeleteProcedure={deleteProcedure}
             />
           </TabsContent>
 

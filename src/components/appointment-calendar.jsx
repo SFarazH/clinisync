@@ -39,10 +39,11 @@ import {
 } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDoctors, fetchPatients } from "@/lib";
+import { emptyAppointment } from "./data";
 
 export default function AppointmentCalendar({
   appointments,
-  appointmentTypes,
+  procedures,
   clinicHours,
   onAddAppointment,
   onUpdateAppointment,
@@ -55,12 +56,7 @@ export default function AppointmentCalendar({
   const [selectedTime, setSelectedTime] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("all");
-  const [formData, setFormData] = useState({
-    patientId: "",
-    doctorId: "",
-    appointmentTypeId: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState(emptyAppointment);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
@@ -286,16 +282,16 @@ export default function AppointmentCalendar({
     if (!draggedAppointment) return;
 
     const dateString = date.toISOString().split("T")[0];
-    const appointmentType = appointmentTypes.find(
-      (t) => t.id === draggedAppointment.appointmentTypeId
+    const procedure = procedures.find(
+      (t) => t.id === draggedAppointment.procedureId
     );
 
-    if (!appointmentType) return;
+    if (!procedure) return;
 
     // Calculate new end time
     const startDateTime = new Date(`${dateString}T${time}:00`);
     const endDateTime = new Date(
-      startDateTime.getTime() + appointmentType.duration * 60000
+      startDateTime.getTime() + procedure.duration * 60000
     );
     const newEndTime = endDateTime.toTimeString().slice(0, 5);
 
@@ -333,7 +329,7 @@ export default function AppointmentCalendar({
     onUpdateAppointment(draggedAppointment.id, {
       patientId: draggedAppointment.patientId,
       doctorId: draggedAppointment.doctorId,
-      appointmentTypeId: draggedAppointment.appointmentTypeId,
+      procedureId: draggedAppointment.procedureId,
       date: dateString,
       startTime: time,
       endTime: newEndTime,
@@ -356,7 +352,7 @@ export default function AppointmentCalendar({
     setFormData({
       patientId: appointment.patientId,
       doctorId: appointment.doctorId,
-      appointmentTypeId: appointment.appointmentTypeId,
+      procedureId: appointment.procedureId,
       notes: appointment.notes || "",
       status: appointment.status || "scheduled",
     });
@@ -367,9 +363,8 @@ export default function AppointmentCalendar({
 
   // get appointment type color
   const getAppointmentColor = (appointment) => {
-    return appointmentTypes.filter(
-      (appt) => appt.id === appointment.appointmentTypeId
-    )[0].color;
+    return procedures.filter((appt) => appt.id === appointment.procedureId)[0]
+      .color;
   };
 
   // add appointment using empty time slot in calendar view
@@ -385,11 +380,8 @@ export default function AppointmentCalendar({
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
     setFormData({
-      patientId: "",
       doctorId: selectedDoctorId !== "all" ? selectedDoctorId : "",
-      appointmentTypeId: "",
-      notes: "",
-      status: "scheduled",
+      ...emptyAppointment,
     });
     setErrorMessage("");
     setIsFromCalendarSlot(true);
@@ -405,13 +397,7 @@ export default function AppointmentCalendar({
       });
       setIsDialogOpen(false);
       setEditingAppointment(null);
-      setFormData({
-        patientId: "",
-        doctorId: "",
-        appointmentTypeId: "",
-        notes: "",
-        status: "scheduled",
-      });
+      setFormData(emptyAppointment);
     }
   };
 
@@ -419,15 +405,15 @@ export default function AppointmentCalendar({
     e.preventDefault();
     setErrorMessage("");
 
-    const appointmentType = appointmentTypes.find(
-      (type) => type.id === formData.appointmentTypeId
+    const procedure = procedures.find(
+      (type) => type.id === formData.procedureId
     );
-    if (!appointmentType) return;
+    if (!procedure) return;
 
     const startTime = selectedTime;
     const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
     const endDateTime = new Date(
-      startDateTime.getTime() + appointmentType.duration * 60000
+      startDateTime.getTime() + procedure.duration * 60000
     );
     const endTime = endDateTime.toTimeString().slice(0, 5);
 
@@ -451,7 +437,7 @@ export default function AppointmentCalendar({
       onUpdateAppointment(editingAppointment.id, {
         patientId: formData.patientId,
         doctorId: formData.doctorId,
-        appointmentTypeId: formData.appointmentTypeId,
+        procedureId: formData.procedureId,
         date: selectedDate,
         startTime,
         endTime,
@@ -466,7 +452,7 @@ export default function AppointmentCalendar({
       onAddAppointment({
         patientId: formData.patientId,
         doctorId: formData.doctorId,
-        appointmentTypeId: formData.appointmentTypeId,
+        procedureId: formData.procedureId,
         date: selectedDate,
         startTime,
         endTime,
@@ -479,13 +465,7 @@ export default function AppointmentCalendar({
       });
     }
 
-    setFormData({
-      patientId: "",
-      doctorId: "",
-      appointmentTypeId: "",
-      notes: "",
-      status: "scheduled",
-    });
+    setFormData(emptyAppointment);
     setEditingAppointment(null);
     setErrorMessage("");
     setIsDialogOpen(false);
@@ -555,13 +535,7 @@ export default function AppointmentCalendar({
     setEditingAppointment(null);
     setSelectedDate("");
     setSelectedTime("");
-    setFormData({
-      patientId: "",
-      doctorId: "",
-      appointmentTypeId: "",
-      notes: "",
-      status: "scheduled",
-    });
+    setFormData(emptyAppointment);
     setErrorMessage("");
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
@@ -908,10 +882,9 @@ export default function AppointmentCalendar({
                                               className="w-3 h-3 rounded-full"
                                               style={{
                                                 backgroundColor:
-                                                  appointmentTypes.find(
+                                                  procedures.find(
                                                     (app) =>
-                                                      app.id ===
-                                                      apt.appointmentTypeId
+                                                      app.id === apt.procedureId
                                                   ).color,
                                               }}
                                               title={`${
@@ -947,12 +920,10 @@ export default function AppointmentCalendar({
                                           statusConfig[appointment.status].label
                                         }
                                         style={{
-                                          backgroundColor:
-                                            appointmentTypes.find(
-                                              (t) =>
-                                                t.id ===
-                                                appointment.appointmentTypeId
-                                            )?.color,
+                                          backgroundColor: procedures.find(
+                                            (t) =>
+                                              t.id === appointment.procedureId
+                                          )?.color,
                                           height: `${
                                             getAppointmentHeight(appointment) *
                                               30 -
@@ -1101,18 +1072,18 @@ export default function AppointmentCalendar({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="appointmentType">Appointment Type</Label>
+                <Label htmlFor="procedure">Appointment Type</Label>
                 <Select
-                  value={formData.appointmentTypeId}
+                  value={formData.procedureId}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, appointmentTypeId: value })
+                    setFormData({ ...formData, procedureId: value })
                   }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {appointmentTypes.map((type) => (
+                    {procedures.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
                         {type.name} ({type.duration} min)
                       </SelectItem>
@@ -1238,7 +1209,7 @@ export default function AppointmentCalendar({
                     setFormData({
                       patientId: "",
                       doctorId: "",
-                      appointmentTypeId: "",
+                      procedureId: "",
                       notes: "",
                       status: "scheduled",
                     });
@@ -1253,7 +1224,7 @@ export default function AppointmentCalendar({
                   disabled={
                     !formData.patientId ||
                     !formData.doctorId ||
-                    !formData.appointmentTypeId ||
+                    !formData.procedureId ||
                     !selectedTime
                   }
                 >
@@ -1299,8 +1270,8 @@ export default function AppointmentCalendar({
               const doctor = doctorsData.find(
                 (d) => d._id === appointment.doctorId
               );
-              const appointmentType = appointmentTypes.find(
-                (t) => t.id === appointment.appointmentTypeId
+              const procedure = procedures.find(
+                (t) => t.id === appointment.procedureId
               );
               const status = appointment.status || "scheduled";
               const StatusIcon = statusConfig[status].icon;
@@ -1341,8 +1312,8 @@ export default function AppointmentCalendar({
                       <strong>Doctor:</strong> {doctor?.name}
                     </div>
                     <div>
-                      <strong>Type:</strong> {appointmentType?.name} (
-                      {appointmentType?.duration} min)
+                      <strong>Type:</strong> {procedure?.name} (
+                      {procedure?.duration} min)
                     </div>
                     {appointment.notes && (
                       <div>
