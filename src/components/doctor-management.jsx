@@ -14,16 +14,40 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { emptyDoctor } from "./data";
 import DoctorForm from "./forms/doctor.form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addNewDoctor, deleteDoctor, fetchDoctors, updateDoctor } from "@/lib";
 
-export default function DoctorManagement({
-  doctors,
-  onAddDoctor,
-  onUpdateDoctor,
-  onDeleteDoctor,
-}) {
+export default function DoctorManagement() {
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState(emptyDoctor);
+
+  const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
+    queryKey: ["doctors"],
+    queryFn: fetchDoctors,
+  });
+
+  const addDoctorMutation = useMutation({
+    mutationFn: addNewDoctor,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["doctors"]);
+    },
+  });
+
+  const updateDoctorMutation = useMutation({
+    mutationFn: updateDoctor,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["doctors"]);
+    },
+  });
+
+  const deleteDoctorMutation = useMutation({
+    mutationFn: deleteDoctor,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["doctors"]);
+    },
+  });
 
   const handleEditDoctor = (doctor) => {
     setEditingDoctor(doctor);
@@ -38,11 +62,7 @@ export default function DoctorManagement({
   };
 
   const handleDeleteDoctor = (doctorId) => {
-    onDeleteDoctor(doctorId);
-    toast({
-      title: "Doctor Deleted",
-      description: "The doctor has been successfully deleted.",
-    });
+    deleteDoctorMutation.mutateAsync(doctorId);
   };
 
   const handleAddNew = () => {
@@ -54,13 +74,12 @@ export default function DoctorManagement({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingDoctor) {
-      onUpdateDoctor(editingDoctor.id, formData);
-      toast({
-        title: "Doctor Updated",
-        description: "The doctor information has been successfully updated.",
+      updateDoctorMutation.mutateAsync({
+        id: editingDoctor._id,
+        doctorData: formData,
       });
     } else {
-      onAddDoctor(formData);
+      addDoctorMutation.mutateAsync(formData);
       toast({
         title: "Doctor Added",
         description: "The new doctor has been successfully added.",
@@ -90,8 +109,8 @@ export default function DoctorManagement({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {doctors.map((doctor) => (
-              <Card key={doctor.id}>
+            {doctorsData.map((doctor) => (
+              <Card key={doctor._id}>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-4">
                     <div
@@ -104,10 +123,10 @@ export default function DoctorManagement({
                       <h3 className="font-medium">{doctor.name}</h3>
                       <div className="text-sm text-muted-foreground space-y-1">
                         <p className="font-medium text-blue-600">
-                          {doctor.specialization}
+                          {doctor?.specialization}
                         </p>
-                        <p>{doctor.email}</p>
-                        <p>{doctor.phone}</p>
+                        <p>{doctor?.email}</p>
+                        <p>{doctor?.phone}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -121,7 +140,7 @@ export default function DoctorManagement({
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDeleteDoctor(doctor.id)}
+                        onClick={() => handleDeleteDoctor(doctor._id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

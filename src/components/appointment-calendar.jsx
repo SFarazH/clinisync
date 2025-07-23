@@ -38,11 +38,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPatients } from "@/lib/patientApi";
+import { fetchDoctors, fetchPatients } from "@/lib";
 
 export default function AppointmentCalendar({
   appointments,
-  doctors,
   appointmentTypes,
   clinicHours,
   onAddAppointment,
@@ -80,6 +79,11 @@ export default function AppointmentCalendar({
   const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
     queryKey: ["patients"],
     queryFn: fetchPatients,
+  });
+
+  const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
+    queryKey: ["doctors"],
+    queryFn: fetchDoctors,
   });
 
   const slotsStartHour = 9;
@@ -675,8 +679,8 @@ export default function AppointmentCalendar({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Doctors</SelectItem>
-                {doctors.map((doctor) => (
-                  <SelectItem key={doctor.id} value={doctor.id}>
+                {doctorsData.map((doctor) => (
+                  <SelectItem key={doctor._id} value={doctor._id}>
                     {doctor.name}
                   </SelectItem>
                 ))}
@@ -915,8 +919,8 @@ export default function AppointmentCalendar({
                                                   (p) => p._id === apt.patientId
                                                 )?.name
                                               } (${
-                                                doctors.find(
-                                                  (d) => d.id === apt.doctorId
+                                                doctorsData.find(
+                                                  (d) => d._id === apt.doctorId
                                                 )?.name
                                               })`}
                                             />
@@ -1085,8 +1089,8 @@ export default function AppointmentCalendar({
                     <SelectValue placeholder="Select a doctor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {doctors.map((doctor) => (
-                      <SelectItem key={doctor.id} value={doctor.id}>
+                    {doctorsData.map((doctor) => (
+                      <SelectItem key={doctor._id} value={doctor._id}>
                         <div className="flex items-center gap-2">
                           {doctor.name}
                         </div>
@@ -1292,7 +1296,9 @@ export default function AppointmentCalendar({
               const patient = patientsData.find(
                 (p) => p._id === appointment.patientId
               );
-              const doctor = doctors.find((d) => d.id === appointment.doctorId);
+              const doctor = doctorsData.find(
+                (d) => d._id === appointment.doctorId
+              );
               const appointmentType = appointmentTypes.find(
                 (t) => t.id === appointment.appointmentTypeId
               );

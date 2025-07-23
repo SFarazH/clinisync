@@ -28,27 +28,6 @@ import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
 
 export default function ClinicDashboard() {
-  const [doctors, setDoctors] = useState([
-    {
-      id: "doc1",
-      name: "Dr. Alice Smith",
-      specialization: "General Practice",
-      color: "#3b82f6", // Blue
-    },
-    {
-      id: "doc2",
-      name: "Dr. Bob Johnson",
-      specialization: "Pediatrics",
-      color: "#10b981", // Green
-    },
-    {
-      id: "doc3",
-      name: "Dr. Carol White",
-      specialization: "Dermatology",
-      color: "#f59e0b", // Amber
-    },
-  ]);
-
   const [appointmentTypes, setAppointmentTypes] = useState([
     {
       id: "1",
@@ -438,27 +417,6 @@ export default function ClinicDashboard() {
       });
   };
 
-  // Doctor functions
-  const addDoctor = (doctor) => {
-    const newDoctor = {
-      ...doctor,
-      id: Date.now().toString(),
-    };
-    setDoctors([...doctors, newDoctor]);
-  };
-
-  const updateDoctor = (doctorId, updatedDoctor) => {
-    setDoctors(
-      doctors.map((doctor) =>
-        doctor.id === doctorId ? { ...updatedDoctor, id: doctorId } : doctor
-      )
-    );
-  };
-
-  const deleteDoctor = (doctorId) => {
-    setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -524,7 +482,6 @@ export default function ClinicDashboard() {
                   appointments={appointments.filter(
                     (appt) => appt.status !== "cancelled"
                   )}
-                  doctors={doctors}
                   appointmentTypes={appointmentTypes}
                   clinicHours={clinicHours}
                   onAddAppointment={addAppointment}
@@ -542,12 +499,7 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="doctors" className="space-y-6">
-            <DoctorManagement
-              doctors={doctors}
-              onAddDoctor={addDoctor}
-              onUpdateDoctor={updateDoctor}
-              onDeleteDoctor={deleteDoctor}
-            />
+            <DoctorManagement />
           </TabsContent>
 
           <TabsContent value="appointments" className="space-y-6">
