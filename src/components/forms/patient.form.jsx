@@ -11,6 +11,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export default function PatientForm({
   isDialogOpen,
@@ -41,12 +48,8 @@ export default function PatientForm({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             {[
-              { id: "name", label: "Full Name", type: "text" },
+              { id: "name", label: "Name", type: "text" },
               { id: "email", label: "Email", type: "email" },
-              { id: "phone", label: "Phone", type: "text" },
-              { id: "age", label: "Age", type: "number" },
-              { id: "dateOfBirth", label: "Date of Birth", type: "date" },
-              { id: "address", label: "Address", type: "text" },
             ].map(({ id, label, type }) => (
               <div className="grid gap-2" key={id}>
                 <Label htmlFor={id}>{label}</Label>
@@ -54,10 +57,54 @@ export default function PatientForm({
                   id={id}
                   type={type}
                   value={formData[id]}
+                  onChange={(e) => {
+                    setFormData({ ...formData, [id]: e.target.value });
+                  }}
+                  required={id === "name"}
+                />
+              </div>
+            ))}
+            <div className="grid gap-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select
+                value={formData.gender || ""}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, gender: value });
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem key="male" value="male">
+                    Male
+                  </SelectItem>
+                  <SelectItem key="female" value="female">
+                    Female
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {[
+              { id: "phone", label: "Phone", type: "text" },
+              { id: "age", label: "Age", type: "number" },
+              { id: "dob", label: "Date of Birth", type: "date" },
+              { id: "address", label: "Address", type: "text" },
+            ].map(({ id, label, type }) => (
+              <div className="grid gap-2" key={id}>
+                <Label htmlFor={id}>{label}</Label>
+                <Input
+                  id={id}
+                  type={type}
+                  value={
+                    id === "dob" && formData[id]
+                      ? new Date(formData[id]).toISOString().split("T")[0]
+                      : formData[id] ?? ""
+                  }
                   onChange={(e) =>
                     setFormData({ ...formData, [id]: e.target.value })
                   }
-                  required={id === "name" || id === "dateOfBirth"}
+                  required={id === "name" || id === "dob"}
                 />
               </div>
             ))}
