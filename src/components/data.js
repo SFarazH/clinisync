@@ -35,7 +35,8 @@ export const emptyPatient = {
   email: "",
   phone: "",
   age: 0,
-  dateOfBirth: "",
+  gender: "",
+  dob: "",
   address: "",
 };
 

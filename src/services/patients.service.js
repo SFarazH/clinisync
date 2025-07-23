@@ -12,7 +12,7 @@ export async function createPatient(data) {
     }
 
     const existingPatientByPhone = await Patient.findOne({
-      phoneNumber: data.phoneNumber,
+      phone: data.phone,
     });
     if (existingPatientByPhone) {
       if (existingPatientByPhone.name === data.name) {

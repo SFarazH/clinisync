@@ -4,11 +4,10 @@ const patientSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, unique: true },
-    phoneNumber: String,
-    age:Number,
+    phone: String,
+    age: { type: Number, required: true },
     gender: String,
     dob: Date,
-    age: Number,
     address: String,
     medicalHistory: String,
     allergies: [String],
