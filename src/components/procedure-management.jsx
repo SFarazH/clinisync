@@ -14,7 +14,7 @@ import { emptyProcedure } from "./data";
 import { Button } from "./ui/button";
 import { Clock, Edit, Plus, Trash2 } from "lucide-react";
 
-export default function Procedures({
+export default function ProcedureManagement({  
   procedures,
   onAddProcedure,
   onUpdateProcedure,

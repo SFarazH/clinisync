@@ -25,7 +25,7 @@ import AppointmentCalendar from "@/components/appointment-calendar";
 import DoctorManagement from "@/components/doctor-management";
 import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
-import Procedures from "@/components/procedures";
+import ProcedureManagement from "@/components/procedure-management";
 
 export default function ClinicDashboard() {
   const [procedures, setProcedures] = useState([
@@ -501,7 +501,7 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="appointments" className="space-y-6">
-            <Procedures
+            <ProcedureManagement
               procedures={procedures}
               onAddProcedure={addProcedure}
               onUpdateProcedure={updateProcedure}
