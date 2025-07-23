@@ -28,51 +28,6 @@ import logo from "../../public/clinisync-t.png";
 import ProcedureManagement from "@/components/procedure-management";
 
 export default function ClinicDashboard() {
-  const [procedures, setProcedures] = useState([
-    {
-      id: "1",
-      name: "General Consultation",
-      duration: 30,
-      color: "#3b82f6",
-    },
-    {
-      id: "2",
-      name: "Follow-up",
-      duration: 15,
-      color: "#10b981",
-    },
-    {
-      id: "3",
-      name: "Procedure",
-      duration: 60,
-      color: "#f59e0b",
-    },
-    {
-      id: "4",
-      name: "Physical Exam",
-      duration: 45,
-      color: "#ef4444",
-    },
-    {
-      id: "5",
-      name: "Lab Results Review",
-      duration: 15,
-      color: "#8b5cf6",
-    },
-    {
-      id: "6",
-      name: "Vaccination",
-      duration: 15,
-      color: "#06b6d4",
-    },
-    {
-      id: "7",
-      name: "Operation",
-      duration: 120,
-      color: "#84cc16",
-    },
-  ]);
-
   const [clinicHours, setClinicHours] = useState({
     monday: {
       isOpen: true,
@@ -345,29 +300,6 @@ export default function ClinicDashboard() {
     },
   };
 
-  // Appointment type functions
-  const addProcedure = (procedure) => {
-    const newProcedure = {
-      ...procedure,
-      id: Date.now().toString(),
-    };
-    setProcedures([...procedures, newProcedure]);
-  };
-
-  const updateProcedure = (procedureId, updatedProcedure) => {
-    setProcedures(
-      procedures.map((type) =>
-        type.id === procedureId
-          ? { ...updatedProcedure, id: procedureId }
-          : type
-      )
-    );
-  };
-
-  const deleteProcedure = (procedureId) => {
-    setProcedures(procedures.filter((type) => type.id !== procedureId));
-  };
-
   // Appointment functions
   const addAppointment = (appointment) => {
     const newAppointment = {
@@ -480,7 +412,6 @@ export default function ClinicDashboard() {
                   appointments={appointments.filter(
                     (appt) => appt.status !== "cancelled"
                   )}
-                  procedures={procedures}
                   clinicHours={clinicHours}
                   onAddAppointment={addAppointment}
                   onUpdateAppointment={updateAppointment}
@@ -501,12 +432,7 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="appointments" className="space-y-6">
-            <ProcedureManagement
-              procedures={procedures}
-              onAddProcedure={addProcedure}
-              onUpdateProcedure={updateProcedure}
-              onDeleteProcedure={deleteProcedure}
-            />
+            <ProcedureManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

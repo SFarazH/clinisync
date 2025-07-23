@@ -43,6 +43,7 @@ export const emptyPatient = {
 export const emptyProcedure = {
   name: "",
   duration: 30,
+  abbr: "",
   color: "#3b82f6",
 };
 

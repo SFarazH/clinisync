@@ -72,6 +72,18 @@ export default function ProcedureForm({ dialogState, formState }) {
               />
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="abbr">Abbreviation</Label>
+              <Input
+                id="abbr"
+                value={formData.abbr}
+                onChange={(e) =>
+                  setFormData({ ...formData, abbr: e.target.value })
+                }
+                placeholder="e.g., GC-01"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
               <Label>Color</Label>
               <div className="flex gap-2 flex-wrap">
                 {procedureColorOptions.map((color) => (

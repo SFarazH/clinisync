@@ -38,12 +38,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
-import { fetchDoctors, fetchPatients } from "@/lib";
+import { fetchDoctors, fetchPatients, fetchProceudres } from "@/lib";
 import { emptyAppointment } from "./data";
 
 export default function AppointmentCalendar({
   appointments,
-  procedures,
   clinicHours,
   onAddAppointment,
   onUpdateAppointment,
@@ -80,6 +79,11 @@ export default function AppointmentCalendar({
   const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
     queryKey: ["doctors"],
     queryFn: fetchDoctors,
+  });
+
+  const { data: proceduresData = [], isLoading: loadingProcedures } = useQuery({
+    queryKey: ["procedures"],
+    queryFn: fetchProceudres,
   });
 
   const slotsStartHour = 9;
@@ -282,8 +286,8 @@ export default function AppointmentCalendar({
     if (!draggedAppointment) return;
 
     const dateString = date.toISOString().split("T")[0];
-    const procedure = procedures.find(
-      (t) => t.id === draggedAppointment.procedureId
+    const procedure = proceduresData.find(
+      (t) => t._id === draggedAppointment.procedureId
     );
 
     if (!procedure) return;
@@ -363,8 +367,9 @@ export default function AppointmentCalendar({
 
   // get appointment type color
   const getAppointmentColor = (appointment) => {
-    return procedures.filter((appt) => appt.id === appointment.procedureId)[0]
-      .color;
+    return proceduresData.filter(
+      (proc) => proc._id === appointment.procedureId
+    )[0].color;
   };
 
   // add appointment using empty time slot in calendar view
@@ -405,8 +410,8 @@ export default function AppointmentCalendar({
     e.preventDefault();
     setErrorMessage("");
 
-    const procedure = procedures.find(
-      (type) => type.id === formData.procedureId
+    const procedure = proceduresData.find(
+      (procedure) => procedure._id === formData.procedureId
     );
     if (!procedure) return;
 
@@ -882,9 +887,10 @@ export default function AppointmentCalendar({
                                               className="w-3 h-3 rounded-full"
                                               style={{
                                                 backgroundColor:
-                                                  procedures.find(
-                                                    (app) =>
-                                                      app.id === apt.procedureId
+                                                  proceduresData.find(
+                                                    (proc) =>
+                                                      proc._id ===
+                                                      apt.procedureId
                                                   ).color,
                                               }}
                                               title={`${
@@ -920,9 +926,9 @@ export default function AppointmentCalendar({
                                           statusConfig[appointment.status].label
                                         }
                                         style={{
-                                          backgroundColor: procedures.find(
+                                          backgroundColor: proceduresData.find(
                                             (t) =>
-                                              t.id === appointment.procedureId
+                                              t._id === appointment.procedureId
                                           )?.color,
                                           height: `${
                                             getAppointmentHeight(appointment) *
@@ -1083,8 +1089,8 @@ export default function AppointmentCalendar({
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {procedures.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
+                    {proceduresData.map((type) => (
+                      <SelectItem key={type._id} value={type._id}>
                         {type.name} ({type.duration} min)
                       </SelectItem>
                     ))}
@@ -1270,8 +1276,8 @@ export default function AppointmentCalendar({
               const doctor = doctorsData.find(
                 (d) => d._id === appointment.doctorId
               );
-              const procedure = procedures.find(
-                (t) => t.id === appointment.procedureId
+              const procedure = proceduresData.find(
+                (t) => t._id === appointment.procedureId
               );
               const status = appointment.status || "scheduled";
               const StatusIcon = statusConfig[status].icon;
