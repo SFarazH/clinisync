@@ -1,3 +1,5 @@
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
+
 export const procedureColorOptions = [
   "#3b82f6",
   "#10b981",
@@ -29,6 +31,29 @@ export const daysOfWeek = [
   { key: "saturday", label: "Saturday" },
   { key: "sunday", label: "Sunday" },
 ];
+
+export const appointmentStatusConfig = {
+  scheduled: {
+    label: "Scheduled",
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+    icon: Clock,
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "bg-red-100 text-red-800 border-red-200",
+    icon: XCircle,
+  },
+  missed: {
+    label: "Missed",
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+    icon: AlertCircle,
+  },
+  completed: {
+    label: "Completed",
+    color: "bg-green-100 text-green-800 border-green-200",
+    icon: CheckCircle,
+  },
+};
 
 export const emptyPatient = {
   name: "",

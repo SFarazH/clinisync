@@ -7,39 +7,26 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDoctors, fetchPatients, fetchProceudres } from "@/lib";
-import { emptyAppointment } from "./data";
+import { appointmentStatusConfig, emptyAppointment } from "./data";
+import {
+  generateTimeSlots,
+  getAppointmentColor,
+  getAppointmentHeight,
+  getWeekDays,
+  getWeekStart,
+  isDayOpen,
+  isTimeSlotAvailable,
+} from "../utils/helper";
+import AppointmentForm from "./forms/appointment.form";
+import MergedAppointmentsDialog from "./forms/merged-appointments";
 
 export default function AppointmentCalendar({
   appointments,
@@ -48,7 +35,6 @@ export default function AppointmentCalendar({
   onUpdateAppointment,
   onDeleteAppointment,
   onCheckOverlap,
-  statusConfig,
 }) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
@@ -89,113 +75,6 @@ export default function AppointmentCalendar({
   const slotsStartHour = 9;
   const slotsEndHour = 23;
 
-  // Get the start of the week (Sunday)
-  const getWeekStart = (date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day;
-    return new Date(d.setDate(diff));
-  };
-
-  // Get all days of the current week
-  const getWeekDays = () => {
-    const weekStart = getWeekStart(currentWeek);
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(weekStart);
-      day.setDate(weekStart.getDate() + i);
-      days.push(day);
-    }
-    return days;
-  };
-
-  // Generate time slots for the week (15-minute intervals grouped by 30-minute blocks)
-  const generateTimeSlots = () => {
-    const slots = [];
-
-    // Find the latest end time across all days to determine the calendar range
-    const getLatestEndTime = () => {
-      let latestHour = slotsEndHour ?? 23; // default fallback
-
-      Object.values(clinicHours).forEach((dayHours) => {
-        if (dayHours.isOpen && dayHours.shifts.length > 0) {
-          dayHours.shifts.forEach((shift) => {
-            const endHour = Number.parseInt(shift.end.split(":")[0]);
-            if (endHour > latestHour) {
-              latestHour = endHour;
-            }
-          });
-        }
-      });
-
-      return latestHour;
-    };
-
-    const endHour = getLatestEndTime();
-
-    for (let hour = slotsStartHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const timeString = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        const isMainSlot = minute === 0 || minute === 30;
-        slots.push({ time: timeString, isMainSlot, isClickable: true });
-      }
-    }
-
-    // Add final boundary time (non-clickable) - one hour after the latest end time
-    const boundaryHour = endHour + 1;
-    const boundaryTime = `${boundaryHour.toString().padStart(2, "0")}:00`;
-    slots.push({
-      time: boundaryTime,
-      isMainSlot: true,
-      isClickable: false,
-      isBoundary: true,
-    });
-
-    return slots;
-  };
-
-  // Check if a day is open based on clinic hours
-  const isDayOpen = (date) => {
-    const dayName = date
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    return (
-      clinicHours[dayName]?.isOpen && clinicHours[dayName].shifts.length > 0
-    );
-  };
-
-  // Check if a time slot is within clinic hours and not during breaks
-  const isTimeSlotAvailable = (date, time) => {
-    const dayName = date
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const dayHours = clinicHours[dayName];
-
-    if (!dayHours?.isOpen || dayHours.shifts.length === 0) return false;
-
-    const slotTime = new Date(`2000-01-01T${time}:00`);
-
-    // Check if time is within any shift
-    const isInShift = dayHours.shifts.some((shift) => {
-      const shiftStart = new Date(`2000-01-01T${shift.start}:00`);
-      const shiftEnd = new Date(`2000-01-01T${shift.end}:00`);
-      return slotTime >= shiftStart && slotTime < shiftEnd;
-    });
-
-    if (!isInShift) return false;
-
-    // Check if time is during a break
-    const isDuringBreak = dayHours.breaks.some((breakTime) => {
-      const breakStart = new Date(`2000-01-01T${breakTime.start}:00`);
-      const breakEnd = new Date(`2000-01-01T${breakTime.end}:00`);
-      return slotTime >= breakStart && slotTime < breakEnd;
-    });
-
-    return !isDuringBreak;
-  };
-
   const getSingleAppointmentForSlot = (date, time) => {
     const dateString = date.toISOString().split("T")[0];
 
@@ -227,15 +106,6 @@ export default function AppointmentCalendar({
       // Check for overlap: (startA < endB) && (endA > startB)
       return aptStart < currentSlotEnd && aptEnd > currentSlotStart;
     });
-  };
-
-  // Calculate appointment height based on duration
-  const getAppointmentHeight = (appointment) => {
-    const startTime = new Date(`2000-01-01T${appointment.startTime}:00`);
-    const endTime = new Date(`2000-01-01T${appointment.endTime}:00`);
-    const durationMinutes =
-      (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    return Math.max(1, durationMinutes / 15); // Each slot is now 15 minutes
   };
 
   // Check if this is the first slot of an appointment
@@ -300,7 +170,7 @@ export default function AppointmentCalendar({
     const newEndTime = endDateTime.toTimeString().slice(0, 5);
 
     // Check if the new slot is available and within clinic hours
-    if (!isTimeSlotAvailable(date, time)) {
+    if (!isTimeSlotAvailable(date, time, clinicHours)) {
       toast({
         title: "Invalid Drop Location",
         description:
@@ -366,15 +236,14 @@ export default function AppointmentCalendar({
   };
 
   // get appointment type color
-  const getAppointmentColor = (appointment) => {
-    return proceduresData.filter(
-      (proc) => proc._id === appointment.procedureId
-    )[0].color;
-  };
 
   // add appointment using empty time slot in calendar view
   const handleTimeSlotClick = (date, time) => {
-    if (!isDayOpen(date) || !isTimeSlotAvailable(date, time)) return;
+    if (
+      !isDayOpen(date, clinicHours) ||
+      !isTimeSlotAvailable(date, time, clinicHours)
+    )
+      return;
     // In individual view, prevent clicking on occupied slots
     if (selectedDoctorId !== "all") {
       const existingAppointment = getSingleAppointmentForSlot(date, time);
@@ -454,6 +323,12 @@ export default function AppointmentCalendar({
         description: "The appointment has been successfully updated.",
       });
     } else {
+      console.log({
+        ...formData,
+        date: new Date(selectedDate),
+        startTime,
+        endTime,
+      });
       onAddAppointment({
         patientId: formData.patientId,
         doctorId: formData.doctorId,
@@ -485,8 +360,12 @@ export default function AppointmentCalendar({
     });
   };
 
-  const weekDays = getWeekDays();
-  const timeSlots = generateTimeSlots();
+  const weekDays = getWeekDays(currentWeek);
+  const timeSlots = generateTimeSlots(
+    slotsEndHour,
+    slotsStartHour,
+    clinicHours
+  );
   const weekStart = getWeekStart(currentWeek);
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
@@ -525,7 +404,7 @@ export default function AppointmentCalendar({
         // When editing, be more permissive with time options
         if (
           editingAppointment ||
-          isTimeSlotAvailable(selectedDateObj, timeString)
+          isTimeSlotAvailable(selectedDateObj, timeString, clinicHours)
         ) {
           options.push(timeString);
         }
@@ -747,8 +626,12 @@ export default function AppointmentCalendar({
                   </div>
                   {isClickable
                     ? weekDays.map((day, dayIndex) => {
-                        const isAvailable = isTimeSlotAvailable(day, time);
-                        const isOpen = isDayOpen(day);
+                        const isAvailable = isTimeSlotAvailable(
+                          day,
+                          time,
+                          clinicHours
+                        );
+                        const isOpen = isDayOpen(day, clinicHours);
 
                         return (
                           <div
@@ -825,7 +708,8 @@ export default function AppointmentCalendar({
                                           backgroundColor: `${
                                             appointmentsInThisSlot.length === 1
                                               ? getAppointmentColor(
-                                                  appointmentsInThisSlot[0]
+                                                  appointmentsInThisSlot[0],
+                                                  proceduresData
                                                 )
                                               : "#FFEBC6"
                                           }`,
@@ -923,7 +807,7 @@ export default function AppointmentCalendar({
                                         onDragEnd={handleDragEnd}
                                         className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
                                         title={
-                                          statusConfig[appointment.status].label
+                                          appointmentStatusConfig[appointment.status].label
                                         }
                                         style={{
                                           backgroundColor: proceduresData.find(
@@ -982,387 +866,40 @@ export default function AppointmentCalendar({
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingAppointment ? "Edit Appointment" : "Schedule Appointment"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingAppointment ? "Edit" : "Schedule a new"} appointment
-              details below.
-            </DialogDescription>
-          </DialogHeader>
-
-          {errorMessage && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-              <div className="flex">
-                <div className="text-red-800 text-sm">{errorMessage}</div>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="patient">Patient</Label>
-                <Popover open={open} onOpenChange={setOpen} className="w-full">
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-full justify-between font-normal"
-                    >
-                      {formData.patientId
-                        ? patientsData.find((p) => p._id === formData.patientId)
-                            ?.name
-                        : "Select Patient"}
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
-                    <Command className="w-full">
-                      <CommandInput placeholder="Search Patient" />
-                      <CommandList>
-                        <CommandEmpty>No patient found.</CommandEmpty>
-                        <CommandGroup>
-                          {patientsData.map((patient) => (
-                            <CommandItem
-                              key={patient._id}
-                              value={patient.name.toLowerCase()}
-                              onSelect={() => {
-                                setFormData({
-                                  ...formData,
-                                  patientId: patient._id,
-                                });
-                                setOpen(false);
-                              }}
-                              className={
-                                formData.patientId === patient._id
-                                  ? "bg-gray-200"
-                                  : ""
-                              }
-                            >
-                              {patient.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="doctor">Doctor</Label>
-                <Select
-                  value={formData.doctorId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, doctorId: value })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a doctor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {doctorsData.map((doctor) => (
-                      <SelectItem key={doctor._id} value={doctor._id}>
-                        <div className="flex items-center gap-2">
-                          {doctor.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="procedure">Appointment Type</Label>
-                <Select
-                  value={formData.procedureId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, procedureId: value })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select appointment type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {proceduresData.map((type) => (
-                      <SelectItem key={type._id} value={type._id}>
-                        {type.name} ({type.duration} min)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {editingAppointment && (
-                <div className="grid gap-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, status: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(statusConfig).map(([status, config]) => {
-                        const IconComponent = config.icon;
-                        return (
-                          <SelectItem key={status} value={status}>
-                            <div className="flex items-center gap-2">
-                              <IconComponent className="w-4 h-4" />
-                              {config.label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {isFromCalendarSlot && !editingAppointment ? (
-                <>
-                  <div className="gap-2">
-                    <div className="p-3 bg-blue-50 border rounded-md flex justify-between">
-                      <div className="font-medium text-blue-900 ">
-                        {new Date(selectedDate).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </div>
-                      <div className="text-blue-700">{selectedTime}</div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="time">Start Time</Label>
-                    <Select
-                      value={selectedTime}
-                      onValueChange={setSelectedTime}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select start time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions.length > 0 ? (
-                          timeOptions.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="na" disabled>
-                            Please select a date
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, notes: e.target.value })
-                  }
-                  placeholder="Additional notes..."
-                />
-              </div>
-            </div>
-            <DialogFooter className="flex justify-between">
-              {editingAppointment && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </Button>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    setEditingAppointment(null);
-                    setFormData({
-                      patientId: "",
-                      doctorId: "",
-                      procedureId: "",
-                      notes: "",
-                      status: "scheduled",
-                    });
-                    setErrorMessage(""); // Clear error message
-                    setIsFromCalendarSlot(false); // Reset flag
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    !formData.patientId ||
-                    !formData.doctorId ||
-                    !formData.procedureId ||
-                    !selectedTime
-                  }
-                >
-                  {editingAppointment ? "Update" : "Schedule"} Appointment
-                </Button>
-              </div>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={overlappingAppointmentsDialog.isOpen}
-        onOpenChange={(open) =>
-          setOverlappingAppointmentsDialog((prev) => ({
-            ...prev,
-            isOpen: open,
-          }))
-        }
-      >
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Overlapping Appointments</DialogTitle>
-            <DialogDescription>
-              Multiple appointments scheduled for{" "}
-              {new Date(overlappingAppointmentsDialog.date).toLocaleDateString(
-                "en-US",
-                {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                }
-              )}{" "}
-              at {overlappingAppointmentsDialog.timeSlot}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 max-h-1/2">
-            {overlappingAppointmentsDialog.appointments.map((appointment) => {
-              const patient = patientsData.find(
-                (p) => p._id === appointment.patientId
-              );
-              const doctor = doctorsData.find(
-                (d) => d._id === appointment.doctorId
-              );
-              const procedure = proceduresData.find(
-                (t) => t._id === appointment.procedureId
-              );
-              const status = appointment.status || "scheduled";
-              const StatusIcon = statusConfig[status].icon;
-
-              return (
-                <div
-                  key={appointment.id}
-                  className="border rounded-lg p-4 space-y-2"
-                  style={{
-                    backgroundColor:
-                      status === "completed"
-                        ? "#D0F0C0"
-                        : status === "missed"
-                        ? "#FDBCB4"
-                        : "",
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{
-                          backgroundColor: getAppointmentColor(appointment),
-                        }}
-                      />
-                      <span className="font-medium">{patient?.name}</span>
-                      <span title={statusConfig[status].label}>
-                        <StatusIcon />
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {appointment.startTime} - {appointment.endTime}
-                    </div>
-                  </div>
-
-                  <div className="text-sm space-y-1">
-                    <div>
-                      <strong>Doctor:</strong> {doctor?.name}
-                    </div>
-                    <div>
-                      <strong>Type:</strong> {procedure?.name} (
-                      {procedure?.duration} min)
-                    </div>
-                    {appointment.notes && (
-                      <div>
-                        <strong>Notes:</strong> {appointment.notes}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setOverlappingAppointmentsDialog((prev) => ({
-                          ...prev,
-                          isOpen: false,
-                        }));
-                        handleAppointmentClick(appointment);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setOverlappingAppointmentsDialog((prev) => ({
-                  ...prev,
-                  isOpen: false,
-                }))
-              }
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AppointmentForm
+        dialogOptions={{ isDialogOpen, setIsDialogOpen }}
+        popoverOptions={{ open, setOpen }}
+        data={{
+          patientsData,
+          doctorsData,
+          proceduresData,
+          formData,
+          timeOptions,
+          setFormData,
+        }}
+        handleSubmit={handleSubmit}
+        handleDelete={handleDelete}
+        formDetails={{
+          selectedDate,
+          selectedTime,
+          setSelectedDate,
+          setSelectedTime,
+          isFromCalendarSlot,
+          setIsFromCalendarSlot,
+          editingAppointment,
+          setEditingAppointment,
+          errorMessage,
+          setErrorMessage,
+        }}
+      />
+      <MergedAppointmentsDialog
+        dialogOptions={{
+          overlappingAppointmentsDialog,
+          setOverlappingAppointmentsDialog,
+        }}
+        handleAppointmentClick={handleAppointmentClick}
+        data={{ patientsData, proceduresData, doctorsData }}
+      />
     </div>
   );
 }
