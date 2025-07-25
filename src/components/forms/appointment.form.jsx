@@ -46,6 +46,7 @@ export default function AppointmentForm({
     formData,
     setFormData,
     timeOptions,
+    selectedDoctorId,
   } = data;
   const {
     selectedDate,
@@ -59,6 +60,7 @@ export default function AppointmentForm({
     errorMessage,
     setErrorMessage,
   } = formDetails;
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -76,6 +78,17 @@ export default function AppointmentForm({
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
             <div className="flex">
               <div className="text-red-800 text-sm">{errorMessage}</div>
+            </div>
+          </div>
+        )}
+
+        {selectedDoctorId !== "all" && (
+          <div className="flex justify-center">
+            <div className="font-medium text-lg">
+              {
+                doctorsData.filter((doc) => doc._id === selectedDoctorId)[0]
+                  .name
+              }
             </div>
           </div>
         )}
@@ -132,28 +145,30 @@ export default function AppointmentForm({
               </Popover>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="doctor">Doctor</Label>
-              <Select
-                value={formData.doctorId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, doctorId: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a doctor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {doctorsData.map((doctor) => (
-                    <SelectItem key={doctor._id} value={doctor._id}>
-                      <div className="flex items-center gap-2">
-                        {doctor.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {selectedDoctorId === "all" && (
+              <div className="grid gap-2">
+                <Label htmlFor="doctor">Doctor</Label>
+                <Select
+                  value={formData.doctorId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, doctorId: value })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctorsData.map((doctor) => (
+                      <SelectItem key={doctor._id} value={doctor._id}>
+                        <div className="flex items-center gap-2">
+                          {doctor.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="procedure">Appointment Type</Label>
@@ -189,17 +204,19 @@ export default function AppointmentForm({
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(appointmentStatusConfig).map(([status, config]) => {
-                      const IconComponent = config.icon;
-                      return (
-                        <SelectItem key={status} value={status}>
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="w-4 h-4" />
-                            {config.label}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
+                    {Object.entries(appointmentStatusConfig).map(
+                      ([status, config]) => {
+                        const IconComponent = config.icon;
+                        return (
+                          <SelectItem key={status} value={status}>
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="w-4 h-4" />
+                              {config.label}
+                            </div>
+                          </SelectItem>
+                        );
+                      }
+                    )}
                   </SelectContent>
                 </Select>
               </div>
