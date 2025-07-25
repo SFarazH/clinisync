@@ -43,7 +43,7 @@ export async function listAppointments({
     }
 
     let appointmentsQuery = Appointment.find(query)
-      .populate("patient", "name")
+      .populate("patientId", "name")
       .populate("doctorId", "name")
       .populate("procedureId", "name duration color abbr")
       .sort({ date: 1 });
@@ -101,7 +101,7 @@ export async function updateAppointment(id, data) {
       new: true,
       runValidators: true,
     })
-      .populate("patient", "name")
+      .populate("patientId", "name")
       .populate("doctorId", "name")
       .populate("procedureId", "name duration color abbr");
 
