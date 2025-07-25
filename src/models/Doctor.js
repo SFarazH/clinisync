@@ -12,11 +12,11 @@ const doctorSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: false,
       unique: true,
     },
     phone: {
       type: String,
+      unique: true,
     },
     color: {
       type: String,
@@ -28,6 +28,4 @@ const doctorSchema = new mongoose.Schema(
   }
 );
 
-const Doctor = mongoose.model("Doctor", doctorSchema);
-
-export default Doctor;
+export default mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);

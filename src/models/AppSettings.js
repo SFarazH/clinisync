@@ -13,15 +13,25 @@ const dayScheduleSchema = new mongoose.Schema(
     morning: { type: shiftSchema, default: {} },
     afternoon: { type: shiftSchema, default: {} },
     break: { type: shiftSchema, default: {} },
+    isClosed: { type: Boolean, default: false },
   },
   { _id: false }
 );
 
-const clinicSchema = new mongoose.Schema(
+const appSettingsSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    clinicName: {
+      type: String,
+      required: true,
+      default: "Demo Clinic",
+    },
     address: String,
-    contactNumber: String,
+    phone: String,
+    email: String,
+    timezone: {
+      type: String,
+      default: "Asia/Kolkata",
+    },
     openingHours: {
       monday: { type: dayScheduleSchema, default: {} },
       tuesday: { type: dayScheduleSchema, default: {} },
@@ -31,9 +41,9 @@ const clinicSchema = new mongoose.Schema(
       saturday: { type: dayScheduleSchema, default: {} },
       sunday: { type: dayScheduleSchema, default: {} },
     },
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Clinic || mongoose.model("Clinic", clinicSchema);
+export default mongoose.models.AppSettings ||
+  mongoose.model("AppSettings", appSettingsSchema);
