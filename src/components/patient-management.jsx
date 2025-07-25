@@ -23,23 +23,64 @@ import {
 } from "./ui/table";
 import PatientForm from "./forms/patient.form";
 import { emptyPatient } from "./data";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  createNewPatient,
+  deletePatient,
+  fetchPatients,
+  updatePatient,
+} from "@/lib/patientApi";
+import { formatDate } from "@/utils/functions";
 
-export default function PatientManagement({
-  patients,
-  onAddPatient,
-  onUpdatePatient,
-  onDeletePatient,
-}) {
+export default function PatientManagement() {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [formData, setFormData] = useState(emptyPatient);
 
-  const filteredPatients = patients.filter(
+  const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
+    queryKey: ["patients"],
+    queryFn: fetchPatients,
+  });
+
+  const addPatientMutation = useMutation({
+    mutationFn: createNewPatient,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["patients"]);
+      toast({
+        title: "Patient Added",
+        description: "New patient has been added.",
+      });
+    },
+  });
+
+  const updatePatientMutation = useMutation({
+    mutationFn: updatePatient,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["patients"]);
+      toast({
+        title: "Patient Updated",
+        description: "Patient details updated.",
+      });
+    },
+  });
+
+  const deletePatientMutation = useMutation({
+    mutationFn: deletePatient,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["patients"]);
+      toast({
+        title: "Patient Deleted",
+        description: "Patient has been deleted.",
+      });
+    },
+  });
+
+  const filteredPatients = patientsData.filter(
     (patient) =>
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.phone.includes(searchTerm)
+      patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient?.email?.toLowerCase()?.includes(searchTerm.toLowerCase())
   );
 
   const handleEditPatient = (patient) => {
@@ -49,18 +90,15 @@ export default function PatientManagement({
       email: patient.email,
       phone: patient.phone,
       age: patient.age,
-      dateOfBirth: patient.dateOfBirth,
+      dob: patient.dob,
+      gender: patient.gender,
       address: patient.address,
     });
     setIsDialogOpen(true);
   };
 
   const handleDeletePatient = (patientId) => {
-    onDeletePatient(patientId);
-    toast({
-      title: "Patient Deleted",
-      description: "The patient has been successfully deleted.",
-    });
+    deletePatientMutation.mutateAsync(patientId);
   };
 
   const handleAddNew = () => {
@@ -72,13 +110,16 @@ export default function PatientManagement({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingPatient) {
-      onUpdatePatient(editingPatient.id, formData);
+      updatePatientMutation.mutateAsync({
+        id: editingPatient._id,
+        patientData: formData,
+      });
       toast({
         title: "Patient Updated",
         description: "The patient information has been successfully updated.",
       });
     } else {
-      onAddPatient(formData);
+      addPatientMutation.mutateAsync(formData);
       toast({
         title: "Patient Added",
         description: "The new patient has been successfully added.",
@@ -121,29 +162,34 @@ export default function PatientManagement({
               <Table>
                 <TableHeader>
                   <TableRow className="w-full">
-                    <TableHead className="w-1/14">ID</TableHead>
-                    <TableHead className="w-4/14">Name</TableHead>
-                    <TableHead className="w-1/14">Age</TableHead>
-                    <TableHead className="w-2/14">DOB</TableHead>
-                    <TableHead className="w-4/14">Email</TableHead>
-                    <TableHead className="w-1/14"></TableHead>
-                    <TableHead className="w-1/14"></TableHead>
+                    <TableHead className="w-1/16">ID</TableHead>
+                    <TableHead className="w-4/16">Name</TableHead>
+                    <TableHead className="w-1/16">Age</TableHead>
+                    <TableHead className="w-2/16">DOB</TableHead>
+                    <TableHead className="w-4/16">Email</TableHead>
+                    <TableHead className="w-2/16">Phone</TableHead>
+                    <TableHead className="w-1/16"></TableHead>
+                    <TableHead className="w-1/16"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPatients.length > 0 &&
                     filteredPatients.map((patient, index) => (
-                      <TableRow key={patient.id}>
+                      <TableRow key={patient._id}>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{patient.name}</TableCell>
                         <TableCell>{patient?.age}</TableCell>
-                        <TableCell>{patient?.dateOfBirth}</TableCell>
+                        <TableCell>{formatDate(patient?.dob)}</TableCell>
                         <TableCell>{patient.email}</TableCell>
+                        <TableCell>{patient?.phone}</TableCell>
                         <TableCell>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEditPatient(patient)}
+                            onClick={() => {
+                              console.log(patient);
+                              handleEditPatient(patient);
+                            }}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -152,7 +198,7 @@ export default function PatientManagement({
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDeletePatient(patient.id)}
+                            onClick={() => handleDeletePatient(patient._id)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

@@ -10,6 +10,7 @@ const ProcedureSchema = new mongoose.Schema(
     abbr: {
       type: String,
       unique: true,
+      required: false,
     },
     duration: {
       type: Number,

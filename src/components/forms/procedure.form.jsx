@@ -11,14 +11,14 @@ import {
 } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { appointmentTypeColorOptions } from "../data";
+import { procedureColorOptions } from "../data";
 
-export default function AppointmentTypeForm({ dialogState, formState }) {
+export default function ProcedureForm({ dialogState, formState }) {
   const {
     isDialogOpen,
     setIsDialogOpen,
-    editingAppointmentType,
-    setEditingAppointmentType,
+    editingProcedure,
+    setEditingProcedure,
   } = dialogState;
 
   const { formData, setFormData, handleSubmit } = formState;
@@ -31,14 +31,12 @@ export default function AppointmentTypeForm({ dialogState, formState }) {
       >
         <DialogHeader>
           <DialogTitle>
-            {editingAppointmentType
-              ? "Edit Appointment Type"
-              : "Add Appointment Type"}
+            {editingProcedure ? "Edit Procedure" : "Add Procedure"}
           </DialogTitle>
           <DialogDescription>
-            {editingAppointmentType
-              ? "Update the appointment type details below."
-              : "Create a new appointment type with duration and color."}
+            {editingProcedure
+              ? "Update the procedure details below."
+              : "Create a new procedure with duration and color."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -74,9 +72,21 @@ export default function AppointmentTypeForm({ dialogState, formState }) {
               />
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="abbr">Abbreviation</Label>
+              <Input
+                id="abbr"
+                value={formData.abbr}
+                onChange={(e) =>
+                  setFormData({ ...formData, abbr: e.target.value })
+                }
+                placeholder="e.g., GC-01"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
               <Label>Color</Label>
               <div className="flex gap-2 flex-wrap">
-                {appointmentTypeColorOptions.map((color) => (
+                {procedureColorOptions.map((color) => (
                   <button
                     key={color}
                     type="button"
@@ -98,7 +108,7 @@ export default function AppointmentTypeForm({ dialogState, formState }) {
               variant="outline"
               onClick={() => {
                 setIsDialogOpen(false);
-                setEditingAppointmentType(null);
+                setEditingProcedure(null);
                 setFormData({
                   name: "",
                   duration: 30,
@@ -108,9 +118,7 @@ export default function AppointmentTypeForm({ dialogState, formState }) {
             >
               Cancel
             </Button>
-            <Button type="submit">
-              {editingAppointmentType ? "Update" : "Add"} Type
-            </Button>
+            <Button type="submit">{editingProcedure ? "Update" : "Add"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

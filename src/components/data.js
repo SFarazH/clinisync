@@ -1,4 +1,6 @@
-export const appointmentTypeColorOptions = [
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
+
+export const procedureColorOptions = [
   "#3b82f6",
   "#10b981",
   "#f59e0b",
@@ -30,18 +32,43 @@ export const daysOfWeek = [
   { key: "sunday", label: "Sunday" },
 ];
 
+export const appointmentStatusConfig = {
+  scheduled: {
+    label: "Scheduled",
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+    icon: Clock,
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "bg-red-100 text-red-800 border-red-200",
+    icon: XCircle,
+  },
+  missed: {
+    label: "Missed",
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+    icon: AlertCircle,
+  },
+  completed: {
+    label: "Completed",
+    color: "bg-green-100 text-green-800 border-green-200",
+    icon: CheckCircle,
+  },
+};
+
 export const emptyPatient = {
   name: "",
   email: "",
   phone: "",
   age: 0,
-  dateOfBirth: "",
+  gender: "",
+  dob: "",
   address: "",
 };
 
-export const emptyAppointmentType = {
+export const emptyProcedure = {
   name: "",
   duration: 30,
+  abbr: "",
   color: "#3b82f6",
 };
 
@@ -51,4 +78,12 @@ export const emptyDoctor = {
   email: "",
   phone: "",
   color: "#3b82f6",
+};
+
+export const emptyAppointment = {
+  patientId: "",
+  doctorId: "",
+  procedureId: "",
+  notes: "",
+  status: "scheduled",
 };

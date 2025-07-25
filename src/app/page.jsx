@@ -1,16 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Calendar,
-  Users,
-  Clock,
-  Settings,
-  Stethoscope,
-  XCircle,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, Users, Clock, Settings, Stethoscope } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -20,128 +11,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientManagement from "@/components/patient-management";
-import AppointmentTypes from "@/components/appointment-types";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
 import DoctorManagement from "@/components/doctor-management";
 import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
+import ProcedureManagement from "@/components/procedure-management";
 
 export default function ClinicDashboard() {
-  const [patients, setPatients] = useState([
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      dateOfBirth: "1990-05-15",
-      address: "123 Main St, City, State",
-      age: 24,
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1234567891",
-      dateOfBirth: "1985-08-22",
-      address: "456 Oak Ave, City, State",
-      age: 12,
-    },
-    {
-      id: "3",
-      name: "Michael Johnson",
-      email: "michael.j@example.com",
-      phone: "+1234567892",
-      dateOfBirth: "1978-12-03",
-      address: "789 Pine St, City, State",
-      age: 15,
-    },
-    {
-      id: "4",
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-      phone: "+1234567893",
-      dateOfBirth: "1992-07-18",
-      address: "321 Elm St, City, State",
-      age: 43,
-    },
-    {
-      id: "5",
-      name: "Robert Brown",
-      email: "robert.brown@example.com",
-      phone: "+1234567894",
-      dateOfBirth: "1965-03-25",
-      address: "654 Maple Ave, City, State",
-      age: 59,
-    },
-  ]);
-
-  const [doctors, setDoctors] = useState([
-    {
-      id: "doc1",
-      name: "Dr. Alice Smith",
-      specialization: "General Practice",
-      color: "#3b82f6", // Blue
-    },
-    {
-      id: "doc2",
-      name: "Dr. Bob Johnson",
-      specialization: "Pediatrics",
-      color: "#10b981", // Green
-    },
-    {
-      id: "doc3",
-      name: "Dr. Carol White",
-      specialization: "Dermatology",
-      color: "#f59e0b", // Amber
-    },
-  ]);
-
-  const [appointmentTypes, setAppointmentTypes] = useState([
-    {
-      id: "1",
-      name: "General Consultation",
-      duration: 30,
-      color: "#3b82f6",
-    },
-    {
-      id: "2",
-      name: "Follow-up",
-      duration: 15,
-      color: "#10b981",
-    },
-    {
-      id: "3",
-      name: "Procedure",
-      duration: 60,
-      color: "#f59e0b",
-    },
-    {
-      id: "4",
-      name: "Physical Exam",
-      duration: 45,
-      color: "#ef4444",
-    },
-    {
-      id: "5",
-      name: "Lab Results Review",
-      duration: 15,
-      color: "#8b5cf6",
-    },
-    {
-      id: "6",
-      name: "Vaccination",
-      duration: 15,
-      color: "#06b6d4",
-    },
-    {
-      id: "7",
-      name: "Operation",
-      duration: 120,
-      color: "#84cc16",
-    },
-  ]);
-
   const [clinicHours, setClinicHours] = useState({
     monday: {
       isOpen: true,
@@ -200,335 +77,7 @@ export default function ClinicDashboard() {
       breaks: [],
     },
   });
-
-  const [appointments, setAppointments] = useState([
-    // Monday, December 30, 2024
-    {
-      id: "1",
-      patientId: "1",
-      doctorId: "doc1",
-      appointmentTypeId: "1",
-      date: "2025-07-18",
-      startTime: "12:00",
-      endTime: "12:30",
-      notes: "New patient consultation",
-      status: "scheduled",
-    },
-    {
-      id: "2",
-      patientId: "3",
-      doctorId: "doc2",
-      appointmentTypeId: "4",
-      date: "2025-07-18",
-      startTime: "12:45",
-      endTime: "13:30",
-      notes: "Annual physical examination",
-      status: "completed",
-    },
-    {
-      id: "3",
-      patientId: "5",
-      doctorId: "doc1",
-      appointmentTypeId: "2",
-      date: "2025-07-18",
-      startTime: "14:30",
-      endTime: "14:45",
-      notes: "Blood pressure follow-up",
-      status: "cancelled",
-    },
-    {
-      id: "4",
-      patientId: "2",
-      doctorId: "doc3",
-      appointmentTypeId: "5",
-      date: "2025-07-18",
-      startTime: "16:00",
-      endTime: "16:20",
-      notes: "Lab results discussion",
-      status: "missed",
-    },
-
-    // Tuesday, December 31, 2024
-    {
-      id: "5",
-      patientId: "4",
-      doctorId: "doc2",
-      appointmentTypeId: "6",
-      date: "2025-07-19",
-      startTime: "12:30",
-      endTime: "12:45",
-      notes: "Flu vaccination",
-      status: "scheduled",
-    },
-    {
-      id: "6",
-      patientId: "1",
-      doctorId: "doc1",
-      appointmentTypeId: "3",
-      date: "2025-07-19",
-      startTime: "15:00",
-      endTime: "16:00",
-      notes: "Minor surgical procedure",
-      status: "scheduled",
-    },
-    {
-      id: "7",
-      patientId: "3",
-      doctorId: "doc3",
-      appointmentTypeId: "1",
-      date: "2025-07-19",
-      startTime: "16:30",
-      endTime: "17:00",
-      notes: "Consultation for knee pain",
-      status: "completed",
-    },
-
-    // Thursday, January 2, 2025
-    {
-      id: "8",
-      patientId: "2",
-      doctorId: "doc1",
-      appointmentTypeId: "2",
-      date: "2025-07-16",
-      startTime: "12:15",
-      endTime: "12:30",
-      notes: "Post-procedure follow-up",
-      status: "scheduled",
-    },
-    {
-      id: "9",
-      patientId: "5",
-      doctorId: "doc2",
-      appointmentTypeId: "1",
-      date: "2025-07-16",
-      startTime: "14:00",
-      endTime: "14:30",
-      notes: "Diabetes management consultation",
-      status: "scheduled",
-    },
-    {
-      id: "10",
-      patientId: "4",
-      doctorId: "doc3",
-      appointmentTypeId: "4",
-      date: "2025-07-16",
-      startTime: "13:15",
-      endTime: "14:00",
-      notes: "Pre-employment physical",
-      status: "scheduled",
-    },
-    {
-      id: "11",
-      patientId: "1",
-      doctorId: "doc1",
-      appointmentTypeId: "5",
-      date: "2025-07-16",
-      startTime: "15:45",
-      endTime: "16:05",
-      notes: "Cholesterol test results",
-      status: "completed",
-    },
-
-    // Friday, January 3, 2025
-    {
-      id: "12",
-      patientId: "3",
-      doctorId: "doc2",
-      appointmentTypeId: "6",
-      date: "2025-01-03",
-      startTime: "09:00",
-      endTime: "09:15",
-      notes: "COVID booster shot",
-      status: "scheduled",
-    },
-    {
-      id: "13",
-      patientId: "2",
-      doctorId: "doc1",
-      appointmentTypeId: "1",
-      date: "2025-01-03",
-      startTime: "14:30",
-      endTime: "15:00",
-      notes: "Headache consultation",
-      status: "missed",
-    },
-    {
-      id: "14",
-      patientId: "4",
-      doctorId: "doc3",
-      appointmentTypeId: "2",
-      date: "2025-01-03",
-      startTime: "16:00",
-      endTime: "16:15",
-      notes: "Medication adjustment follow-up",
-      status: "scheduled",
-    },
-
-    // Saturday, January 4, 2025
-    {
-      id: "15",
-      patientId: "5",
-      doctorId: "doc1",
-      appointmentTypeId: "1",
-      date: "2025-01-04",
-      startTime: "10:30",
-      endTime: "11:00",
-      notes: "Weekend urgent consultation",
-      status: "scheduled",
-    },
-    {
-      id: "16",
-      patientId: "1",
-      doctorId: "doc2",
-      appointmentTypeId: "2",
-      date: "2025-01-04",
-      startTime: "12:00",
-      endTime: "12:15",
-      notes: "Quick check-up before weekend",
-      status: "cancelled",
-    },
-  ]);
-
   const [activeTab, setActiveTab] = useState("calendar");
-
-  const statusConfig = {
-    scheduled: {
-      label: "Scheduled",
-      color: "bg-blue-100 text-blue-800 border-blue-200",
-      icon: Clock,
-    },
-    cancelled: {
-      label: "Cancelled",
-      color: "bg-red-100 text-red-800 border-red-200",
-      icon: XCircle,
-    },
-    missed: {
-      label: "Missed",
-      color: "bg-orange-100 text-orange-800 border-orange-200",
-      icon: AlertCircle,
-    },
-    completed: {
-      label: "Completed",
-      color: "bg-green-100 text-green-800 border-green-200",
-      icon: CheckCircle,
-    },
-  };
-
-  // Patient functions
-  const addPatient = (patient) => {
-    const newPatient = {
-      ...patient,
-      id: Date.now().toString(),
-    };
-    setPatients([...patients, newPatient]);
-  };
-
-  const updatePatient = (patientId, updatedPatient) => {
-    setPatients(
-      patients.map((patient) =>
-        patient.id === patientId
-          ? { ...updatedPatient, id: patientId }
-          : patient
-      )
-    );
-  };
-
-  const deletePatient = (patientId) => {
-    setPatients(patients.filter((patient) => patient.id !== patientId));
-  };
-
-  // Appointment type functions
-  const addAppointmentType = (appointmentType) => {
-    const newAppointmentType = {
-      ...appointmentType,
-      id: Date.now().toString(),
-    };
-    setAppointmentTypes([...appointmentTypes, newAppointmentType]);
-  };
-
-  const updateAppointmentType = (appointmentTypeId, updatedAppointmentType) => {
-    setAppointmentTypes(
-      appointmentTypes.map((type) =>
-        type.id === appointmentTypeId
-          ? { ...updatedAppointmentType, id: appointmentTypeId }
-          : type
-      )
-    );
-  };
-
-  const deleteAppointmentType = (appointmentTypeId) => {
-    setAppointmentTypes(
-      appointmentTypes.filter((type) => type.id !== appointmentTypeId)
-    );
-  };
-
-  // Appointment functions
-  const addAppointment = (appointment) => {
-    const newAppointment = {
-      ...appointment,
-      id: Date.now().toString(),
-    };
-    setAppointments([...appointments, newAppointment]);
-  };
-
-  const updateAppointment = (appointmentId, updatedAppointment) => {
-    setAppointments(
-      appointments.map((apt) =>
-        apt.id === appointmentId
-          ? { ...updatedAppointment, id: appointmentId }
-          : apt
-      )
-    );
-  };
-
-  const deleteAppointment = (appointmentId) => {
-    setAppointments(appointments.filter((apt) => apt.id !== appointmentId));
-  };
-
-  const checkAppointmentOverlap = (
-    date,
-    startTime,
-    endTime,
-    doctorId,
-    excludeId
-  ) => {
-    return appointments
-      .filter((appt) => appt.status !== "cancelled")
-      .some((apt) => {
-        if (excludeId && apt.id === excludeId) return false;
-        if (apt.date !== date) return false;
-        // Only check for overlap with appointments for the SAME doctor
-        if (apt.doctorId !== doctorId) return false;
-
-        const aptStart = new Date(`${date}T${apt.startTime}`);
-        const aptEnd = new Date(`${date}T${apt.endTime}`);
-        const newStart = new Date(`${date}T${startTime}`);
-        const newEnd = new Date(`${date}T${endTime}`);
-
-        return newStart < aptEnd && newEnd > aptStart;
-      });
-  };
-
-  // Doctor functions
-  const addDoctor = (doctor) => {
-    const newDoctor = {
-      ...doctor,
-      id: Date.now().toString(),
-    };
-    setDoctors([...doctors, newDoctor]);
-  };
-
-  const updateDoctor = (doctorId, updatedDoctor) => {
-    setDoctors(
-      doctors.map((doctor) =>
-        doctor.id === doctorId ? { ...updatedDoctor, id: doctorId } : doctor
-      )
-    );
-  };
-
-  const deleteDoctor = (doctorId) => {
-    setDoctors(doctors.filter((doctor) => doctor.id !== doctorId));
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -573,7 +122,7 @@ export default function ClinicDashboard() {
               className="flex items-center gap-2"
             >
               <Clock className="w-4 h-4" />
-              Appointment Types
+              Procedures
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -592,48 +141,22 @@ export default function ClinicDashboard() {
               </CardHeader>
               <CardContent>
                 <AppointmentCalendar
-                  appointments={appointments.filter(
-                    (appt) => appt.status !== "cancelled"
-                  )}
-                  patients={patients}
-                  doctors={doctors}
-                  appointmentTypes={appointmentTypes}
                   clinicHours={clinicHours}
-                  onAddAppointment={addAppointment}
-                  onUpdateAppointment={updateAppointment}
-                  onDeleteAppointment={deleteAppointment}
-                  onCheckOverlap={checkAppointmentOverlap}
-                  statusConfig={statusConfig}
                 />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="patients" className="space-y-6">
-            <PatientManagement
-              patients={patients}
-              onAddPatient={addPatient}
-              onUpdatePatient={updatePatient}
-              onDeletePatient={deletePatient}
-            />
+            <PatientManagement />
           </TabsContent>
 
           <TabsContent value="doctors" className="space-y-6">
-            <DoctorManagement
-              doctors={doctors}
-              onAddDoctor={addDoctor}
-              onUpdateDoctor={updateDoctor}
-              onDeleteDoctor={deleteDoctor}
-            />
+            <DoctorManagement />
           </TabsContent>
 
           <TabsContent value="appointments" className="space-y-6">
-            <AppointmentTypes
-              appointmentTypes={appointmentTypes}
-              onAddAppointmentType={addAppointmentType}
-              onUpdateAppointmentType={updateAppointmentType}
-              onDeleteAppointmentType={deleteAppointmentType}
-            />
+            <ProcedureManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
