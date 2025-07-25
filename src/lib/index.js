@@ -1,3 +1,4 @@
 export * from "./patientApi";
 export * from "./doctorApi";
-export * from './procedureApi'
+export * from "./procedureApi";
+export * from "./appointmentApi";
