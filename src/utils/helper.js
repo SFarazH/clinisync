@@ -6,6 +6,14 @@ export const getWeekStart = (date) => {
   return d;
 };
 
+export const getWeekStartAndEnd = (currentWeek) => {
+  const weekStart = getWeekStart(currentWeek);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  return { weekStart, weekEnd };
+};
+
 export const getWeekDays = (currentWeek) => {
   const weekStart = getWeekStart(currentWeek);
   const days = [];
@@ -73,6 +81,7 @@ export const generateTimeSlots = (
 
   return slots;
 };
+
 export const isTimeSlotAvailable = (date, time, clinicHours) => {
   const dayName = date
     .toLocaleDateString("en-US", { weekday: "long" })
@@ -113,5 +122,124 @@ export const getAppointmentHeight = (appointment) => {
 export const getAppointmentColor = (appointment, proceduresData) => {
   return proceduresData.filter(
     (proc) => proc._id === appointment.procedureId
-  )[0].color;
+  )[0]?.color;
+};
+
+export const transformAppointmentData = (rawAppointments) => {
+  return rawAppointments.map((appointment) => ({
+    id: appointment._id,
+    date: appointment.date.split("T")[0],
+    patientId: appointment.patientId._id,
+    doctorId: appointment.doctorId._id,
+    procedureId: appointment.procedureId._id,
+    startTime: appointment.startTime,
+    endTime: appointment.endTime,
+    notes: appointment.notes,
+    status: appointment.status,
+    patient: appointment.patientId,
+    doctor: appointment.doctorId,
+    procedure: appointment.procedureId,
+  }));
+};
+
+export const checkAppointmentOverlap = (
+  appointments,
+  date,
+  startTime,
+  endTime,
+  doctorId,
+  excludeId
+) => {
+  return appointments
+    .filter((appt) => appt.status !== "cancelled")
+    .some((apt) => {
+      // Handle both _id and id fields
+      const appointmentId = apt._id || apt.id;
+      if (excludeId && appointmentId === excludeId) {
+        return false;
+      }
+
+      // Handle both date formats: "2025-07-21T00:00:00.000Z" and "2025-07-21"
+      const appointmentDate = apt.date.includes("T")
+        ? apt.date.split("T")[0]
+        : apt.date;
+      if (appointmentDate !== date) {
+        return false;
+      }
+
+      // Handle nested doctor object: apt.doctorId._id vs apt.doctorId
+      const appointmentDoctorId = apt.doctorId?._id || apt.doctorId;
+      if (appointmentDoctorId !== doctorId) {
+        return false;
+      }
+
+      // Create date objects for time comparison
+      const aptStart = new Date(`${date}T${apt.startTime}:00`);
+      const aptEnd = new Date(`${date}T${apt.endTime}:00`);
+      const newStart = new Date(`${date}T${startTime}:00`);
+      const newEnd = new Date(`${date}T${endTime}:00`);
+
+      const hasOverlap = newStart < aptEnd && newEnd > aptStart;
+
+      return hasOverlap;
+    });
+};
+
+export const getSingleAppointmentForSlot = (
+  appointmentsData,
+  selectedDoctorId,
+  date,
+  time
+) => {
+  const dateString = date.toISOString().split("T")[0];
+
+  const appointmentsToConsider =
+    selectedDoctorId === "all"
+      ? appointmentsData
+      : appointmentsData.filter((apt) => apt.doctorId === selectedDoctorId);
+
+  return appointmentsToConsider.find((apt) => {
+    if (apt.date !== dateString) return false;
+    const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
+    const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
+    const slotTimeObj = new Date(`2000-01-01T${time}:00`);
+    return slotTimeObj >= aptStart && slotTimeObj < aptEnd;
+  });
+};
+
+export const isAppointmentStart = (appointment, time) => {
+  return appointment.startTime === time;
+};
+
+export const getAppointmentsForCombinedSlot = (
+  appointmentsData,
+  date,
+  slotTime
+) => {
+  const dateString = date.toISOString().split("T")[0];
+  const currentSlotStart = new Date(`2000-01-01T${slotTime}:00`);
+  const currentSlotEnd = new Date(currentSlotStart.getTime() + 15 * 60000);
+
+  return appointmentsData.filter((apt) => {
+    if (apt.date !== dateString) return false;
+    const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
+    const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
+
+    // Check for overlap: (startA < endB) && (endA > startB)
+    return aptStart < currentSlotEnd && aptEnd > currentSlotStart;
+  });
+};
+
+export const isTimeWithinMergedAppt = (time, timeStart, count) => {
+  const startHour = parseInt(timeStart.split(":")[0]);
+  const startMinute = parseInt(timeStart.split(":")[1]);
+  const slotIndexStart = startHour * 60 + startMinute;
+
+  const currentHour = parseInt(time.split(":")[0]);
+  const currentMinute = parseInt(time.split(":")[1]);
+  const slotIndexCurrent = currentHour * 60 + currentMinute;
+
+  const slotDiff = (slotIndexCurrent - slotIndexStart) / 15;
+
+  return slotDiff >= 0 && slotDiff < count;
 };

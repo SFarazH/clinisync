@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useMemo } from "react";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, ChevronsUpDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,29 +13,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import { fetchDoctors, fetchPatients, fetchProceudres } from "@/lib";
-import { appointmentStatusConfig, emptyAppointment } from "./data";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addAppointment,
+  deleteAppointment,
+  fetchAppointments,
+  fetchDoctors,
+  fetchPatients,
+  fetchProceudres,
+  updateAppointment,
+} from "@/lib";
+import { emptyAppointment } from "./data";
+import {
+  checkAppointmentOverlap,
+  getAppointmentsForCombinedSlot,
+  getSingleAppointmentForSlot,
+  transformAppointmentData,
   generateTimeSlots,
-  getAppointmentColor,
-  getAppointmentHeight,
   getWeekDays,
-  getWeekStart,
+  getWeekStartAndEnd,
   isDayOpen,
   isTimeSlotAvailable,
 } from "../utils/helper";
 import AppointmentForm from "./forms/appointment.form";
 import MergedAppointmentsDialog from "./forms/merged-appointments";
+import CalendarView from "./forms/calendar-view";
 
-export default function AppointmentCalendar({
-  appointments,
-  clinicHours,
-  onAddAppointment,
-  onUpdateAppointment,
-  onDeleteAppointment,
-  onCheckOverlap,
-}) {
+export default function AppointmentCalendar({ clinicHours }) {
+  const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -45,6 +50,7 @@ export default function AppointmentCalendar({
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
+
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [overlappingAppointmentsDialog, setOverlappingAppointmentsDialog] =
@@ -54,8 +60,24 @@ export default function AppointmentCalendar({
       timeSlot: "",
       date: "",
     });
-  const [mergedAppointments, setMergedAppointments] = useState([]);
   const [open, setOpen] = useState(false);
+  const slotsStartHour = 9;
+  const slotsEndHour = 23;
+
+  const { weekStart, weekEnd } = useMemo(
+    () => getWeekStartAndEnd(currentWeek),
+    [currentWeek]
+  );
+
+  const queryParams = useMemo(
+    () => ({
+      startDate: weekStart.toISOString().split("T")[0],
+      endDate: weekEnd.toISOString().split("T")[0],
+      doctorId: selectedDoctorId === "all" ? undefined : selectedDoctorId,
+      isPaginate: false,
+    }),
+    [weekStart, weekEnd, selectedDoctorId]
+  );
 
   const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
     queryKey: ["patients"],
@@ -72,46 +94,43 @@ export default function AppointmentCalendar({
     queryFn: fetchProceudres,
   });
 
-  const slotsStartHour = 9;
-  const slotsEndHour = 23;
+  const { data: rawAppointmentsData = [] } = useQuery({
+    queryKey: ["appointments", queryParams],
+    queryFn: () => {
+      return fetchAppointments(queryParams);
+    },
+    enabled: !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
+  });
 
-  const getSingleAppointmentForSlot = (date, time) => {
-    const dateString = date.toISOString().split("T")[0];
+  const addAppointmentMutation = useMutation({
+    mutationFn: addAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+    },
+  });
 
-    const appointmentsToConsider =
-      selectedDoctorId === "all"
-        ? appointments
-        : appointments.filter((apt) => apt.doctorId === selectedDoctorId);
+  const updateAppointmentMutation = useMutation({
+    mutationFn: updateAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+      setEditingAppointment(null);
+      setIsDialogOpen(false);
+    },
+  });
 
-    return appointmentsToConsider.find((apt) => {
-      if (apt.date !== dateString) return false;
-      const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
-      const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
-      const slotTimeObj = new Date(`2000-01-01T${time}:00`);
-      return slotTimeObj >= aptStart && slotTimeObj < aptEnd;
-    });
-  };
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: deleteAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+      setIsDialogOpen(false);
+      setEditingAppointment(null);
+    },
+  });
 
-  // Get all appointments that overlap with a specific 15-minute slot for the combined view.
-  const getAppointmentsForCombinedSlot = (date, slotTime) => {
-    const dateString = date.toISOString().split("T")[0];
-    const currentSlotStart = new Date(`2000-01-01T${slotTime}:00`);
-    const currentSlotEnd = new Date(currentSlotStart.getTime() + 15 * 60000);
-
-    return appointments.filter((apt) => {
-      if (apt.date !== dateString) return false;
-      const aptStart = new Date(`2000-01-01T${apt.startTime}:00`);
-      const aptEnd = new Date(`2000-01-01T${apt.endTime}:00`);
-
-      // Check for overlap: (startA < endB) && (endA > startB)
-      return aptStart < currentSlotEnd && aptEnd > currentSlotStart;
-    });
-  };
-
-  // Check if this is the first slot of an appointment
-  const isAppointmentStart = (appointment, time) => {
-    return appointment.startTime === time;
-  };
+  const appointmentsData = useMemo(
+    () => transformAppointmentData(rawAppointmentsData),
+    [rawAppointmentsData]
+  );
 
   const handleDragStart = (e, appointment) => {
     setDraggedAppointment(appointment);
@@ -182,7 +201,8 @@ export default function AppointmentCalendar({
 
     // Check for overlaps with the same doctor (exclude the current appointment being moved)
     if (
-      onCheckOverlap(
+      checkAppointmentOverlap(
+        appointmentsData,
         dateString,
         time,
         newEndTime,
@@ -199,16 +219,14 @@ export default function AppointmentCalendar({
       return;
     }
 
-    // Update the appointment
-    onUpdateAppointment(draggedAppointment.id, {
-      patientId: draggedAppointment.patientId,
-      doctorId: draggedAppointment.doctorId,
-      procedureId: draggedAppointment.procedureId,
-      date: dateString,
-      startTime: time,
-      endTime: newEndTime,
-      notes: draggedAppointment.notes,
-      status: draggedAppointment.status || "scheduled",
+    updateAppointmentMutation.mutateAsync({
+      id: draggedAppointment.id,
+      appointmentData: {
+        ...draggedAppointment,
+        date: dateString,
+        startTime: time,
+        endTime: newEndTime,
+      },
     });
 
     toast({
@@ -235,28 +253,30 @@ export default function AppointmentCalendar({
     setIsDialogOpen(true);
   };
 
-  // get appointment type color
-
-  // add appointment using empty time slot in calendar view
   const handleTimeSlotClick = (date, time) => {
+    console.log(selectedDoctorId !== "all" ? selectedDoctorId : "");
     if (
       !isDayOpen(date, clinicHours) ||
       !isTimeSlotAvailable(date, time, clinicHours)
     )
       return;
-    // In individual view, prevent clicking on occupied slots
     if (selectedDoctorId !== "all") {
-      const existingAppointment = getSingleAppointmentForSlot(date, time);
+      const existingAppointment = getSingleAppointmentForSlot(
+        appointmentsData,
+        selectedDoctorId,
+        date,
+        time
+      );
       if (existingAppointment) return;
     }
+    setFormData({
+      ...emptyAppointment,
+      doctorId: selectedDoctorId !== "all" ? selectedDoctorId : "",
+    });
 
     setEditingAppointment(null);
     setSelectedDate(date.toISOString().split("T")[0]);
     setSelectedTime(time);
-    setFormData({
-      doctorId: selectedDoctorId !== "all" ? selectedDoctorId : "",
-      ...emptyAppointment,
-    });
     setErrorMessage("");
     setIsFromCalendarSlot(true);
     setIsDialogOpen(true);
@@ -264,14 +284,7 @@ export default function AppointmentCalendar({
 
   const handleDelete = () => {
     if (editingAppointment) {
-      onDeleteAppointment(editingAppointment.id);
-      toast({
-        title: "Appointment Deleted",
-        description: "The appointment has been successfully deleted.",
-      });
-      setIsDialogOpen(false);
-      setEditingAppointment(null);
-      setFormData(emptyAppointment);
+      deleteAppointmentMutation.mutateAsync(editingAppointment.id);
     }
   };
 
@@ -293,12 +306,13 @@ export default function AppointmentCalendar({
 
     // Check for overlaps with the same doctor (exclude current appointment if editing)
     if (
-      onCheckOverlap(
+      checkAppointmentOverlap(
+        appointmentsData,
         selectedDate,
         startTime,
         endTime,
         formData.doctorId,
-        editingAppointment?.id
+        editingAppointment?._id || editingAppointment?.id
       )
     ) {
       setErrorMessage(
@@ -308,37 +322,33 @@ export default function AppointmentCalendar({
     }
 
     if (editingAppointment) {
-      onUpdateAppointment(editingAppointment.id, {
-        patientId: formData.patientId,
-        doctorId: formData.doctorId,
-        procedureId: formData.procedureId,
-        date: selectedDate,
-        startTime,
-        endTime,
-        notes: formData.notes,
-        status: formData.status,
-      });
-      toast({
-        title: "Appointment Updated",
-        description: "The appointment has been successfully updated.",
+      updateAppointmentMutation.mutateAsync({
+        id: editingAppointment.id,
+        appointmentData: {
+          ...formData,
+          date: new Date(selectedDate),
+          startTime,
+          endTime,
+        },
       });
     } else {
-      console.log({
+      addAppointmentMutation.mutateAsync({
         ...formData,
         date: new Date(selectedDate),
         startTime,
         endTime,
       });
-      onAddAppointment({
-        patientId: formData.patientId,
-        doctorId: formData.doctorId,
-        procedureId: formData.procedureId,
-        date: selectedDate,
-        startTime,
-        endTime,
-        notes: formData.notes,
-        status: formData.status,
-      });
+
+      // onAddAppointment({
+      //   patientId: formData.patientId,
+      //   doctorId: formData.doctorId,
+      //   procedureId: formData.procedureId,
+      //   date: selectedDate,
+      //   startTime,
+      //   endTime,
+      //   notes: formData.notes,
+      //   status: formData.status,
+      // });
       toast({
         title: "Appointment Scheduled",
         description: "The appointment has been successfully scheduled.",
@@ -366,9 +376,6 @@ export default function AppointmentCalendar({
     slotsStartHour,
     clinicHours
   );
-  const weekStart = getWeekStart(currentWeek);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
 
   const generateTimeOptions = (date) => {
     if (!date) return [];
@@ -434,7 +441,11 @@ export default function AppointmentCalendar({
 
       timeSlots.forEach((slot, slotIndex) => {
         const { time } = slot;
-        const slotWise = getAppointmentsForCombinedSlot(day, time);
+        const slotWise = getAppointmentsForCombinedSlot(
+          appointmentsData,
+          day,
+          time
+        );
 
         // Only process slots with exactly one appointment
         if (slotWise.length === 1) {
@@ -492,24 +503,9 @@ export default function AppointmentCalendar({
     return mergedAppointments;
   };
 
-  const isTimeWithinMergedAppt = (time, timeStart, count) => {
-    const startHour = parseInt(timeStart.split(":")[0]);
-    const startMinute = parseInt(timeStart.split(":")[1]);
-    const slotIndexStart = startHour * 60 + startMinute;
-
-    const currentHour = parseInt(time.split(":")[0]);
-    const currentMinute = parseInt(time.split(":")[1]);
-    const slotIndexCurrent = currentHour * 60 + currentMinute;
-
-    const slotDiff = (slotIndexCurrent - slotIndexStart) / 15;
-
-    return slotDiff >= 0 && slotDiff < count;
-  };
-
-  useEffect(() => {
-    const merged = generateSlotCountMapping();
-    setMergedAppointments(merged);
-  }, [appointments]);
+  const mergedAppointments = useMemo(() => {
+    return generateSlotCountMapping();
+  }, [appointmentsData]);
 
   return (
     <div className="space-y-4">
@@ -530,7 +526,7 @@ export default function AppointmentCalendar({
           <div className="flex gap-2">
             <Select
               value={selectedDoctorId}
-              onValueChange={setSelectedDoctorId}
+              onValueChange={(value) => setSelectedDoctorId(value)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Select doctor" />
@@ -599,270 +595,35 @@ export default function AppointmentCalendar({
             ))}
           </div>
 
-          <div className="relative">
-            {timeSlots.map((slot, timeIndex) => {
-              const { time, isMainSlot, isClickable = true } = slot;
-              return (
-                <div
-                  key={time}
-                  className={`grid grid-cols-8 ${
-                    isMainSlot
-                      ? "border-b border-gray-100"
-                      : "border-b-2 border-gray-200"
-                  } last:border-b-0 h-[30px]`}
-                >
-                  <div
-                    className={`p-2 border-r text-sm flex items-start ${
-                      isMainSlot ? "font-medium" : "font-medium text-sm"
-                    } ${
-                      !isClickable
-                        ? slot.isBoundary
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-500"
-                        : ""
-                    }`}
-                  >
-                    {slot.isBoundary ? `END - ${time}` : time}
-                  </div>
-                  {isClickable
-                    ? weekDays.map((day, dayIndex) => {
-                        const isAvailable = isTimeSlotAvailable(
-                          day,
-                          time,
-                          clinicHours
-                        );
-                        const isOpen = isDayOpen(day, clinicHours);
-
-                        return (
-                          <div
-                            key={`${dayIndex}-${timeIndex}`}
-                            className={`group ${
-                              isAvailable ? "border-r" : ""
-                            } last:border-r-0 relative h-[30px] ${
-                              isOpen && isAvailable
-                                ? "hover:bg-blue-100 cursor-pointer"
-                                : "bg-gray-100"
-                            } ${
-                              dragOverSlot?.date ===
-                                day.toISOString().split("T")[0] &&
-                              dragOverSlot?.time === time &&
-                              isOpen &&
-                              isAvailable
-                                ? "bg-green-100 border-2 border-green-400 border-dashed"
-                                : ""
-                            }`}
-                            onClick={() => handleTimeSlotClick(day, time)}
-                            onDragOver={(e) => handleDragOver(e, day, time)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, day, time)}
-                          >
-                            {selectedDoctorId === "all"
-                              ? (() => {
-                                  const appointmentsInThisSlot =
-                                    getAppointmentsForCombinedSlot(day, time);
-                                  if (appointmentsInThisSlot.length === 0)
-                                    return null;
-                                  const mergedAppt = mergedAppointments.find(
-                                    (appt) =>
-                                      appt.apptId ===
-                                        appointmentsInThisSlot[0].id &&
-                                      appt.timeStart === time &&
-                                      appt.date ===
-                                        day.toISOString().split("T")[0]
-                                  );
-
-                                  const isCoveredByMergedAppt =
-                                    appointmentsInThisSlot.length === 1 &&
-                                    mergedAppointments.some((appt) => {
-                                      const slotDate = day
-                                        .toISOString()
-                                        .split("T")[0];
-
-                                      // Check same appointment and date
-                                      return (
-                                        appt.apptId ===
-                                          appointmentsInThisSlot[0].id &&
-                                        appt.date === slotDate &&
-                                        isTimeWithinMergedAppt(
-                                          time,
-                                          appt.timeStart,
-                                          appt.count
-                                        ) &&
-                                        appt.timeStart !== time // ensure it's not the starting slot itself
-                                      );
-                                    });
-
-                                  if (isCoveredByMergedAppt) {
-                                    return null; // skip rendering this slot as it's covered by a merged block rendered above
-                                  }
-
-                                  return (
-                                    appointmentsInThisSlot.length > 0 && (
-                                      <div
-                                        className={`absolute inset-x-1 rounded-md p-1 text-sm overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center ${
-                                          appointmentsInThisSlot.length === 1
-                                            ? "text-white"
-                                            : "text-black"
-                                        }`}
-                                        style={{
-                                          backgroundColor: `${
-                                            appointmentsInThisSlot.length === 1
-                                              ? getAppointmentColor(
-                                                  appointmentsInThisSlot[0],
-                                                  proceduresData
-                                                )
-                                              : "#FFEBC6"
-                                          }`,
-                                          height:
-                                            mergedAppt &&
-                                            mergedAppt.timeStart === time &&
-                                            mergedAppt.date ===
-                                              day.toISOString().split("T")[0]
-                                              ? `${30 * mergedAppt.count - 3}px`
-                                              : `${30 - 3}px`,
-                                          zIndex: 10,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          flexWrap: "wrap",
-                                          gap: "2px",
-                                        }}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (
-                                            appointmentsInThisSlot.length === 1
-                                          ) {
-                                            handleAppointmentClick(
-                                              appointmentsInThisSlot[0]
-                                            );
-                                          } else {
-                                            setOverlappingAppointmentsDialog({
-                                              isOpen: true,
-                                              appointments:
-                                                appointmentsInThisSlot,
-                                              timeSlot: time,
-                                              date: day
-                                                .toISOString()
-                                                .split("T")[0],
-                                            });
-                                          }
-                                        }}
-                                      >
-                                        {appointmentsInThisSlot.length === 1 ? (
-                                          <div className="font-medium truncate">
-                                            {
-                                              patientsData.find(
-                                                (p) =>
-                                                  p._id ===
-                                                  appointmentsInThisSlot[0]
-                                                    .patientId
-                                              )?.name
-                                            }
-                                          </div>
-                                        ) : (
-                                          <div className="font-medium">
-                                            {appointmentsInThisSlot.length}{" "}
-                                          </div>
-                                        )}
-                                        {appointmentsInThisSlot.map(
-                                          (apt, idx) => (
-                                            <div
-                                              key={idx}
-                                              className="w-3 h-3 rounded-full"
-                                              style={{
-                                                backgroundColor:
-                                                  proceduresData.find(
-                                                    (proc) =>
-                                                      proc._id ===
-                                                      apt.procedureId
-                                                  ).color,
-                                              }}
-                                              title={`${
-                                                patientsData.find(
-                                                  (p) => p._id === apt.patientId
-                                                )?.name
-                                              } (${
-                                                doctorsData.find(
-                                                  (d) => d._id === apt.doctorId
-                                                )?.name
-                                              })`}
-                                            />
-                                          )
-                                        )}
-                                      </div>
-                                    )
-                                  );
-                                })()
-                              : (() => {
-                                  const appointment =
-                                    getSingleAppointmentForSlot(day, time);
-                                  return (
-                                    appointment &&
-                                    isAppointmentStart(appointment, time) && (
-                                      <div
-                                        draggable
-                                        onDragStart={(e) =>
-                                          handleDragStart(e, appointment)
-                                        }
-                                        onDragEnd={handleDragEnd}
-                                        className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
-                                        title={
-                                          appointmentStatusConfig[appointment.status].label
-                                        }
-                                        style={{
-                                          backgroundColor: proceduresData.find(
-                                            (t) =>
-                                              t._id === appointment.procedureId
-                                          )?.color,
-                                          height: `${
-                                            getAppointmentHeight(appointment) *
-                                              30 -
-                                            3
-                                          }px`,
-                                          zIndex: 10,
-                                        }}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleAppointmentClick(appointment);
-                                        }}
-                                      >
-                                        <div className="font-medium truncate">
-                                          {
-                                            patientsData.find(
-                                              (p) =>
-                                                p._id === appointment.patientId
-                                            )?.name
-                                          }
-                                        </div>
-                                      </div>
-                                    )
-                                  );
-                                })()}
-                            {isOpen &&
-                              isAvailable &&
-                              !(selectedDoctorId !== "all"
-                                ? getSingleAppointmentForSlot(day, time)
-                                : false) && (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                  <Plus className="w-3 h-3 text-blue-600" />
-                                </div>
-                              )}
-                          </div>
-                        );
-                      })
-                    : // Render non-clickable boundary slots
-                      weekDays.map((day, dayIndex) => (
-                        <div
-                          key={`${dayIndex}-${timeIndex}`}
-                          className={`border-r last:border-r-0 ${
-                            slot.isBoundary ? "bg-red-100" : "bg-gray-100"
-                          }`}
-                        />
-                      ))}
-                </div>
-              );
-            })}
-          </div>
+          <CalendarView
+            data={{
+              patientsData,
+              doctorsData,
+              appointmentsData,
+              proceduresData,
+            }}
+            timeSlotOptions={{
+              isTimeSlotAvailable,
+              handleTimeSlotClick,
+              handleAppointmentClick,
+            }}
+            calendarData={{
+              timeSlots,
+              weekDays,
+              clinicHours,
+              selectedDoctorId,
+              mergedAppointments,
+            }}
+            dragOptions={{
+              handleDragOver,
+              handleDragLeave,
+              handleDrop,
+              handleDragEnd,
+              handleDragStart,
+              dragOverSlot,
+            }}
+            setOverlappingAppointmentsDialog={setOverlappingAppointmentsDialog}
+          />
         </CardContent>
       </Card>
 
@@ -876,6 +637,7 @@ export default function AppointmentCalendar({
           formData,
           timeOptions,
           setFormData,
+          selectedDoctorId,
         }}
         handleSubmit={handleSubmit}
         handleDelete={handleDelete}
