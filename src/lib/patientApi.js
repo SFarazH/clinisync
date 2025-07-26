@@ -1,7 +1,18 @@
 import axios from "axios";
 
-export const fetchPatients = async () => {
-  const response = await axios.get("/api/patients");
+export const fetchPaginatedPatients = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+} = {}) => {
+  const response = await axios.get("/api/patients", {
+    params: { page, limit, search },
+  });
+  return response.data; // returns { success, data, pagination }
+};
+
+export const listPatients = async () => {
+  const response = await axios.get("/api/patients/list");
   return response.data.data;
 };
 

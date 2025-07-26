@@ -12,7 +12,7 @@ import {
 import ProcedureForm from "./forms/procedure.form";
 import { emptyProcedure } from "./data";
 import { Button } from "./ui/button";
-import { Clock, Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
 import {
   addProcedure,
   deleteProcedure,
@@ -20,6 +20,14 @@ import {
   updateProcedure,
 } from "@/lib";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 
 export default function ProcedureManagement() {
   const queryClient = useQueryClient();
@@ -116,41 +124,72 @@ export default function ProcedureManagement() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {proceduresData.map((procedure) => (
-              <Card key={procedure._id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: procedure.color }}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium">{procedure.name}</h3>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {procedure.duration} minutes
+            <Table>
+              <TableHeader>
+                <TableRow className="w-full">
+                  <TableHead className="w-1/14">ID</TableHead>
+                  <TableHead className="w-4/14">Name</TableHead>
+                  <TableHead className="w-2/14">Abbr</TableHead>
+                  <TableHead className="w-2/14">Duration</TableHead>
+                  <TableHead className="w-2/14">Color</TableHead>
+                  <TableHead className="w-1/14"></TableHead>
+                  <TableHead className="w-1/14"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loadingProcedures ||
+                updateProcedureMutation.isPending ||
+                addProcedureMutation.isPending ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-32 text-center">
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditProcedure(procedure)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteProcedure(procedure._id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  proceduresData.length > 0 &&
+                  proceduresData.map((procedure, index) => (
+                    <TableRow key={procedure._id} className="items-center">
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{procedure.name}</TableCell>
+                      <TableCell>{procedure?.abbr}</TableCell>
+                      <TableCell>{procedure.duration} m</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-4">
+                          <div
+                            className="w-6 h-6 rounded-full"
+                            style={{ backgroundColor: procedure.color }}
+                          />
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            console.log(procedure);
+                            handleEditProcedure(procedure);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteProcedure(procedure._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

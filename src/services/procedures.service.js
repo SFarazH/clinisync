@@ -4,11 +4,11 @@ import { dbConnect } from "@/utils/dbConnect";
 // create procedure
 export async function createProcedure(data) {
   await dbConnect();
-
+  console.log(data);
   try {
-    const existing = await Procedure.findOne({ id: data.id });
+    const existing = await Procedure.findOne({ abbr: data.abbr });
     if (existing) {
-      return { success: false, error: "Procedure ID already exists" };
+      return { success: false, error: "Procedure abbreviation already exists" };
     }
 
     const procedure = await Procedure.create(data);

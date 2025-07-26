@@ -52,8 +52,26 @@ export async function updatePatient(id, data) {
   }
 }
 
+export async function listPatients() {
+  await dbConnect();
+  try {
+    const patients = await Patient.find({}, "name dob");
+    return {
+      success: true,
+      data: patients,
+    };
+  } catch (error) {
+    console.error("Error listing patients:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 // list patients
-export async function listPatients({ page = 1, limit = 10, search = "" }) {
+export async function getPaginatedPatients({
+  page = 1,
+  limit = 10,
+  search = "",
+}) {
   await dbConnect();
 
   try {

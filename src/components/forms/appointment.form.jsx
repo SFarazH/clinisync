@@ -28,6 +28,7 @@ import {
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { appointmentStatusConfig } from "../data";
+import { formatDOB } from "@/utils/helper";
 
 export default function AppointmentForm({
   dialogOptions,
@@ -135,7 +136,7 @@ export default function AppointmentForm({
                                 : ""
                             }
                           >
-                            {patient.name}
+                            {patient.name} - ({formatDOB(patient.dob)})
                           </CommandItem>
                         ))}
                       </CommandGroup>
