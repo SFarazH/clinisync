@@ -1,13 +1,12 @@
-import { createPatient, listPatients } from "@/services";
+import { createPatient, getPaginatedPatients } from "@/services";
 import { NextResponse } from "next/server";
-
 
 export async function POST(req) {
   try {
     const body = await req.json();
     const result = await createPatient(body);
 
-    console.log(result)
+    console.log(result);
 
     if (!result.success) {
       return NextResponse.json(
@@ -36,7 +35,7 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit")) || 10;
     const search = searchParams.get("search") || "";
 
-    const result = await listPatients({ page, limit, search });
+    const result = await getPaginatedPatients({ page, limit, search });
 
     if (!result.success) {
       return NextResponse.json(
