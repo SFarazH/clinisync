@@ -19,7 +19,7 @@ import {
   deleteAppointment,
   fetchAppointments,
   fetchDoctors,
-  fetchPatients,
+  listPatients,
   fetchProceudres,
   updateAppointment,
 } from "@/lib";
@@ -81,7 +81,7 @@ export default function AppointmentCalendar({ clinicHours }) {
 
   const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
     queryKey: ["patients"],
-    queryFn: fetchPatients,
+    queryFn: listPatients,
   });
 
   const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
