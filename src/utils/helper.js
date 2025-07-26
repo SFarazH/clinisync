@@ -243,3 +243,11 @@ export const isTimeWithinMergedAppt = (time, timeStart, count) => {
 
   return slotDiff >= 0 && slotDiff < count;
 };
+
+export const formatDOB = (dob) => {
+  const dateObj = new Date(dob);
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const year = dateObj.getFullYear();
+  return `${day}-${month}-${year}`;
+};
