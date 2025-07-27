@@ -1,4 +1,4 @@
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -36,6 +36,7 @@ export default function AppointmentForm({
   handleDelete,
   popoverOptions,
   formDetails,
+  loaders,
   data,
 }) {
   const { isDialogOpen, setIsDialogOpen } = dialogOptions;
@@ -61,6 +62,7 @@ export default function AppointmentForm({
     errorMessage,
     setErrorMessage,
   } = formDetails;
+  const { loadingPatients, loadingDoctors, loadingProcedures } = loaders;
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -115,32 +117,45 @@ export default function AppointmentForm({
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
                   <Command className="w-full">
-                    <CommandInput placeholder="Search Patient" />
-                    <CommandList>
-                      <CommandEmpty>No patient found.</CommandEmpty>
-                      <CommandGroup>
-                        {patientsData.map((patient) => (
-                          <CommandItem
-                            key={patient._id}
-                            value={patient.name.toLowerCase()}
-                            onSelect={() => {
-                              setFormData({
-                                ...formData,
-                                patientId: patient._id,
-                              });
-                              setOpen(false);
-                            }}
-                            className={
-                              formData.patientId === patient._id
-                                ? "bg-gray-200"
-                                : ""
-                            }
-                          >
-                            {patient.name} - ({formatDOB(patient.dob)})
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
+                    {loadingPatients ? (
+                      <CommandList>
+                        <CommandItem disabled>
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            <span>Loading patients...</span>
+                          </div>
+                        </CommandItem>
+                      </CommandList>
+                    ) : (
+                      <>
+                        <CommandInput placeholder="Search Patient" />
+                        <CommandList>
+                          <CommandEmpty>No patient found.</CommandEmpty>
+                          <CommandGroup>
+                            {patientsData.map((patient) => (
+                              <CommandItem
+                                key={patient._id}
+                                value={patient.name.toLowerCase()}
+                                onSelect={() => {
+                                  setFormData({
+                                    ...formData,
+                                    patientId: patient._id,
+                                  });
+                                  setOpen(false);
+                                }}
+                                className={
+                                  formData.patientId === patient._id
+                                    ? "bg-gray-200"
+                                    : ""
+                                }
+                              >
+                                {patient.name} - ({formatDOB(patient.dob)})
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </>
+                    )}
                   </Command>
                 </PopoverContent>
               </Popover>
@@ -159,20 +174,29 @@ export default function AppointmentForm({
                     <SelectValue placeholder="Select a doctor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {doctorsData.map((doctor) => (
-                      <SelectItem key={doctor._id} value={doctor._id}>
-                        <div className="flex items-center gap-2">
-                          {doctor.name}
+                    {loadingDoctors ? (
+                      <SelectItem key="disabled" disabled>
+                        <div className="flex items-center space-x-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          <span>Loading doctors...</span>
                         </div>
                       </SelectItem>
-                    ))}
+                    ) : (
+                      doctorsData.map((doctor) => (
+                        <SelectItem key={doctor._id} value={doctor._id}>
+                          <div className="flex items-center gap-2">
+                            {doctor.name}
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             )}
 
             <div className="grid gap-2">
-              <Label htmlFor="procedure">Appointment Type</Label>
+              <Label htmlFor="procedure">Procedures</Label>
               <Select
                 value={formData.procedureId}
                 onValueChange={(value) =>
@@ -180,14 +204,23 @@ export default function AppointmentForm({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select appointment type" />
+                  <SelectValue placeholder="Select procedure" />
                 </SelectTrigger>
                 <SelectContent>
-                  {proceduresData.map((type) => (
-                    <SelectItem key={type._id} value={type._id}>
-                      {type.name} ({type.duration} min)
+                  {loadingProcedures ? (
+                    <SelectItem key="disabledprocedures" disabled>
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span>Loading procedures...</span>
+                      </div>
                     </SelectItem>
-                  ))}
+                  ) : (
+                    proceduresData.map((type) => (
+                      <SelectItem key={type._id} value={type._id}>
+                        {type.name} ({type.duration} min)
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
