@@ -669,6 +669,11 @@ export default function AppointmentCalendar({ clinicHours }) {
           errorMessage,
           setErrorMessage,
         }}
+        loaders={{
+          loadingPatients,
+          loadingDoctors,
+          loadingProcedures,
+        }}
       />
       <MergedAppointmentsDialog
         dialogOptions={{
