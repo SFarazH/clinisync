@@ -2,7 +2,7 @@
 import React, { useMemo } from "react";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -256,7 +256,6 @@ export default function AppointmentCalendar({ clinicHours }) {
   };
 
   const handleTimeSlotClick = (date, time) => {
-    console.log(selectedDoctorId !== "all" ? selectedDoctorId : "");
     if (
       !isDayOpen(date, clinicHours) ||
       !isTimeSlotAvailable(date, time, clinicHours)
@@ -535,11 +534,20 @@ export default function AppointmentCalendar({ clinicHours }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Doctors</SelectItem>
-                {doctorsData.map((doctor) => (
-                  <SelectItem key={doctor._id} value={doctor._id}>
-                    {doctor.name}
+                {loadingDoctors ? (
+                  <SelectItem disabled>
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <span>Loading...</span>
+                    </div>
                   </SelectItem>
-                ))}
+                ) : (
+                  doctorsData.map((doctor) => (
+                    <SelectItem key={doctor._id} value={doctor._id}>
+                      {doctor.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
