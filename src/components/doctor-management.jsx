@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useState } from "react";
-import { Plus, Edit, Trash2, Stethoscope } from "lucide-react";
+import { Plus, Edit, Trash2, Stethoscope, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -109,46 +109,52 @@ export default function DoctorManagement() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {doctorsData.map((doctor) => (
-              <Card key={doctor._id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: doctor.color }}
-                    >
-                      <Stethoscope className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-medium">{doctor.name}</h3>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p className="font-medium text-blue-600">
-                          {doctor?.specialization}
-                        </p>
-                        <p>{doctor?.email}</p>
-                        <p>{doctor?.phone}</p>
+            {loadingDoctors ? (
+              <div className="flex items-center justify-center gap-3">
+                <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              doctorsData.map((doctor) => (
+                <Card key={doctor._id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: doctor.color }}
+                      >
+                        <Stethoscope className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <h3 className="font-medium">{doctor.name}</h3>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p className="font-medium text-blue-600">
+                            {doctor?.specialization}
+                          </p>
+                          <p>{doctor?.email}</p>
+                          <p>{doctor?.phone}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditDoctor(doctor)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteDoctor(doctor._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditDoctor(doctor)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteDoctor(doctor._id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

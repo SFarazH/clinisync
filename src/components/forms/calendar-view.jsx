@@ -103,7 +103,7 @@ export default function CalendarView({
                     return (
                       <div
                         key={`${dayIndex}-${timeIndex}`}
-                        className="h-[30px] border-r last:border-r-0 animate-pulse"
+                        className="h-[30px] animate-pulse"
                       >
                         <div className="bg-gray-200 h-full rounded" />
                       </div>
