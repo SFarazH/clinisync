@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   getAppointmentsForCombinedSlot,
   getSingleAppointmentForSlot,
@@ -8,7 +8,7 @@ import {
   getAppointmentHeight,
   isDayOpen,
 } from "@/utils/helper";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { appointmentStatusConfig } from "../data";
 
 export default function CalendarView({
@@ -16,9 +16,16 @@ export default function CalendarView({
   timeSlotOptions,
   calendarData,
   dragOptions,
+  loaders,
   setOverlappingAppointmentsDialog,
 }) {
-  const { patientsData, doctorsData, appointmentsData, proceduresData } = data;
+  const {
+    patientsData,
+    doctorsData,
+    appointmentsData,
+    proceduresData,
+    loadingPatients,
+  } = data;
 
   const { isTimeSlotAvailable, handleTimeSlotClick, handleAppointmentClick } =
     timeSlotOptions;
@@ -39,6 +46,25 @@ export default function CalendarView({
     handleDragEnd,
     handleDragStart,
   } = dragOptions;
+
+  const {
+    addAppointmentLoading,
+    updateAppointmentLoading,
+    deleteAppointmentLoading,
+  } = loaders;
+
+  useEffect(() => {
+    console.log("loaders");
+    console.log(
+      addAppointmentLoading,
+      updateAppointmentLoading,
+      deleteAppointmentLoading
+    );
+  }, [
+    addAppointmentLoading,
+    updateAppointmentLoading,
+    deleteAppointmentLoading,
+  ]);
 
   return (
     <div className="relative">
@@ -68,6 +94,21 @@ export default function CalendarView({
             </div>
             {isClickable
               ? weekDays.map((day, dayIndex) => {
+                  const isLoading =
+                    loadingPatients ||
+                    addAppointmentLoading ||
+                    updateAppointmentLoading ||
+                    deleteAppointmentLoading;
+                  if (isLoading) {
+                    return (
+                      <div
+                        key={`${dayIndex}-${timeIndex}`}
+                        className="h-[30px] border-r last:border-r-0 animate-pulse"
+                      >
+                        <div className="bg-gray-200 h-full rounded" />
+                      </div>
+                    );
+                  }
                   const isAvailable = isTimeSlotAvailable(
                     day,
                     time,

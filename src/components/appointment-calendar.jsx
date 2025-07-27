@@ -94,13 +94,15 @@ export default function AppointmentCalendar({ clinicHours }) {
     queryFn: fetchProceudres,
   });
 
-  const { data: rawAppointmentsData = [] } = useQuery({
-    queryKey: ["appointments", queryParams],
-    queryFn: () => {
-      return fetchAppointments(queryParams);
-    },
-    enabled: !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
-  });
+  const { data: rawAppointmentsData = [], isLoading: loadingAppointments } =
+    useQuery({
+      queryKey: ["appointments", queryParams],
+      queryFn: () => {
+        return fetchAppointments(queryParams);
+      },
+      enabled:
+        !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
+    });
 
   const addAppointmentMutation = useMutation({
     mutationFn: addAppointment,
@@ -601,6 +603,7 @@ export default function AppointmentCalendar({ clinicHours }) {
               doctorsData,
               appointmentsData,
               proceduresData,
+              loadingPatients,
             }}
             timeSlotOptions={{
               isTimeSlotAvailable,
@@ -621,6 +624,11 @@ export default function AppointmentCalendar({ clinicHours }) {
               handleDragEnd,
               handleDragStart,
               dragOverSlot,
+            }}
+            loaders={{
+              addAppointmentLoading: addAppointmentMutation.isPending,
+              updateAppointmentLoading: updateAppointmentMutation.isPending,
+              deleteAppointmentLoading: deleteAppointmentMutation.isPending,
             }}
             setOverlappingAppointmentsDialog={setOverlappingAppointmentsDialog}
           />
