@@ -105,7 +105,7 @@ export default function ClinicDashboard() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Calendar
@@ -118,12 +118,16 @@ export default function ClinicDashboard() {
               <Stethoscope className="w-4 h-4" />
               Doctors
             </TabsTrigger>
+            <TabsTrigger value="procedures" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Procedures
+            </TabsTrigger>
             <TabsTrigger
               value="appointments"
               className="flex items-center gap-2"
             >
               <Clock className="w-4 h-4" />
-              Procedures
+              Appointments
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -154,8 +158,12 @@ export default function ClinicDashboard() {
             <DoctorManagement />
           </TabsContent>
 
-          <TabsContent value="appointments" className="space-y-6">
+          <TabsContent value="procedures" className="space-y-6">
             <ProcedureManagement />
+          </TabsContent>
+
+          <TabsContent value="appointments" className="space-y-6">
+            <ListAllAppointments />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

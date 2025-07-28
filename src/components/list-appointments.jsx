@@ -67,7 +67,7 @@ export default function ListAllAppointments() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-2xl font-semibold text-gray-900">
+                <CardTitle className="">
                   Appointments
                 </CardTitle>
                 <CardDescription className="text-gray-600">
