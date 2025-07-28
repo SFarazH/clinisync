@@ -55,6 +55,13 @@ export const appointmentStatusConfig = {
   },
 };
 
+  export const statusColors = {
+    scheduled: "bg-[#DBEAFE] text-[#1E40AF]",
+    completed: "bg-[#D1FAE5] text-[#065F46]",
+    missed: "bg-[#FEF3C7] text-[#92400E]",
+    cancelled: "bg-[#FEE2E2] text-[#991B1B]",
+  };
+
 export const emptyPatient = {
   name: "",
   email: "",
