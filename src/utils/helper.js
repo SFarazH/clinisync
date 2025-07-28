@@ -126,20 +126,22 @@ export const getAppointmentColor = (appointment, proceduresData) => {
 };
 
 export const transformAppointmentData = (rawAppointments) => {
-  return rawAppointments.map((appointment) => ({
-    id: appointment._id,
-    date: appointment.date.split("T")[0],
-    patientId: appointment.patientId._id,
-    doctorId: appointment.doctorId._id,
-    procedureId: appointment.procedureId._id,
-    startTime: appointment.startTime,
-    endTime: appointment.endTime,
-    notes: appointment.notes,
-    status: appointment.status,
-    patient: appointment.patientId,
-    doctor: appointment.doctorId,
-    procedure: appointment.procedureId,
-  }));
+  return rawAppointments
+    .filter((appt) => appt.status !== "cancelled")
+    .map((appointment) => ({
+      id: appointment._id,
+      date: appointment.date.split("T")[0],
+      patientId: appointment.patientId._id,
+      doctorId: appointment.doctorId._id,
+      procedureId: appointment.procedureId._id,
+      startTime: appointment.startTime,
+      endTime: appointment.endTime,
+      notes: appointment.notes,
+      status: appointment.status,
+      patient: appointment.patientId,
+      doctor: appointment.doctorId,
+      procedure: appointment.procedureId,
+    }));
 };
 
 export const checkAppointmentOverlap = (

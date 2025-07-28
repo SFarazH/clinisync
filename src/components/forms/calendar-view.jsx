@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   getAppointmentsForCombinedSlot,
   getSingleAppointmentForSlot,
@@ -8,7 +8,7 @@ import {
   getAppointmentHeight,
   isDayOpen,
 } from "@/utils/helper";
-import { Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { appointmentStatusConfig } from "../data";
 import Loader from "../loader";
 
@@ -53,19 +53,6 @@ export default function CalendarView({
     updateAppointmentLoading,
     deleteAppointmentLoading,
   } = loaders;
-
-  useEffect(() => {
-    console.log("loaders");
-    console.log(
-      addAppointmentLoading,
-      updateAppointmentLoading,
-      deleteAppointmentLoading
-    );
-  }, [
-    addAppointmentLoading,
-    updateAppointmentLoading,
-    deleteAppointmentLoading,
-  ]);
 
   return (
     <div className="relative">
