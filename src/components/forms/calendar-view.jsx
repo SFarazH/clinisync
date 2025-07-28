@@ -10,6 +10,7 @@ import {
 } from "@/utils/helper";
 import { Loader2, Plus } from "lucide-react";
 import { appointmentStatusConfig } from "../data";
+import Loader from "../loader";
 
 export default function CalendarView({
   data,
@@ -94,21 +95,6 @@ export default function CalendarView({
             </div>
             {isClickable
               ? weekDays.map((day, dayIndex) => {
-                  const isLoading =
-                    loadingPatients ||
-                    addAppointmentLoading ||
-                    updateAppointmentLoading ||
-                    deleteAppointmentLoading;
-                  if (isLoading) {
-                    return (
-                      <div
-                        key={`${dayIndex}-${timeIndex}`}
-                        className="h-[30px] animate-pulse"
-                      >
-                        <div className="bg-gray-200 h-full rounded" />
-                      </div>
-                    );
-                  }
                   const isAvailable = isTimeSlotAvailable(
                     day,
                     time,
@@ -342,6 +328,10 @@ export default function CalendarView({
           </div>
         );
       })}
+      {(loadingPatients ||
+        addAppointmentLoading ||
+        updateAppointmentLoading ||
+        deleteAppointmentLoading) && <Loader />}
     </div>
   );
 }

@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import Loader from "./loader";
 
 export default function ProcedureManagement() {
   const queryClient = useQueryClient();
@@ -137,18 +138,7 @@ export default function ProcedureManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loadingProcedures ||
-                updateProcedureMutation.isPending ||
-                addProcedureMutation.isPending ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center">
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  proceduresData.length > 0 &&
+                {proceduresData.length > 0 &&
                   proceduresData.map((procedure, index) => (
                     <TableRow key={procedure._id} className="items-center">
                       <TableCell>{index + 1}</TableCell>
@@ -186,8 +176,7 @@ export default function ProcedureManagement() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  ))}
               </TableBody>
             </Table>
           </div>
@@ -206,6 +195,10 @@ export default function ProcedureManagement() {
           handleSubmit,
         }}
       />
+      {(loadingProcedures ||
+        addProcedureMutation.isPending ||
+        updateProcedureMutation.isPending ||
+        deleteProcedureMutation.isPending) && <Loader />}
     </div>
   );
 }

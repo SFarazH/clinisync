@@ -17,6 +17,7 @@ import DoctorManagement from "@/components/doctor-management";
 import Image from "next/image";
 import logo from "../../public/clinisync-t.png";
 import ProcedureManagement from "@/components/procedure-management";
+import ListAllAppointments from "@/components/list-appointments";
 
 export default function ClinicDashboard() {
   const [clinicHours, setClinicHours] = useState({
@@ -140,9 +141,7 @@ export default function ClinicDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AppointmentCalendar
-                  clinicHours={clinicHours}
-                />
+                <AppointmentCalendar clinicHours={clinicHours} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -31,6 +31,7 @@ import {
   updatePatient,
 } from "@/lib/patientApi";
 import { formatDate } from "@/utils/functions";
+import Loader from "./loader";
 
 export default function PatientManagement() {
   const queryClient = useQueryClient();
@@ -188,16 +189,7 @@ export default function PatientManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loadingPatients ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="h-32 text-center">
-                        <div className="flex items-center justify-center">
-                          <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredPatients.length > 0 &&
+                  {filteredPatients.length > 0 &&
                     filteredPatients.map((patient, index) => (
                       <TableRow key={patient._id}>
                         <TableCell>
@@ -230,8 +222,7 @@ export default function PatientManagement() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    ))}
                 </TableBody>
               </Table>
               <div className="flex flex-col text-sm md:flex-row justify-between items-center mt-4 gap-2">
@@ -292,6 +283,10 @@ export default function PatientManagement() {
         setEditingPatient={setEditingPatient}
         resetForm={() => setFormData(emptyPatient)}
       />
+      {(loadingPatients ||
+        addPatientMutation.isPending ||
+        updatePatientMutation.isPending ||
+        deletePatientMutation.isPending) && <Loader />}
     </div>
   );
 }
