@@ -5,6 +5,9 @@ export const fetchAppointments = async ({
   endDate,
   isPaginate,
   doctorId,
+  page,
+  limit,
+  status,
 } = {}) => {
   const response = await axios.get("/api/appointments", {
     params: {
@@ -12,9 +15,16 @@ export const fetchAppointments = async ({
       startDate,
       endDate,
       isPaginate,
+      page: isPaginate ? page : null,
+      limit: isPaginate ? limit : null,
+      status,
     },
   });
-  return response.data.data;
+  if (isPaginate) {
+    return response.data;
+  } else {
+    return response.data.data;
+  }
 };
 
 export const addAppointment = async (appointmentData) => {

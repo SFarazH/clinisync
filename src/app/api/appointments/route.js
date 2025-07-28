@@ -35,6 +35,7 @@ export async function GET(req) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const paginate = searchParams.get("isPaginate") !== "false";
+    const status = searchParams.get("status");
 
     const result = await listAppointments({
       page,
@@ -43,6 +44,7 @@ export async function GET(req) {
       startDate,
       endDate,
       paginate,
+      status,
     });
 
     if (!result.success) {

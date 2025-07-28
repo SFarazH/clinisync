@@ -22,6 +22,7 @@ export async function listAppointments({
   startDate = null,
   endDate = null,
   paginate,
+  status = null,
 } = {}) {
   await dbConnect();
   try {
@@ -29,6 +30,10 @@ export async function listAppointments({
 
     if (doctorId) {
       query.doctorId = doctorId;
+    }
+
+    if (status) {
+      query.status = status;
     }
 
     if (startDate && endDate) {
@@ -44,7 +49,7 @@ export async function listAppointments({
 
     let appointmentsQuery = Appointment.find(query)
       .populate("patientId", "name")
-      .populate("doctorId", "name")
+      .populate("doctorId", "name color")
       .populate("procedureId", "name duration color abbr")
       .sort({ date: 1 });
 
