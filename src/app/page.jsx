@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import { Calendar, Users, Clock, Settings, Stethoscope } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import PatientManagement from "@/components/patient-management";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
@@ -19,9 +13,47 @@ import logo from "../../public/clinisync-t.png";
 import ProcedureManagement from "@/components/procedure-management";
 import ListAllAppointments from "@/components/list-appointments";
 import ProtectedRoute from "@/components/protected-route";
+import { RoleBasedWrapper } from "@/components/context/role-checker";
+import { useAuth } from "@/components/context/authcontext";
 
 export default function ClinicDashboard() {
+  const { authUser } = useAuth();
   const [activeTab, setActiveTab] = useState("calendar");
+
+  const allTabs = [
+    {
+      value: "calendar",
+      label: "Calendar",
+      icon: Calendar,
+      roles: ["admin", "receptionist"],
+    },
+    {
+      value: "patients",
+      label: "Patients",
+      icon: Users,
+      roles: ["admin", "receptionist"],
+    },
+    { value: "doctors", label: "Doctors", icon: Stethoscope, roles: ["admin"] },
+    {
+      value: "procedures",
+      label: "Procedures",
+      icon: Clock,
+      roles: ["admin"],
+    },
+    {
+      value: "appointments",
+      label: "Appointments",
+      icon: Clock,
+      roles: ["receptionist", "admin"],
+    },
+    { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
+  ];
+
+  const filteredTabs = allTabs.filter((tab) =>
+    tab.roles.includes(authUser?.role)
+  );
+
+  console.log(filteredTabs.length);
 
   return (
     <ProtectedRoute>
@@ -41,6 +73,9 @@ export default function ClinicDashboard() {
                   </h1>
                 </div>
               </div>
+              <Button variant="destructive" className="">
+                Logout
+              </Button>
             </div>
           </div>
         </header>
@@ -51,72 +86,53 @@ export default function ClinicDashboard() {
             onValueChange={setActiveTab}
             className="space-y-6"
           >
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="calendar" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Calendar
-              </TabsTrigger>
-              <TabsTrigger value="patients" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Patients
-              </TabsTrigger>
-              <TabsTrigger value="doctors" className="flex items-center gap-2">
-                <Stethoscope className="w-4 h-4" />
-                Doctors
-              </TabsTrigger>
-              <TabsTrigger
-                value="procedures"
-                className="flex items-center gap-2"
-              >
-                <Clock className="w-4 h-4" />
-                Procedures
-              </TabsTrigger>
-              <TabsTrigger
-                value="appointments"
-                className="flex items-center gap-2"
-              >
-                <Clock className="w-4 h-4" />
-                Appointments
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Settings
-              </TabsTrigger>
+            <TabsList className={`w-full flex justify-around`}>
+              {filteredTabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="flex items-center gap-2"
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="calendar" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Appointment Calendar</CardTitle>
-                  <CardDescription>
-                    View and schedule appointments. Click on a time slot to
-                    create a new appointment.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <AppointmentCalendar />
-                </CardContent>
-              </Card>
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <AppointmentCalendar />
+              </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="patients" className="space-y-6">
-              <PatientManagement />
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <PatientManagement />
+              </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="doctors" className="space-y-6">
-              <DoctorManagement />
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <DoctorManagement />
+              </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="procedures" className="space-y-6">
-              <ProcedureManagement />
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <ProcedureManagement />
+              </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="appointments" className="space-y-6">
-              <ListAllAppointments />
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <ListAllAppointments />
+              </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-6">
-              <ClinicSettings />
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <ClinicSettings />
+              </RoleBasedWrapper>
             </TabsContent>
           </Tabs>
         </main>
