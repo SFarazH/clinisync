@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const shiftSchema = new mongoose.Schema(
   {
-    start: { type: String }, 
+    start: { type: String },
     end: { type: String },
   },
   { _id: false }
@@ -10,10 +10,9 @@ const shiftSchema = new mongoose.Schema(
 
 const dayScheduleSchema = new mongoose.Schema(
   {
-    morning: { type: shiftSchema, default: {} },
-    afternoon: { type: shiftSchema, default: {} },
-    break: { type: shiftSchema, default: {} },
-    isClosed: { type: Boolean, default: false },
+    isOpen: { type: Boolean, default: true },
+    shifts: { type: [shiftSchema], default: [] },
+    breaks: { type: [shiftSchema], default: [] },
   },
   { _id: false }
 );

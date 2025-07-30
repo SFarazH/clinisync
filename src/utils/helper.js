@@ -26,6 +26,7 @@ export const getWeekDays = (currentWeek) => {
 };
 
 export const isDayOpen = (date, clinicHours) => {
+  if (!clinicHours) return false;
   const dayName = date
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();
@@ -83,6 +84,7 @@ export const generateTimeSlots = (
 };
 
 export const isTimeSlotAvailable = (date, time, clinicHours) => {
+  if (!clinicHours) return false;
   const dayName = date
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();

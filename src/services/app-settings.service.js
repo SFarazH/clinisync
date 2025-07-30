@@ -15,14 +15,14 @@ export async function createOrUpdateAppSettings(data) {
       return {
         success: true,
         data: settings,
-        message: "Initialized clinic settings",
+        message: "Updated clinic settings",
       };
     } else {
       settings = await AppSettings.create(data);
       return {
         success: true,
         data: settings,
-        message: "Updated clinic settings",
+        message: "Initialized clinic settings",
       };
     }
   } catch (error) {
