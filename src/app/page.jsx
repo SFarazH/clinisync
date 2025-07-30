@@ -20,64 +20,6 @@ import ProcedureManagement from "@/components/procedure-management";
 import ListAllAppointments from "@/components/list-appointments";
 
 export default function ClinicDashboard() {
-  const [clinicHours, setClinicHours] = useState({
-    monday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    tuesday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    wednesday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    thursday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    friday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    saturday: {
-      isOpen: true,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-    sunday: {
-      isOpen: false,
-      shifts: [
-        { start: "12:00", end: "17:00" },
-        { start: "19:00", end: "22:00" },
-      ],
-      breaks: [],
-    },
-  });
   const [activeTab, setActiveTab] = useState("calendar");
 
   return (
@@ -145,7 +87,7 @@ export default function ClinicDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AppointmentCalendar clinicHours={clinicHours} />
+                <AppointmentCalendar />
               </CardContent>
             </Card>
           </TabsContent>
@@ -167,10 +109,7 @@ export default function ClinicDashboard() {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            <ClinicSettings
-              clinicHours={clinicHours}
-              onUpdateClinicHours={setClinicHours}
-            />
+            <ClinicSettings />
           </TabsContent>
         </Tabs>
       </main>

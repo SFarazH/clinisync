@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
@@ -22,6 +22,7 @@ import {
   listPatients,
   fetchProceudres,
   updateAppointment,
+  getClinicConfig,
 } from "@/lib";
 import { emptyAppointment } from "./data";
 import {
@@ -38,8 +39,9 @@ import {
 import AppointmentForm from "./forms/appointment.form";
 import MergedAppointmentsDialog from "./forms/merged-appointments";
 import CalendarView from "./forms/calendar-view";
+import Loader from "./loader";
 
-export default function AppointmentCalendar({ clinicHours }) {
+export default function AppointmentCalendar() {
   const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
@@ -61,6 +63,8 @@ export default function AppointmentCalendar({ clinicHours }) {
       date: "",
     });
   const [open, setOpen] = useState(false);
+  const [clinicHours, setClinicHours] = useState({});
+
   const slotsStartHour = 9;
   const slotsEndHour = 23;
 
@@ -104,6 +108,11 @@ export default function AppointmentCalendar({ clinicHours }) {
         !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
     });
 
+  const { data: clinicSettings = {}, isLoading: loadingSettings } = useQuery({
+    queryKey: ["clinicSettings"],
+    queryFn: () => getClinicConfig(),
+  });
+
   const addAppointmentMutation = useMutation({
     mutationFn: addAppointment,
     onSuccess: () => {
@@ -133,6 +142,12 @@ export default function AppointmentCalendar({ clinicHours }) {
     () => transformAppointmentData(rawAppointmentsData),
     [rawAppointmentsData]
   );
+
+  useEffect(() => {
+    if (clinicSettings) {
+      setClinicHours(clinicSettings.openingHours);
+    }
+  }, [clinicSettings, loadingSettings]);
 
   const handleDragStart = (e, appointment) => {
     setDraggedAppointment(appointment);
@@ -339,21 +354,6 @@ export default function AppointmentCalendar({ clinicHours }) {
         startTime,
         endTime,
       });
-
-      // onAddAppointment({
-      //   patientId: formData.patientId,
-      //   doctorId: formData.doctorId,
-      //   procedureId: formData.procedureId,
-      //   date: selectedDate,
-      //   startTime,
-      //   endTime,
-      //   notes: formData.notes,
-      //   status: formData.status,
-      // });
-      toast({
-        title: "Appointment Scheduled",
-        description: "The appointment has been successfully scheduled.",
-      });
     }
 
     setFormData(emptyAppointment);
@@ -375,7 +375,7 @@ export default function AppointmentCalendar({ clinicHours }) {
   const timeSlots = generateTimeSlots(
     slotsEndHour,
     slotsStartHour,
-    clinicHours
+    !!clinicHours
   );
 
   const generateTimeOptions = (date) => {
@@ -412,7 +412,7 @@ export default function AppointmentCalendar({ clinicHours }) {
         // When editing, be more permissive with time options
         if (
           editingAppointment ||
-          isTimeSlotAvailable(selectedDateObj, timeString, clinicHours)
+          isTimeSlotAvailable(selectedDateObj, timeString, !!clinicHours)
         ) {
           options.push(timeString);
         }
@@ -509,180 +509,185 @@ export default function AppointmentCalendar({ clinicHours }) {
   }, [appointmentsData]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
-          {weekStart.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-          })}{" "}
-          -{" "}
-          {weekEnd.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </h2>
-        <div className="flex gap-2 items-center">
-          <div className="flex gap-2">
-            <Select
-              value={selectedDoctorId}
-              onValueChange={(value) => setSelectedDoctorId(value)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select doctor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Doctors</SelectItem>
-                {loadingDoctors ? (
-                  <SelectItem disabled>
-                    <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      <span>Loading...</span>
-                    </div>
-                  </SelectItem>
-                ) : (
-                  doctorsData.map((doctor) => (
-                    <SelectItem key={doctor._id} value={doctor._id}>
-                      {doctor.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button onClick={() => handleAddAppointmentClick()}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Appointment
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateWeek("prev")}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentWeek(new Date())}
-          >
-            Today
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateWeek("next")}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <Card className="p-0 border-black overflow-hidden">
-        <CardContent className="p-0">
-          <div className="grid grid-cols-8 border-b">
-            <div className="p-4 border-r bg-gray-50"></div>
-            {weekDays.map((day, index) => (
-              <div
-                key={index}
-                className="p-4 text-center border-r last:border-r-0"
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">
+            {weekStart.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+            })}{" "}
+            -{" "}
+            {weekEnd.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </h2>
+          <div className="flex gap-2 items-center">
+            <div className="flex gap-2">
+              <Select
+                value={selectedDoctorId}
+                onValueChange={(value) => setSelectedDoctorId(value)}
               >
-                <div className="text-sm text-muted-foreground">
-                  {day.toLocaleDateString("en-US", { weekday: "short" })}
-                </div>
-                <div
-                  className={`text-lg font-semibold ${
-                    day.toDateString() === new Date().toDateString()
-                      ? "text-blue-600"
-                      : ""
-                  }`}
-                >
-                  {day.getDate()}
-                </div>
-              </div>
-            ))}
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select doctor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Doctors</SelectItem>
+                  {loadingDoctors ? (
+                    <SelectItem disabled>
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span>Loading...</span>
+                      </div>
+                    </SelectItem>
+                  ) : (
+                    doctorsData.map((doctor) => (
+                      <SelectItem key={doctor._id} value={doctor._id}>
+                        {doctor.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button onClick={() => handleAddAppointmentClick()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Appointment
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek("prev")}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentWeek(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek("next")}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
 
-          <CalendarView
-            data={{
-              patientsData,
-              doctorsData,
-              appointmentsData,
-              proceduresData,
-              loadingPatients,
-            }}
-            timeSlotOptions={{
-              isTimeSlotAvailable,
-              handleTimeSlotClick,
-              handleAppointmentClick,
-            }}
-            calendarData={{
-              timeSlots,
-              weekDays,
-              clinicHours,
-              selectedDoctorId,
-              mergedAppointments,
-            }}
-            dragOptions={{
-              handleDragOver,
-              handleDragLeave,
-              handleDrop,
-              handleDragEnd,
-              handleDragStart,
-              dragOverSlot,
-            }}
-            loaders={{
-              addAppointmentLoading: addAppointmentMutation.isPending,
-              updateAppointmentLoading: updateAppointmentMutation.isPending,
-              deleteAppointmentLoading: deleteAppointmentMutation.isPending,
-            }}
-            setOverlappingAppointmentsDialog={setOverlappingAppointmentsDialog}
-          />
-        </CardContent>
-      </Card>
+        <Card className="p-0 border-black overflow-hidden">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-8 border-b">
+              <div className="p-4 border-r bg-gray-50"></div>
+              {weekDays.map((day, index) => (
+                <div
+                  key={index}
+                  className="p-4 text-center border-r last:border-r-0"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    {day.toLocaleDateString("en-US", { weekday: "short" })}
+                  </div>
+                  <div
+                    className={`text-lg font-semibold ${
+                      day.toDateString() === new Date().toDateString()
+                        ? "text-blue-600"
+                        : ""
+                    }`}
+                  >
+                    {day.getDate()}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-      <AppointmentForm
-        dialogOptions={{ isDialogOpen, setIsDialogOpen }}
-        popoverOptions={{ open, setOpen }}
-        data={{
-          patientsData,
-          doctorsData,
-          proceduresData,
-          formData,
-          timeOptions,
-          setFormData,
-          selectedDoctorId,
-        }}
-        handleSubmit={handleSubmit}
-        handleDelete={handleDelete}
-        formDetails={{
-          selectedDate,
-          selectedTime,
-          setSelectedDate,
-          setSelectedTime,
-          isFromCalendarSlot,
-          setIsFromCalendarSlot,
-          editingAppointment,
-          setEditingAppointment,
-          errorMessage,
-          setErrorMessage,
-        }}
-        loaders={{
-          loadingPatients,
-          loadingDoctors,
-          loadingProcedures,
-        }}
-      />
-      <MergedAppointmentsDialog
-        dialogOptions={{
-          overlappingAppointmentsDialog,
-          setOverlappingAppointmentsDialog,
-        }}
-        handleAppointmentClick={handleAppointmentClick}
-        data={{ patientsData, proceduresData, doctorsData }}
-      />
-    </div>
+            <CalendarView
+              data={{
+                patientsData,
+                doctorsData,
+                appointmentsData,
+                proceduresData,
+                loadingPatients,
+              }}
+              timeSlotOptions={{
+                isTimeSlotAvailable,
+                handleTimeSlotClick,
+                handleAppointmentClick,
+              }}
+              calendarData={{
+                timeSlots,
+                weekDays,
+                clinicHours,
+                selectedDoctorId,
+                mergedAppointments,
+              }}
+              dragOptions={{
+                handleDragOver,
+                handleDragLeave,
+                handleDrop,
+                handleDragEnd,
+                handleDragStart,
+                dragOverSlot,
+              }}
+              loaders={{
+                addAppointmentLoading: addAppointmentMutation.isPending,
+                updateAppointmentLoading: updateAppointmentMutation.isPending,
+                deleteAppointmentLoading: deleteAppointmentMutation.isPending,
+              }}
+              setOverlappingAppointmentsDialog={
+                setOverlappingAppointmentsDialog
+              }
+            />
+          </CardContent>
+        </Card>
+
+        <AppointmentForm
+          dialogOptions={{ isDialogOpen, setIsDialogOpen }}
+          popoverOptions={{ open, setOpen }}
+          data={{
+            patientsData,
+            doctorsData,
+            proceduresData,
+            formData,
+            timeOptions,
+            setFormData,
+            selectedDoctorId,
+          }}
+          handleSubmit={handleSubmit}
+          handleDelete={handleDelete}
+          formDetails={{
+            selectedDate,
+            selectedTime,
+            setSelectedDate,
+            setSelectedTime,
+            isFromCalendarSlot,
+            setIsFromCalendarSlot,
+            editingAppointment,
+            setEditingAppointment,
+            errorMessage,
+            setErrorMessage,
+          }}
+          loaders={{
+            loadingPatients,
+            loadingDoctors,
+            loadingProcedures,
+          }}
+        />
+        <MergedAppointmentsDialog
+          dialogOptions={{
+            overlappingAppointmentsDialog,
+            setOverlappingAppointmentsDialog,
+          }}
+          handleAppointmentClick={handleAppointmentClick}
+          data={{ patientsData, proceduresData, doctorsData }}
+        />
+      </div>
+      {loadingSettings && <Loader />}
+    </>
   );
 }
