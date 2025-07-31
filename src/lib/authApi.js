@@ -6,7 +6,20 @@ export const logIn = async (loginData) => {
   const response = await axios.post("/api/auth/login", loginData);
   return response.data;
 };
-export const logOut = async () => {};
+export const logOut = async () => {
+  console.log("inside logout");
+  try {
+    const response = await axios.post("/api/auth/logout", {
+      withCredentials: true,
+    });
+    console.log(response);
+    console.log("called it");
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};
 
 export const verifyUser = async () => {
   try {
@@ -15,7 +28,7 @@ export const verifyUser = async () => {
     });
     return response.data;
   } catch (e) {
-    console.error;
+    console.error(e);
     return { success: false };
   }
 };
