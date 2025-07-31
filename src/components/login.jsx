@@ -83,12 +83,12 @@ export default function LoginPage() {
               Login
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          {/* <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
             <Link href="/register" className="underline">
               Register
             </Link>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
