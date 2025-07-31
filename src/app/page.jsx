@@ -16,9 +16,10 @@ import ProtectedRoute from "@/components/protected-route";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
+import { displayName } from "@/utils/helper";
 
 export default function ClinicDashboard() {
-  const { authUser, checkUser, setAuthUser } = useAuth();
+  const { authUser, setAuthUser } = useAuth();
   const [activeTab, setActiveTab] = useState("calendar");
 
   const allTabs = [
@@ -26,20 +27,20 @@ export default function ClinicDashboard() {
       value: "calendar",
       label: "Calendar",
       icon: Calendar,
-      roles: ["admin", "receptionist"],
+      roles: ["admin", "receptionist", "doctor"],
     },
     {
       value: "patients",
       label: "Patients",
       icon: Users,
-      roles: ["admin", "receptionist"],
+      roles: ["admin", "receptionist", "doctor"],
     },
     { value: "doctors", label: "Doctors", icon: Stethoscope, roles: ["admin"] },
     {
       value: "procedures",
       label: "Procedures",
       icon: Clock,
-      roles: ["admin"],
+      roles: ["admin", "doctor"],
     },
     {
       value: "appointments",
@@ -81,6 +82,11 @@ export default function ClinicDashboard() {
                   </h1>
                 </div>
               </div>
+
+              <p className="text-lg font-bold uppercase ">
+                {displayName(authUser)}
+              </p>
+
               <Button variant="destructive" className="" onClick={handleLogout}>
                 Logout
               </Button>
@@ -108,13 +114,13 @@ export default function ClinicDashboard() {
             </TabsList>
 
             <TabsContent value="calendar" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
+              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
                 <AppointmentCalendar />
               </RoleBasedWrapper>
             </TabsContent>
 
             <TabsContent value="patients" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
+              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
                 <PatientManagement />
               </RoleBasedWrapper>
             </TabsContent>
@@ -126,7 +132,7 @@ export default function ClinicDashboard() {
             </TabsContent>
 
             <TabsContent value="procedures" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
+              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
                 <ProcedureManagement />
               </RoleBasedWrapper>
             </TabsContent>

@@ -255,3 +255,18 @@ export const formatDOB = (dob) => {
   const year = dateObj.getFullYear();
   return `${day}-${month}-${year}`;
 };
+
+export const displayName = (user) => {
+  if (!user) return;
+  switch (user.role) {
+    case "admin":
+      return "Admin";
+    case "doctor":
+      return "Doctor";
+    case "receptionist":
+      return "receptionist";
+
+    default:
+      break;
+  }
+};
