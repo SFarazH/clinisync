@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -510,183 +510,196 @@ export default function AppointmentCalendar() {
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">
-            {weekStart.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-            })}{" "}
-            -{" "}
-            {weekEnd.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </h2>
-          <div className="flex gap-2 items-center">
-            <div className="flex gap-2">
-              <Select
-                value={selectedDoctorId}
-                onValueChange={(value) => setSelectedDoctorId(value)}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select doctor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Doctors</SelectItem>
-                  {loadingDoctors ? (
-                    <SelectItem disabled>
-                      <div className="flex items-center space-x-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        <span>Loading...</span>
-                      </div>
-                    </SelectItem>
-                  ) : (
-                    doctorsData.map((doctor) => (
-                      <SelectItem key={doctor._id} value={doctor._id}>
-                        {doctor.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={() => handleAddAppointmentClick()}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Appointment
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateWeek("prev")}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentWeek(new Date())}
-            >
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigateWeek("next")}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <Card className="p-0 border-black overflow-hidden">
-          <CardContent className="p-0">
-            <div className="grid grid-cols-8 border-b">
-              <div className="p-4 border-r bg-gray-50"></div>
-              {weekDays.map((day, index) => (
-                <div
-                  key={index}
-                  className="p-4 text-center border-r last:border-r-0"
-                >
-                  <div className="text-sm text-muted-foreground">
-                    {day.toLocaleDateString("en-US", { weekday: "short" })}
-                  </div>
-                  <div
-                    className={`text-lg font-semibold ${
-                      day.toDateString() === new Date().toDateString()
-                        ? "text-blue-600"
-                        : ""
-                    }`}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appointment Calendar</CardTitle>
+          <CardDescription>
+            View and schedule appointments. Click on a time slot to create a new
+            appointment.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">
+                {weekStart.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                })}{" "}
+                -{" "}
+                {weekEnd.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </h2>
+              <div className="flex gap-2 items-center">
+                <div className="flex gap-2">
+                  <Select
+                    value={selectedDoctorId}
+                    onValueChange={(value) => setSelectedDoctorId(value)}
                   >
-                    {day.getDate()}
-                  </div>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select doctor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Doctors</SelectItem>
+                      {loadingDoctors ? (
+                        <SelectItem disabled>
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            <span>Loading...</span>
+                          </div>
+                        </SelectItem>
+                      ) : (
+                        doctorsData.map((doctor) => (
+                          <SelectItem key={doctor._id} value={doctor._id}>
+                            {doctor.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
+
+                <Button onClick={() => handleAddAppointmentClick()}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Appointment
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateWeek("prev")}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentWeek(new Date())}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateWeek("next")}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
-            <CalendarView
+            <Card className="p-0 border-black overflow-hidden">
+              <CardContent className="p-0">
+                <div className="grid grid-cols-8 border-b">
+                  <div className="p-4 border-r bg-gray-50"></div>
+                  {weekDays.map((day, index) => (
+                    <div
+                      key={index}
+                      className="p-4 text-center border-r last:border-r-0"
+                    >
+                      <div className="text-sm text-muted-foreground">
+                        {day.toLocaleDateString("en-US", { weekday: "short" })}
+                      </div>
+                      <div
+                        className={`text-lg font-semibold ${
+                          day.toDateString() === new Date().toDateString()
+                            ? "text-blue-600"
+                            : ""
+                        }`}
+                      >
+                        {day.getDate()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <CalendarView
+                  data={{
+                    patientsData,
+                    doctorsData,
+                    appointmentsData,
+                    proceduresData,
+                    loadingPatients,
+                  }}
+                  timeSlotOptions={{
+                    isTimeSlotAvailable,
+                    handleTimeSlotClick,
+                    handleAppointmentClick,
+                  }}
+                  calendarData={{
+                    timeSlots,
+                    weekDays,
+                    clinicHours,
+                    selectedDoctorId,
+                    mergedAppointments,
+                  }}
+                  dragOptions={{
+                    handleDragOver,
+                    handleDragLeave,
+                    handleDrop,
+                    handleDragEnd,
+                    handleDragStart,
+                    dragOverSlot,
+                  }}
+                  loaders={{
+                    addAppointmentLoading: addAppointmentMutation.isPending,
+                    updateAppointmentLoading:
+                      updateAppointmentMutation.isPending,
+                    deleteAppointmentLoading:
+                      deleteAppointmentMutation.isPending,
+                  }}
+                  setOverlappingAppointmentsDialog={
+                    setOverlappingAppointmentsDialog
+                  }
+                />
+              </CardContent>
+            </Card>
+
+            <AppointmentForm
+              dialogOptions={{ isDialogOpen, setIsDialogOpen }}
+              popoverOptions={{ open, setOpen }}
               data={{
                 patientsData,
                 doctorsData,
-                appointmentsData,
                 proceduresData,
-                loadingPatients,
-              }}
-              timeSlotOptions={{
-                isTimeSlotAvailable,
-                handleTimeSlotClick,
-                handleAppointmentClick,
-              }}
-              calendarData={{
-                timeSlots,
-                weekDays,
-                clinicHours,
+                formData,
+                timeOptions,
+                setFormData,
                 selectedDoctorId,
-                mergedAppointments,
               }}
-              dragOptions={{
-                handleDragOver,
-                handleDragLeave,
-                handleDrop,
-                handleDragEnd,
-                handleDragStart,
-                dragOverSlot,
+              handleSubmit={handleSubmit}
+              handleDelete={handleDelete}
+              formDetails={{
+                selectedDate,
+                selectedTime,
+                setSelectedDate,
+                setSelectedTime,
+                isFromCalendarSlot,
+                setIsFromCalendarSlot,
+                editingAppointment,
+                setEditingAppointment,
+                errorMessage,
+                setErrorMessage,
               }}
               loaders={{
-                addAppointmentLoading: addAppointmentMutation.isPending,
-                updateAppointmentLoading: updateAppointmentMutation.isPending,
-                deleteAppointmentLoading: deleteAppointmentMutation.isPending,
+                loadingPatients,
+                loadingDoctors,
+                loadingProcedures,
               }}
-              setOverlappingAppointmentsDialog={
-                setOverlappingAppointmentsDialog
-              }
             />
-          </CardContent>
-        </Card>
-
-        <AppointmentForm
-          dialogOptions={{ isDialogOpen, setIsDialogOpen }}
-          popoverOptions={{ open, setOpen }}
-          data={{
-            patientsData,
-            doctorsData,
-            proceduresData,
-            formData,
-            timeOptions,
-            setFormData,
-            selectedDoctorId,
-          }}
-          handleSubmit={handleSubmit}
-          handleDelete={handleDelete}
-          formDetails={{
-            selectedDate,
-            selectedTime,
-            setSelectedDate,
-            setSelectedTime,
-            isFromCalendarSlot,
-            setIsFromCalendarSlot,
-            editingAppointment,
-            setEditingAppointment,
-            errorMessage,
-            setErrorMessage,
-          }}
-          loaders={{
-            loadingPatients,
-            loadingDoctors,
-            loadingProcedures,
-          }}
-        />
-        <MergedAppointmentsDialog
-          dialogOptions={{
-            overlappingAppointmentsDialog,
-            setOverlappingAppointmentsDialog,
-          }}
-          handleAppointmentClick={handleAppointmentClick}
-          data={{ patientsData, proceduresData, doctorsData }}
-        />
-      </div>
+            <MergedAppointmentsDialog
+              dialogOptions={{
+                overlappingAppointmentsDialog,
+                setOverlappingAppointmentsDialog,
+              }}
+              handleAppointmentClick={handleAppointmentClick}
+              data={{ patientsData, proceduresData, doctorsData }}
+            />
+          </div>
+        </CardContent>
+      </Card>
       {loadingSettings && <Loader />}
     </>
   );
