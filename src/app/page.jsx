@@ -15,9 +15,10 @@ import ListAllAppointments from "@/components/list-appointments";
 import ProtectedRoute from "@/components/protected-route";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
+import { logOut } from "@/lib/authApi";
 
 export default function ClinicDashboard() {
-  const { authUser } = useAuth();
+  const { authUser, checkUser, setAuthUser } = useAuth();
   const [activeTab, setActiveTab] = useState("calendar");
 
   const allTabs = [
@@ -53,7 +54,14 @@ export default function ClinicDashboard() {
     tab.roles.includes(authUser?.role)
   );
 
-  console.log(filteredTabs.length);
+  const handleLogout = async () => {
+    const res = await logOut();
+    if (res.success) {
+      setAuthUser(null);
+    } else {
+      console.log("error");
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -73,7 +81,7 @@ export default function ClinicDashboard() {
                   </h1>
                 </div>
               </div>
-              <Button variant="destructive" className="">
+              <Button variant="destructive" className="" onClick={handleLogout}>
                 Logout
               </Button>
             </div>

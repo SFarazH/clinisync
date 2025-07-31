@@ -7,13 +7,10 @@ export const logIn = async (loginData) => {
   return response.data;
 };
 export const logOut = async () => {
-  console.log("inside logout");
   try {
     const response = await axios.post("/api/auth/logout", {
       withCredentials: true,
     });
-    console.log(response);
-    console.log("called it");
     return response.data;
   } catch (error) {
     console.error(error);
