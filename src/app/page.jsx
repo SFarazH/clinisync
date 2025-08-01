@@ -17,6 +17,7 @@ import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
+import { useMutation } from "@tanstack/react-query";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -55,14 +56,12 @@ export default function ClinicDashboard() {
     tab.roles.includes(authUser?.role)
   );
 
-  const handleLogout = async () => {
-    const res = await logOut();
-    if (res.success) {
+  const logoutMutation = useMutation({
+    mutationFn: logOut,
+    onSuccess: () => {
       setAuthUser(null);
-    } else {
-      console.log("error");
-    }
-  };
+    },
+  });
 
   return (
     <ProtectedRoute>
@@ -87,7 +86,11 @@ export default function ClinicDashboard() {
                 {displayName(authUser)}
               </p>
 
-              <Button variant="destructive" className="" onClick={handleLogout}>
+              <Button
+                variant="destructive"
+                className="cursor-pointer"
+                onClick={logoutMutation.mutateAsync}
+              >
                 Logout
               </Button>
             </div>
@@ -151,6 +154,7 @@ export default function ClinicDashboard() {
           </Tabs>
         </main>
       </div>
+      {/* {} */}
     </ProtectedRoute>
   );
 }
