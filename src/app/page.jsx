@@ -18,6 +18,7 @@ import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
+import Loader from "@/components/loader";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -154,7 +155,7 @@ export default function ClinicDashboard() {
           </Tabs>
         </main>
       </div>
-      {/* {} */}
+      {logoutMutation.isPending && <Loader />}
     </ProtectedRoute>
   );
 }

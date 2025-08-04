@@ -17,12 +17,22 @@ import Image from "next/image";
 import { logIn } from "@/lib/authApi";
 import { useAuth } from "./context/authcontext";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import Loader from "./loader";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { checkUser, setAuthUser, authUser } = useAuth();
   const router = useRouter();
+
+  const loginMutation = useMutation({
+    mutationFn: logIn,
+    onSuccess: () => {
+      checkUser();
+      router.push("/");
+    },
+  });
 
   useEffect(() => {
     if (authUser) {
@@ -32,12 +42,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await logIn({ email, password });
-
-    if (res.success) {
-      checkUser();
-      router.push("/");
-    }
+    loginMutation.mutateAsync({ email, password });
   };
 
   return (
@@ -91,6 +96,7 @@ export default function LoginPage() {
           </div> */}
         </CardContent>
       </Card>
+      {loginMutation.isPending && <Loader />}
     </div>
   );
 }
