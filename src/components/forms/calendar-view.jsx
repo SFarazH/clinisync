@@ -64,9 +64,8 @@ export default function CalendarView({
             className={`grid grid-cols-8 ${
               isMainSlot
                 ? "border-b border-gray-100"
-                : timeIndex === timeSlots.length - 2
-                ? ""
-                : "border-b-2 border-gray-200"
+                : timeIndex !== timeSlots.length - 2 &&
+                  "border-b-2 border-gray-200"
             } last:border-b-0 h-[30px]`}
           >
             <div
