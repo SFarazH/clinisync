@@ -1,5 +1,6 @@
 import Doctor from "@/models/Doctor";
 import { dbConnect } from "@/utils/dbConnect";
+import mongoose from "mongoose";
 
 // create doctor
 export async function addDoctor(data) {
@@ -59,11 +60,13 @@ export async function getAllDoctors() {
 }
 
 // get doctor by ID
-export async function getDoctorById(id) {
+export async function getDoctorById(userId) {
   await dbConnect();
 
   try {
-    const doctor = await Doctor.findById(id);
+    const doctor = await Doctor.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
+    });
     if (!doctor) {
       return { success: false, error: "Doctor not found" };
     }
