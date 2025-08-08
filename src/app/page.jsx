@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Clock, Settings, Stethoscope } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Clock,
+  Settings,
+  Stethoscope,
+  NotepadText,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import PatientManagement from "@/components/patient-management";
@@ -49,6 +56,12 @@ export default function ClinicDashboard() {
       label: "Appointments",
       icon: Clock,
       roles: ["receptionist", "admin"],
+    },
+    {
+      value: "prescreptions",
+      label: "Prescriptions",
+      icon: NotepadText,
+      roles: ["pharmacist", "admin", "doctor"],
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
   ];
