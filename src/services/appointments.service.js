@@ -51,7 +51,7 @@ export async function listAppointments({
       .populate("patientId", "name")
       .populate("doctorId", "name color")
       .populate("procedureId", "name duration color abbr")
-      .sort({ date: 1 });
+      .sort({ date: 1, startTime: 1 });
 
     let total = await Appointment.countDocuments(query);
 
