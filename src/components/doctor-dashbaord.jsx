@@ -85,9 +85,33 @@ export default function DoctorDashboard() {
     }
   }, [appointmentsData]);
 
-  useEffect(() => {
-    console.log(appointments);
-  }, [appointments]);
+  const renderAppointments = (status) => {
+    const list = appointments[status] || [];
+
+    return (
+      <TabsContent value={status} className="space-y-6">
+        <ul className="space-y-3 mt-3">
+          {list.length > 0 ? (
+            list.map((appt) => (
+              <li
+                key={appt._id}
+                className="flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-accent"
+                onClick={() => handleOpenModal(appt)}
+              >
+                <div className="space-x-2">
+                  <span className="font-medium">{appt.startTime} -</span>
+                  <span>{appt.patientId.name}</span>
+                  <p className="text-sm">{appt.procedureId.name}</p>
+                </div>
+              </li>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No {status} appointments.</p>
+          )}
+        </ul>
+      </TabsContent>
+    );
+  };
 
   return (
     <>
@@ -145,34 +169,8 @@ export default function DoctorDashboard() {
             </CardHeader>
 
             <CardContent>
-              <TabsContent value="upcoming" className="space-y-6">
-                <ul className="space-y-3 mt-3">
-                  {appointments.upcoming.length > 0 &&
-                    appointments.upcoming.map((appt) => {
-                      return (
-                        <li
-                          key={appt._id}
-                          className="flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-accent"
-                          onClick={() => handleOpenModal(appt)}
-                        >
-                          <div className="space-x-2">
-                            <span className="font-medium">
-                              {appt.startTime} -
-                            </span>
-                            <span>{appt.patientId.name}</span>
-                            <p className="text-sm">{appt.procedureId.name}</p>
-                          </div>
-                          {/* <Button  size="sm">
-                            View Prescription
-                          </Button> */}
-                        </li>
-                      );
-                    })}
-                </ul>
-              </TabsContent>
-              <TabsContent value="completed" className="space-y-6">
-                Completed
-              </TabsContent>
+              {renderAppointments("upcoming")}
+              {renderAppointments("completed")}
             </CardContent>
           </Tabs>
         </Card>
