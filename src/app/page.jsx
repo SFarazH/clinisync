@@ -8,6 +8,7 @@ import {
   Settings,
   Stethoscope,
   NotepadText,
+  LayoutDashboard,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,21 @@ import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
 import Loader from "@/components/loader";
+import DoctorDashboard from "@/components/doctor-dashbaord";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
-  const [activeTab, setActiveTab] = useState("calendar");
+  const [activeTab, setActiveTab] = useState(
+    authUser?.role === "doctor" ? "doctor-dashboard" : "calendar"
+  );
 
   const allTabs = [
+    {
+      value: "doctor-dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      roles: ["doctor"],
+    },
     {
       value: "calendar",
       label: "Calendar",
@@ -129,6 +139,12 @@ export default function ClinicDashboard() {
                 </TabsTrigger>
               ))}
             </TabsList>
+
+            <TabsContent value="doctor-dashboard" className="space-y-6">
+              <RoleBasedWrapper allowedRoles={["doctor"]}>
+                <DoctorDashboard />
+              </RoleBasedWrapper>
+            </TabsContent>
 
             <TabsContent value="calendar" className="space-y-6">
               <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>

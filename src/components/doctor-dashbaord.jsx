@@ -10,15 +10,17 @@ import {
 } from "./ui/card";
 import { fetchAppointments, fetchDoctorById } from "@/lib";
 import { useAuth } from "./context/authcontext";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
 import { Tabs } from "@radix-ui/react-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 import AppointmentDetailsModal from "./modal/appointment.modal";
+import { addPrescription } from "@/services";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("upcoming");
   const [appointments, setAppointments] = useState({
@@ -42,6 +44,13 @@ export default function DoctorDashboard() {
     queryKey: ["procedures", authUser?.id],
     queryFn: () => fetchDoctorById(authUser.id),
     enabled: !!authUser?.id,
+  });
+
+  const addPrescriptionMutation = useMutation({
+    mutationFn: addPrescription,
+    onSuccess: () => {
+      queryClient.invalidateQueries("procedures");
+    },
   });
 
   const queryParams = useMemo(() => {
@@ -182,6 +191,7 @@ export default function DoctorDashboard() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         appointment={selectedAppointment}
+        addPrescription={addPrescriptionMutation}
       />
     </>
   );

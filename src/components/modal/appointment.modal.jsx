@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 const availableMedicines = [
   "Amoxicillin",
@@ -32,10 +31,13 @@ export default function AppointmentDetailsModal({
   isOpen,
   onClose,
   appointment,
+  addPrescription,
 }) {
   const [currentPrescription, setCurrentPrescription] = useState({
     medications: [],
     generalNotes: "",
+    appointment: "",
+    patient: "",
   });
 
   useEffect(() => {
@@ -43,7 +45,12 @@ export default function AppointmentDetailsModal({
       if (appointment.prescription) {
         setCurrentPrescription(appointment.prescription);
       } else {
-        setCurrentPrescription({ medications: [], generalNotes: "" });
+        setCurrentPrescription({
+          medications: [],
+          generalNotes: "",
+          appointment: appointment._id,
+          patient: appointment.patientId._id,
+        });
       }
     }
   }, [appointment]);
@@ -93,9 +100,9 @@ export default function AppointmentDetailsModal({
 
   const handleSave = () => {
     console.log(currentPrescription);
-    // onSavePrescription(appointment.id, currentPrescription)
+    addPrescription.mutateAsync(currentPrescription);
     console.log("clsoed");
-    onClose();
+    // onClose();
   };
 
   return (
@@ -184,7 +191,7 @@ export default function AppointmentDetailsModal({
                 <div className="flex justify-between items-center gap-4">
                   <div className="w-full">
                     <Label className="mb-1" htmlFor={`notes-${index}`}>
-                      Instructions / Notes
+                      Instructions
                     </Label>
                     <Textarea
                       id={`notes-${index}`}
@@ -214,15 +221,18 @@ export default function AppointmentDetailsModal({
             {!isCompleted && (
               <Button
                 variant="outline"
-                className="w-full flex items-center gap-2"
+                className="flex items-center gap-2"
                 onClick={handleAddMedication}
               >
-                <Plus className="w-4 h-4" /> Add Another Medication
+                {/* <Plus className="w-4 h-4" />  */}
+                Add Medication
               </Button>
             )}
 
             <div className="mt-4">
-              <Label htmlFor="general-notes">General Prescription Notes</Label>
+              <Label className="mb-1" htmlFor="general-notes">
+                General Prescription Notes
+              </Label>
               <Textarea
                 id="general-notes"
                 placeholder="Any overall notes for the patient regarding this prescription."
