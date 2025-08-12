@@ -25,6 +25,12 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["scheduled", "cancelled", "completed", "missed"],
       default: "scheduled",
     },
+    prescreption: {
+      type: mongoose.Schema.Types.ObjectId | null,
+      ref: "Prescreption",
+      required: false,
+      default: null,
+    },
     notes: String,
   },
   { timestamps: true }

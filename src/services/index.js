@@ -5,3 +5,4 @@ export * from "./app-settings.service";
 export * from "./appointments.service";
 export * from "./auth.service";
 export * from "./medicines.service";
+export * from "./prescriptions.service";
