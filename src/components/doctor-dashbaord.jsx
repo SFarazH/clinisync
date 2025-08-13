@@ -196,6 +196,10 @@ export default function DoctorDashboard() {
         addPrescriptionMutation={addPrescriptionMutation}
         updatePrescriptionMutation={updatePrescriptionMutation}
       />
+
+      {(loadingAppointments ||
+        addPrescriptionMutation.isPending ||
+        updatePrescriptionMutation.isPending) && <Loader />}
     </>
   );
 }
