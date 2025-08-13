@@ -1,4 +1,5 @@
 import Appointment from "@/models/Appointment";
+import Prescription from "@/models/Prescription";
 import { dbConnect } from "@/utils/dbConnect";
 import mongoose from "mongoose";
 
@@ -126,6 +127,7 @@ export async function deleteAppointment(id) {
   await dbConnect();
   try {
     const appointment = await Appointment.findByIdAndDelete(id);
+    await Prescription.findOneAndDelete({appointment:id})
     if (!appointment) {
       return { success: false, error: "Appointment not found" };
     }
