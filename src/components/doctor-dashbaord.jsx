@@ -8,17 +8,24 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { fetchAppointments, fetchDoctorById } from "@/lib";
+import {
+  addPrescription,
+  fetchAppointments,
+  fetchDoctorById,
+  logOut,
+} from "@/lib";
 import { useAuth } from "./context/authcontext";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
 import { Tabs } from "@radix-ui/react-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Button } from "./ui/button";
 import AppointmentDetailsModal from "./modal/appointment.modal";
+// import { addPrescription } from "@/services";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("upcoming");
   const [appointments, setAppointments] = useState({
@@ -67,6 +74,13 @@ export default function DoctorDashboard() {
       enabled:
         !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
     });
+
+  const addPrescriptionMutation = useMutation({
+    mutationFn: addPrescription,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+    },
+  });
 
   useEffect(() => {
     if (appointmentsData.length > 0) {
@@ -180,6 +194,7 @@ export default function DoctorDashboard() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         appointment={selectedAppointment}
+        addPrescriptionMutation={addPrescriptionMutation}
       />
     </>
   );
