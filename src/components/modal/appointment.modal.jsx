@@ -32,6 +32,7 @@ export default function AppointmentDetailsModal({
   isOpen,
   onClose,
   appointment,
+  addPrescriptionMutation,
 }) {
   const [currentPrescription, setCurrentPrescription] = useState({
     medications: [],
@@ -43,7 +44,12 @@ export default function AppointmentDetailsModal({
       if (appointment.prescription) {
         setCurrentPrescription(appointment.prescription);
       } else {
-        setCurrentPrescription({ medications: [], generalNotes: "" });
+        setCurrentPrescription({
+          medications: [],
+          generalNotes: "",
+          appointment: appointment._id,
+          patient: appointment.patientId._id,
+        });
       }
     }
   }, [appointment]);
@@ -57,7 +63,7 @@ export default function AppointmentDetailsModal({
       ...prev,
       medications: [
         ...prev.medications,
-        { name: "", dosage: "", frequency: "", duration: "", notes: "" },
+        { medicine: "", frequency: "", duration: "", instructions: "" },
       ],
     }));
   };
@@ -93,7 +99,7 @@ export default function AppointmentDetailsModal({
 
   const handleSave = () => {
     console.log(currentPrescription);
-    // onSavePrescription(appointment.id, currentPrescription)
+    addPrescriptionMutation.mutateAsync(currentPrescription);
     console.log("clsoed");
     onClose();
   };
@@ -116,14 +122,14 @@ export default function AppointmentDetailsModal({
             {isCompleted ? "Prescription" : "Add Prescription"}
           </h3>
 
-          {currentPrescription.medications.length === 0 && !isCompleted && (
+          {currentPrescription?.medications?.length === 0 && !isCompleted && (
             <p className="text-muted-foreground text-sm">
               No medications added yet.
             </p>
           )}
 
           <div className="space-y-4">
-            {currentPrescription.medications.map((med, index) => (
+            {currentPrescription.medications?.map((med, index) => (
               <div
                 key={index}
                 className="border rounded-xl p-4 shadow-sm relative space-y-4 bg-gray-50"
@@ -136,9 +142,13 @@ export default function AppointmentDetailsModal({
                     <Input
                       id={`medicine-${index}`}
                       placeholder="Amoxicillin"
-                      value={med.name}
+                      value={med.medicine}
                       onChange={(e) =>
-                        handleMedicationChange(index, "name", e.target.value)
+                        handleMedicationChange(
+                          index,
+                          "medicine",
+                          e.target.value
+                        )
                       }
                       disabled={isCompleted}
                     />
@@ -183,17 +193,20 @@ export default function AppointmentDetailsModal({
 
                 <div className="flex justify-between items-center gap-4">
                   <div className="w-full">
-                    <Label className="mb-1" htmlFor={`notes-${index}`}>
-                      Instructions / Notes
+                    <Label className="mb-1" htmlFor={`instructions-${index}`}>
+                      Instructions
                     </Label>
-                    <Textarea
-                      id={`notes-${index}`}
+                    <Input
+                      id={`instructions-${index}`}
                       placeholder="e.g., Take with food"
-                      value={med.notes}
+                      value={med.instructions}
                       onChange={(e) =>
-                        handleMedicationChange(index, "notes", e.target.value)
+                        handleMedicationChange(
+                          index,
+                          "instructions",
+                          e.target.value
+                        )
                       }
-                      size={1}
                       disabled={isCompleted}
                     />
                   </div>
