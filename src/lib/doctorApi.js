@@ -19,3 +19,8 @@ export const deleteDoctor = async (id) => {
   const response = await axios.delete(`/api/doctors/${id}`);
   return response.data;
 };
+
+export const fetchDoctorById = async (id) => {
+  const response = await axios.get(`/api/doctors/${id}`);
+  return response.data;
+};

@@ -5,7 +5,13 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -40,6 +46,7 @@ import AppointmentForm from "./forms/appointment.form";
 import MergedAppointmentsDialog from "./forms/merged-appointments";
 import CalendarView from "./forms/calendar-view";
 import Loader from "./loader";
+import { format } from "date-fns";
 
 export default function AppointmentCalendar() {
   const queryClient = useQueryClient();
@@ -75,8 +82,8 @@ export default function AppointmentCalendar() {
 
   const queryParams = useMemo(
     () => ({
-      startDate: weekStart.toISOString().split("T")[0],
-      endDate: weekEnd.toISOString().split("T")[0],
+      startDate: format(weekStart, "yyyy-MM-dd"),
+      endDate: format(weekEnd, "yyyy-MM-dd"),
       doctorId: selectedDoctorId === "all" ? undefined : selectedDoctorId,
       isPaginate: false,
     }),
@@ -174,7 +181,7 @@ export default function AppointmentCalendar() {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
 
-    const dateString = date.toISOString().split("T")[0];
+    const dateString = format(date, "yyyy-MM-dd");
     setDragOverSlot({ date: dateString, time });
   };
 
@@ -191,7 +198,7 @@ export default function AppointmentCalendar() {
 
     if (!draggedAppointment) return;
 
-    const dateString = date.toISOString().split("T")[0];
+    const dateString = format(date, "yyyy-MM-dd");
     const procedure = proceduresData.find(
       (t) => t._id === draggedAppointment.procedureId
     );
@@ -291,7 +298,7 @@ export default function AppointmentCalendar() {
     });
 
     setEditingAppointment(null);
-    setSelectedDate(date.toISOString().split("T")[0]);
+    setSelectedDate(format(date, "yyyy-MM-dd"));
     setSelectedTime(time);
     setErrorMessage("");
     setIsFromCalendarSlot(true);
@@ -437,7 +444,7 @@ export default function AppointmentCalendar() {
     const mergedAppointments = [];
 
     weekDays.forEach((day) => {
-      const dateStr = day.toISOString().split("T")[0];
+      const dateStr = format(day, "yyyy-MM-dd");
       const daySlots = new Map();
 
       timeSlots.forEach((slot, slotIndex) => {
