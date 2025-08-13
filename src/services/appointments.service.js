@@ -1,4 +1,5 @@
 import Appointment from "@/models/Appointment";
+import Prescription from "@/models/Prescription";
 import { dbConnect } from "@/utils/dbConnect";
 import mongoose from "mongoose";
 
@@ -51,7 +52,8 @@ export async function listAppointments({
       .populate("patientId", "name")
       .populate("doctorId", "name color")
       .populate("procedureId", "name duration color abbr")
-      .sort({ date: 1 });
+      .populate("prescription")
+      .sort({ date: 1, startTime: 1 });
 
     let total = await Appointment.countDocuments(query);
 
@@ -125,6 +127,7 @@ export async function deleteAppointment(id) {
   await dbConnect();
   try {
     const appointment = await Appointment.findByIdAndDelete(id);
+    await Prescription.findOneAndDelete({appointment:id})
     if (!appointment) {
       return { success: false, error: "Appointment not found" };
     }

@@ -11,6 +11,7 @@ import {
 import { Plus } from "lucide-react";
 import { appointmentStatusConfig } from "../data";
 import Loader from "../loader";
+import { format } from "date-fns";
 
 export default function CalendarView({
   data,
@@ -83,6 +84,7 @@ export default function CalendarView({
             </div>
             {isClickable
               ? weekDays.map((day, dayIndex) => {
+                  const formattedDay = format(day, "yyyy-MM-dd");
                   const isAvailable = isTimeSlotAvailable(
                     day,
                     time,
@@ -100,8 +102,7 @@ export default function CalendarView({
                           ? "hover:bg-blue-100 cursor-pointer"
                           : "bg-gray-100"
                       } ${
-                        dragOverSlot?.date ===
-                          day.toISOString().split("T")[0] &&
+                        dragOverSlot?.date === formattedDay &&
                         dragOverSlot?.time === time &&
                         isOpen &&
                         isAvailable
@@ -127,15 +128,13 @@ export default function CalendarView({
                               (appt) =>
                                 appt.apptId === appointmentsInThisSlot[0].id &&
                                 appt.timeStart === time &&
-                                appt.date === day.toISOString().split("T")[0]
+                                appt.date === formattedDay
                             );
 
                             const isCoveredByMergedAppt =
                               appointmentsInThisSlot.length === 1 &&
                               mergedAppointments.some((appt) => {
-                                const slotDate = day
-                                  .toISOString()
-                                  .split("T")[0];
+                                const slotDate = formattedDay;
 
                                 // Check same appointment and date
                                 return (
@@ -175,8 +174,7 @@ export default function CalendarView({
                                     height:
                                       mergedAppt &&
                                       mergedAppt.timeStart === time &&
-                                      mergedAppt.date ===
-                                        day.toISOString().split("T")[0]
+                                      mergedAppt.date === formattedDay
                                         ? `${30 * mergedAppt.count - 3}px`
                                         : `${30 - 3}px`,
                                     zIndex: 10,
@@ -197,7 +195,7 @@ export default function CalendarView({
                                         isOpen: true,
                                         appointments: appointmentsInThisSlot,
                                         timeSlot: time,
-                                        date: day.toISOString().split("T")[0],
+                                        date: formattedDay,
                                       });
                                     }
                                   }}

@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 export const getWeekStart = (date) => {
   const d = new Date(date);
   const day = d.getDay();
@@ -195,7 +197,7 @@ export const getSingleAppointmentForSlot = (
   date,
   time
 ) => {
-  const dateString = date.toISOString().split("T")[0];
+  const dateString = format(date, "yyyy-MM-dd");
 
   const appointmentsToConsider =
     selectedDoctorId === "all"
@@ -220,7 +222,7 @@ export const getAppointmentsForCombinedSlot = (
   date,
   slotTime
 ) => {
-  const dateString = date.toISOString().split("T")[0];
+  const dateString = format(date, "yyyy-MM-dd");
   const currentSlotStart = new Date(`2000-01-01T${slotTime}:00`);
   const currentSlotEnd = new Date(currentSlotStart.getTime() + 15 * 60000);
 
