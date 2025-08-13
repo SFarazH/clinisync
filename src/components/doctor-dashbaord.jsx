@@ -1,27 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   addPrescription,
   fetchAppointments,
   fetchDoctorById,
-  logOut,
+  updatePrescription,
 } from "@/lib";
 import { useAuth } from "./context/authcontext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
 import { Tabs } from "@radix-ui/react-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Button } from "./ui/button";
 import AppointmentDetailsModal from "./modal/appointment.modal";
-// import { addPrescription } from "@/services";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
@@ -77,6 +69,13 @@ export default function DoctorDashboard() {
 
   const addPrescriptionMutation = useMutation({
     mutationFn: addPrescription,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+    },
+  });
+
+  const updatePrescriptionMutation = useMutation({
+    mutationFn: updatePrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
     },
@@ -195,6 +194,7 @@ export default function DoctorDashboard() {
         onClose={handleCloseModal}
         appointment={selectedAppointment}
         addPrescriptionMutation={addPrescriptionMutation}
+        updatePrescriptionMutation={updatePrescriptionMutation}
       />
     </>
   );

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -13,31 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
-
-const availableMedicines = [
-  "Amoxicillin",
-  "Ibuprofen",
-  "Paracetamol",
-  "Lisinopril",
-  "Metformin",
-  "Atorvastatin",
-  "Omeprazole",
-  "Sertraline",
-  "Albuterol",
-  "Prednisone",
-];
+import { Edit, Plus, Trash2 } from "lucide-react";
+import { emptyMedicationItem, emptyPrescription } from "../data";
 
 export default function AppointmentDetailsModal({
   isOpen,
   onClose,
   appointment,
   addPrescriptionMutation,
+  updatePrescriptionMutation,
 }) {
-  const [currentPrescription, setCurrentPrescription] = useState({
-    medications: [],
-    generalNotes: "",
-  });
+  const [currentPrescription, setCurrentPrescription] =
+    useState(emptyPrescription);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (appointment) {
@@ -61,10 +48,7 @@ export default function AppointmentDetailsModal({
   const handleAddMedication = () => {
     setCurrentPrescription((prev) => ({
       ...prev,
-      medications: [
-        ...prev.medications,
-        { medicine: "", frequency: "", duration: "", instructions: "" },
-      ],
+      medications: [...prev.medications, emptyMedicationItem],
     }));
   };
 
@@ -98,14 +82,28 @@ export default function AppointmentDetailsModal({
   };
 
   const handleSave = () => {
-    console.log(currentPrescription);
-    addPrescriptionMutation.mutateAsync(currentPrescription);
-    console.log("clsoed");
+    if (isEditing) {
+      updatePrescriptionMutation.mutateAsync({
+        id: currentPrescription._id,
+        prescriptionData: currentPrescription,
+      });
+    } else {
+      addPrescriptionMutation.mutateAsync(currentPrescription);
+    }
+    setIsEditing(false);
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          setIsEditing(false);
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -113,146 +111,198 @@ export default function AppointmentDetailsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-2 py-2">
-          <div className="gap-12">
-            <p>{appointment.procedureId.name}</p>
+        <div className="grid gap-6 py-4">
+          <div>
+            <p className="text-muted-foreground mb-1">Procedure</p>
+            <p className="text-base font-medium">
+              {appointment.procedureId.name}
+            </p>
           </div>
 
-          <h3 className="text-lg font-semibold pt-2">
-            {isCompleted ? "Prescription" : "Add Prescription"}
-          </h3>
-
-          {currentPrescription?.medications?.length === 0 && !isCompleted && (
-            <p className="text-muted-foreground text-sm">
-              No medications added yet.
-            </p>
-          )}
-
-          <div className="space-y-4">
-            {currentPrescription.medications?.map((med, index) => (
-              <div
-                key={index}
-                className="border rounded-xl p-4 shadow-sm relative space-y-4 bg-gray-50"
-              >
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <Label className="mb-1" htmlFor={`medicine-${index}`}>
-                      Medicine
-                    </Label>
-                    <Input
-                      id={`medicine-${index}`}
-                      placeholder="Amoxicillin"
-                      value={med.medicine}
-                      onChange={(e) =>
-                        handleMedicationChange(
-                          index,
-                          "medicine",
-                          e.target.value
-                        )
-                      }
-                      disabled={isCompleted}
-                    />
-                  </div>
-                  <div className="w-full md:w-1/4">
-                    <Label className="mb-1" htmlFor={`frequency-${index}`}>
-                      Frequency
-                    </Label>
-                    <Input
-                      id={`frequency-${index}`}
-                      placeholder="BD"
-                      value={med.frequency}
-                      onChange={(e) =>
-                        handleMedicationChange(
-                          index,
-                          "frequency",
-                          e.target.value
-                        )
-                      }
-                      disabled={isCompleted}
-                    />
-                  </div>
-                  <div className="w-full md:w-1/4">
-                    <Label className="mb-1" htmlFor={`duration-${index}`}>
-                      Duration
-                    </Label>
-                    <Input
-                      id={`duration-${index}`}
-                      placeholder="7 days"
-                      value={med.duration}
-                      onChange={(e) =>
-                        handleMedicationChange(
-                          index,
-                          "duration",
-                          e.target.value
-                        )
-                      }
-                      disabled={isCompleted}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center gap-4">
-                  <div className="w-full">
-                    <Label className="mb-1" htmlFor={`instructions-${index}`}>
-                      Instructions
-                    </Label>
-                    <Input
-                      id={`instructions-${index}`}
-                      placeholder="e.g., Take with food"
-                      value={med.instructions}
-                      onChange={(e) =>
-                        handleMedicationChange(
-                          index,
-                          "instructions",
-                          e.target.value
-                        )
-                      }
-                      disabled={isCompleted}
-                    />
-                  </div>
-                  {!isCompleted && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:bg-red-100"
-                      onClick={() => handleRemoveMedication(index)}
-                      title="Remove Medication"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-            {!isCompleted && (
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">
+              {isCompleted ? "Prescription" : "Add Prescription"}
+            </h3>
+            {isCompleted && !isEditing && (
               <Button
-                variant="outline"
-                className="w-full flex items-center gap-2"
-                onClick={handleAddMedication}
+                size="sm"
+                variant="secondary"
+                className="gap-1"
+                onClick={() => setIsEditing(true)}
               >
-                <Plus className="w-4 h-4" /> Add Another Medication
+                <Edit className="w-4 h-4" />
+                Edit
               </Button>
             )}
+          </div>
 
-            <div className="mt-4">
-              <Label htmlFor="general-notes">General Prescription Notes</Label>
-              <Textarea
-                id="general-notes"
-                placeholder="Any overall notes for the patient regarding this prescription."
-                value={currentPrescription.generalNotes}
-                onChange={(e) => handleGeneralNotesChange(e.target.value)}
-                disabled={isCompleted}
-              />
+          {currentPrescription?.medications?.length === 0 ? (
+            <div className="bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200">
+              No medications added. Click "Add Another Medication" to begin.
             </div>
+          ) : (
+            <div className="space-y-6">
+              <h4 className="text-md font-medium text-gray-700">Medications</h4>
+              {currentPrescription.medications?.map((med, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-5 bg-white shadow-sm space-y-4 relative"
+                >
+                  <h5 className="text-sm font-semibold text-gray-600 mb-2">
+                    Medication #{index + 1}
+                  </h5>
+
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <Label className="mb-1" htmlFor={`medicine-${index}`}>
+                        Medicine
+                      </Label>
+                      <Input
+                        className={(isEditing || !isCompleted) && "bg-white"}
+                        id={`medicine-${index}`}
+                        placeholder="Amoxicillin"
+                        value={med.medicine}
+                        onChange={(e) =>
+                          handleMedicationChange(
+                            index,
+                            "medicine",
+                            e.target.value
+                          )
+                        }
+                        disabled={isCompleted && !isEditing}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/4">
+                      <Label className="mb-1" htmlFor={`frequency-${index}`}>
+                        Frequency
+                      </Label>
+                      <Input
+                        className={(isEditing || !isCompleted) && "bg-white"}
+                        id={`frequency-${index}`}
+                        placeholder="BD"
+                        value={med.frequency}
+                        onChange={(e) =>
+                          handleMedicationChange(
+                            index,
+                            "frequency",
+                            e.target.value
+                          )
+                        }
+                        disabled={isCompleted && !isEditing}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/4">
+                      <Label className="mb-1" htmlFor={`duration-${index}`}>
+                        Duration
+                      </Label>
+                      <Input
+                        className={(isEditing || !isCompleted) && "bg-white"}
+                        id={`duration-${index}`}
+                        placeholder="7 days"
+                        value={med.duration}
+                        onChange={(e) =>
+                          handleMedicationChange(
+                            index,
+                            "duration",
+                            e.target.value
+                          )
+                        }
+                        disabled={isCompleted && !isEditing}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="w-full">
+                      <Label className="mb-1" htmlFor={`instructions-${index}`}>
+                        Instructions
+                      </Label>
+                      <Input
+                        className={(isEditing || !isCompleted) && "bg-white"}
+                        id={`instructions-${index}`}
+                        placeholder="e.g., Take with food"
+                        value={med.instructions}
+                        onChange={(e) =>
+                          handleMedicationChange(
+                            index,
+                            "instructions",
+                            e.target.value
+                          )
+                        }
+                        disabled={isCompleted && !isEditing}
+                      />
+                    </div>
+                    {!isCompleted && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:bg-red-100"
+                        onClick={() => handleRemoveMedication(index)}
+                        title="Remove Medication"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(isEditing || !isCompleted) && (
+            <Button
+              variant="outline"
+              className="w-full flex items-center gap-2"
+              onClick={handleAddMedication}
+            >
+              <Plus className="w-4 h-4" /> Add Another Medication
+            </Button>
+          )}
+
+          <div className="mt-2">
+            <Label htmlFor="general-notes">General Prescription Notes</Label>
+            <Textarea
+              id="general-notes"
+              placeholder="Any overall notes for the patient regarding this prescription."
+              value={currentPrescription.generalNotes}
+              onChange={(e) => handleGeneralNotesChange(e.target.value)}
+              disabled={isCompleted && !isEditing}
+            />
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            {isCompleted ? "Close" : "Cancel"}
+        <DialogFooter className="flex justify-between mt-4">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (isEditing) {
+                setIsEditing(false);
+                if (appointment?.prescription) {
+                  setCurrentPrescription(appointment.prescription);
+                } else {
+                  setCurrentPrescription({
+                    medications: [],
+                    generalNotes: "",
+                    appointment: appointment._id,
+                    patient: appointment.patientId._id,
+                  });
+                }
+              } else {
+                onClose();
+                setIsEditing(false);
+              }
+            }}
+          >
+            {isCompleted ? (isEditing ? "Cancel" : "Close") : "Cancel"}
           </Button>
-          {!isCompleted && (
-            <Button onClick={handleSave}>Save Prescription</Button>
+
+          {(!isCompleted || isEditing) && (
+            <Button
+              className="bg-primary text-white hover:bg-primary/90"
+              onClick={handleSave}
+            >
+              {isEditing ? "Update" : "Save Prescription"}
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>
