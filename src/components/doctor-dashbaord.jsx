@@ -188,7 +188,6 @@ export default function DoctorDashboard() {
           </Tabs>
         </Card>
       </div>
-      {loadingDoctor && <Loader />}
       <AppointmentDetailsModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -199,7 +198,8 @@ export default function DoctorDashboard() {
 
       {(loadingAppointments ||
         addPrescriptionMutation.isPending ||
-        updatePrescriptionMutation.isPending) && <Loader />}
+        updatePrescriptionMutation.isPending ||
+        loadingDoctor) && <Loader />}
     </>
   );
 }
