@@ -20,6 +20,7 @@ const prescriptionSchema = new mongoose.Schema({
   },
   medications: [medicationSchema],
   generalNotes: { type: String },
+  delivered: { type: Boolean, default: false },
 });
 
 export default mongoose.models.Prescription ||
