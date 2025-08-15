@@ -12,3 +12,16 @@ export const updatePrescription = async ({ id, prescriptionData }) => {
   );
   return response.data.data;
 };
+
+export const getPaginatedPrescriptions = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  startDate = "",
+  endDate = "",
+} = {}) => {
+  const response = await axios.get("/api/prescriptions", {
+    params: { page, limit, search, startDate, endDate },
+  });
+  return response.data; // returns { success, data, pagination }
+};
