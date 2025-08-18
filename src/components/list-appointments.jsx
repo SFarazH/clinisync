@@ -159,8 +159,8 @@ export default function ListAllAppointments() {
                         <TableCell className="flex justify-center">
                           {appointment.prescription ? (
                             <FileText
+                              className="cursor-pointer"
                               onClick={() => {
-                                console.log(appointment.prescription);
                                 setCurrentPrescription(
                                   appointment.prescription
                                 );

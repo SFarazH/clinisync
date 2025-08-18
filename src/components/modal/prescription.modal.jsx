@@ -16,8 +16,7 @@ export default function PrescriptionModal({
 }) {
   const { authUser } = useAuth();
 
-  const { patientName, doctorName, appointmentDate } = appointmentDetails;
-  console.log(appointmentDetails, "details");
+  const { patientName, doctorName, appointmentDate } = appointmentDetails || {};
 
   const role = useMemo(() => authUser?.role, [authUser]);
   const [givenStatus, setGivenStatus] = useState({});
