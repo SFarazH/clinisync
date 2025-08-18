@@ -91,7 +91,6 @@ export default function AppointmentDetailsModal({
       addPrescriptionMutation.mutateAsync(currentPrescription);
     }
     setIsEditing(false);
-    onClose();
   };
 
   return (

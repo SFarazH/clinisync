@@ -14,6 +14,7 @@ import Loader from "./loader";
 import { Tabs } from "@radix-ui/react-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import AppointmentDetailsModal from "./modal/appointment.modal";
+import { Circle } from "lucide-react";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
@@ -71,6 +72,7 @@ export default function DoctorDashboard() {
     mutationFn: addPrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
+      handleCloseModal();
     },
   });
 
@@ -78,6 +80,7 @@ export default function DoctorDashboard() {
     mutationFn: updatePrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
+      handleCloseModal();
     },
   });
 
@@ -114,7 +117,16 @@ export default function DoctorDashboard() {
                 <div className="space-x-2">
                   <span className="font-medium">{appt.startTime} -</span>
                   <span>{appt.patientId.name}</span>
-                  <p className="text-sm">{appt.procedureId.name}</p>
+
+                  <p className="text-sm flex items-center gap-2 mt-0.5">
+                    <Circle
+                      width={15}
+                      height={15}
+                      color={appt.procedureId.color}
+                      fill={appt.procedureId.color}
+                    />
+                    {appt.procedureId.name}
+                  </p>
                 </div>
               </li>
             ))
