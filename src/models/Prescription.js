@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const medicationSchema = new mongoose.Schema({
   medicine: { type: String, required: true },
   frequency: { type: String, required: true },
-  duration: { type: Number, required: true },
+  duration: { type: Number, required: false },
   instructions: { type: String },
 });
 
