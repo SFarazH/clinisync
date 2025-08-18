@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useState } from "react";
-import { Plus, Edit, Trash2, Stethoscope, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
