@@ -104,63 +104,52 @@ export default function AppointmentDetailsModal({
         }
       }}
     >
-      <DialogContent className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            Appointment Details - {appointment.patientId.name}
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-3">
+          <DialogTitle className="text-lg">
+            {appointment.patientId.name} - {appointment.procedureId.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          <div>
-            <p className="text-muted-foreground mb-1">Procedure</p>
-            <p className="text-base font-medium">
-              {appointment.procedureId.name}
-            </p>
-          </div>
-
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-base font-medium">
               {isCompleted ? "Prescription" : "Add Prescription"}
             </h3>
             {isCompleted && !isEditing && (
               <Button
                 size="sm"
-                variant="secondary"
-                className="gap-1"
+                variant="ghost"
+                className="h-8 px-2 text-xs"
                 onClick={() => setIsEditing(true)}
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-3 h-3 mr-1" />
                 Edit
               </Button>
             )}
           </div>
 
           {currentPrescription?.medications?.length === 0 ? (
-            <div className="bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200">
-              No medications added. Click "Add Another Medication" to begin.
+            /* Simplified empty state with less visual weight */
+            <div className="bg-gray-50 text-gray-600 text-sm p-3 rounded border">
+              No medications added yet
             </div>
           ) : (
-            <div className="space-y-6">
-              <h4 className="text-md font-medium text-gray-700">Medications</h4>
+            <div className="space-y-3">
               {currentPrescription.medications?.map((med, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-5 bg-white shadow-sm space-y-4 relative"
+                  /* Removed heavy shadows and reduced padding for cleaner look */
+                  className="border rounded p-3 bg-gray-50/50 space-y-3"
                 >
-                  <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                    Medication #{index + 1}
-                  </h5>
-
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                      <Label className="mb-1" htmlFor={`medicine-${index}`}>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div className="md:col-span-2">
+                      <Label className="text-xs text-gray-600 mb-1">
                         Medicine
                       </Label>
                       <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`medicine-${index}`}
-                        placeholder="Amoxicillin"
+                        className="h-8 text-sm focus-visible:ring-0"
+                        placeholder="Medicine name"
                         value={med.medicine}
                         onChange={(e) =>
                           handleMedicationChange(
@@ -172,13 +161,12 @@ export default function AppointmentDetailsModal({
                         disabled={isCompleted && !isEditing}
                       />
                     </div>
-                    <div className="w-full md:w-1/4">
-                      <Label className="mb-1" htmlFor={`frequency-${index}`}>
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1">
                         Frequency
                       </Label>
                       <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`frequency-${index}`}
+                        className="h-8 text-sm focus-visible:ring-0"
                         placeholder="BD"
                         value={med.frequency}
                         onChange={(e) =>
@@ -191,13 +179,12 @@ export default function AppointmentDetailsModal({
                         disabled={isCompleted && !isEditing}
                       />
                     </div>
-                    <div className="w-full md:w-1/4">
-                      <Label className="mb-1" htmlFor={`duration-${index}`}>
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1">
                         Duration
                       </Label>
                       <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`duration-${index}`}
+                        className="h-8 text-sm focus-visible:ring-0"
                         placeholder="7 days"
                         value={med.duration}
                         onChange={(e) =>
@@ -212,15 +199,14 @@ export default function AppointmentDetailsModal({
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center gap-4">
-                    <div className="w-full">
-                      <Label className="mb-1" htmlFor={`instructions-${index}`}>
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs text-gray-600 mb-1">
                         Instructions
                       </Label>
                       <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`instructions-${index}`}
-                        placeholder="e.g., Take with food"
+                        className="h-8 text-sm focus-visible:ring-0"
+                        placeholder="Take with food"
                         value={med.instructions}
                         onChange={(e) =>
                           handleMedicationChange(
@@ -232,15 +218,14 @@ export default function AppointmentDetailsModal({
                         disabled={isCompleted && !isEditing}
                       />
                     </div>
-                    {!isCompleted && (
+                    {(isEditing || !isCompleted) && (
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:bg-red-100"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 focus-visible:ring-red-300 focus-visible:ring-2"
                         onClick={() => handleRemoveMedication(index)}
-                        title="Remove Medication"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
                   </div>
@@ -250,20 +235,26 @@ export default function AppointmentDetailsModal({
           )}
 
           {(isEditing || !isCompleted) && (
-            <Button
-              variant="outline"
-              className="w-full flex items-center gap-2"
-              onClick={handleAddMedication}
-            >
-              <Plus className="w-4 h-4" /> Add Another Medication
-            </Button>
+            /* Made add button more subtle and compact */
+            <div className="flex items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs bg-transparent focus-visible:ring-0 cursor-pointer w-fit mx-auto"
+                onClick={handleAddMedication}
+              >
+                <Plus className="w-3 h-3 mr-1" /> Add Medication
+              </Button>
+            </div>
           )}
 
-          <div className="mt-2">
-            <Label htmlFor="general-notes">General Prescription Notes</Label>
+          <div>
+            <Label className="text-xs text-gray-600 mb-1">
+              General Instructions
+            </Label>
             <Textarea
-              id="general-notes"
-              placeholder="Any overall notes for the patient regarding this prescription."
+              className="text-sm min-h-[60px]"
+              placeholder="Additional notes for the patient"
               value={currentPrescription.generalNotes}
               onChange={(e) => handleGeneralNotesChange(e.target.value)}
               disabled={isCompleted && !isEditing}
@@ -271,9 +262,10 @@ export default function AppointmentDetailsModal({
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between mt-4">
+        <DialogFooter className="flex justify-between pt-4 gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => {
               if (isEditing) {
                 setIsEditing(false);
@@ -297,11 +289,8 @@ export default function AppointmentDetailsModal({
           </Button>
 
           {(!isCompleted || isEditing) && (
-            <Button
-              className="bg-primary text-white hover:bg-primary/90"
-              onClick={handleSave}
-            >
-              {isEditing ? "Update" : "Save Prescription"}
+            <Button size="sm" onClick={handleSave}>
+              {isEditing ? "Update" : "Save"}
             </Button>
           )}
         </DialogFooter>
