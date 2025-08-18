@@ -22,7 +22,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
 import Loader from "./loader";
 import { getPaginatedPrescriptions, updatePrescription } from "@/lib";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { FileText } from "lucide-react";
 import PrescriptionModal from "./modal/prescription.modal";
 
@@ -178,6 +177,7 @@ export default function PrescriptionManagement() {
         setIsDialogOpen={setIsDialogOpen}
         currentPrescription={currentPrescription}
         updateAppointmentMutation={updateAppointmentMutation}
+        viewOnly={false}
       />
       {loadingPrescriptions && <Loader />}
     </div>
