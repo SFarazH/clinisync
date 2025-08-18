@@ -11,8 +11,13 @@ export default function PrescriptionModal({
   setIsDialogOpen,
   currentPrescription,
   updateAppointmentMutation,
+  viewOnly,
+  appointmentDetails = {},
 }) {
   const { authUser } = useAuth();
+
+  const { patientName, doctorName, appointmentDate } = appointmentDetails;
+  console.log(appointmentDetails, "details");
 
   const role = useMemo(() => authUser?.role, [authUser]);
   const [givenStatus, setGivenStatus] = useState({});
@@ -31,7 +36,11 @@ export default function PrescriptionModal({
           <div className="space-y-6">
             <DialogTitle>
               <div className="border-b pb-4 mt-1">
-                {currentPrescription.delivered && <p className="flex items-center bg-green-200 w-fit py-1.5 px-2 rounded-2xl gap-1">Delivered <Check height={22} width={22}/></p>}
+                {currentPrescription.delivered && (
+                  <p className="flex items-center bg-green-200 w-fit py-1.5 px-2 rounded-2xl gap-1">
+                    Delivered <Check height={22} width={22} />
+                  </p>
+                )}
                 <div className="flex justify-between items-center">
                   <div>
                     <h1 className="text-2xl font-bold text-blue-800">
@@ -50,34 +59,37 @@ export default function PrescriptionModal({
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      Dr. {currentPrescription?.appointment?.doctorId?.name}
+                      Dr.{" "}
+                      {currentPrescription?.appointment?.doctorId?.name ??
+                        doctorName}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    {/* <p className="text-sm text-gray-600">
                       {currentPrescription?.appointment?.doctorId
                         ?.qualification || "MBBS, MD"}
-                    </p>
-                    <p className="text-sm text-gray-600">
+                    </p> */}
+                    {/* <p className="text-sm text-gray-600">
                       Reg. No:{" "}
                       {currentPrescription?.appointment?.doctorId?.regNumber ||
                         "MC-123456"}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               </div>
             </DialogTitle>
 
-            {/* Patient Info */}
             <div className="border-b pb-3 flex justify-between text-sm">
               <div>
                 <p>
                   <span className="font-semibold">Patient:</span>{" "}
-                  {currentPrescription?.patient?.name}
+                  {currentPrescription?.patient?.name ?? patientName}
                 </p>
               </div>
               <div className="text-right">
                 <p>
                   <span className="font-semibold">Date:</span>{" "}
-                  {formatDate(currentPrescription.appointment.date)}
+                  {appointmentDate
+                    ? formatDate(appointmentDate)
+                    : formatDate(currentPrescription.appointment.date)}
                 </p>
               </div>
             </div>
@@ -153,7 +165,7 @@ export default function PrescriptionModal({
               </div>
             </div>
           </div>
-          {role === "pharmacist" && (
+          {!viewOnly && role === "pharmacist" && (
             <div className="flex justify-end mt-2 p-0">
               <Button
                 disabled={currentPrescription.delivered}
