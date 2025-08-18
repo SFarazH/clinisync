@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useAuth } from "../context/authcontext";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { Check } from "lucide-react";
 
 export default function PrescriptionModal({
   isDialogOpen,
@@ -29,7 +30,8 @@ export default function PrescriptionModal({
         <DialogContent className="w-full md:max-w-3xl p-6 bg-white border border-gray-300 shadow-lg rounded-lg">
           <div className="space-y-6">
             <DialogTitle>
-              <div className="border-b pb-4">
+              <div className="border-b pb-4 mt-1">
+                {currentPrescription.delivered && <p className="flex items-center bg-green-200 w-fit py-1.5 px-2 rounded-2xl gap-1">Delivered <Check height={22} width={22}/></p>}
                 <div className="flex justify-between items-center">
                   <div>
                     <h1 className="text-2xl font-bold text-blue-800">
@@ -131,10 +133,7 @@ export default function PrescriptionModal({
                     Additional Notes
                   </h4>
                   <p className="text-gray-700">
-                    {currentPrescription.generalNotes} Lorem ipsum dolor sit
-                    amet consectetur adipisicing elit. Saepe quo laudantium
-                    assumenda eveniet temporibus officia veritatis magni labore
-                    consequatur debitis.
+                    {currentPrescription.generalNotes}
                   </p>
                 </div>
               ) : (
