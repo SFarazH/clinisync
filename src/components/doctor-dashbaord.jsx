@@ -11,8 +11,7 @@ import {
 import { useAuth } from "./context/authcontext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
-import { Tabs } from "@radix-ui/react-tabs";
-import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import AppointmentDetailsModal from "./modal/appointment.modal";
 import { Circle } from "lucide-react";
 
