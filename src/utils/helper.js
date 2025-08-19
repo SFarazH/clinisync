@@ -267,6 +267,8 @@ export const displayName = (user) => {
       return "Doctor";
     case "receptionist":
       return "receptionist";
+    case "pharmacist":
+      return "Pharmacist";
 
     default:
       break;

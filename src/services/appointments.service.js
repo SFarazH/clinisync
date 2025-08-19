@@ -1,7 +1,6 @@
 import Appointment from "@/models/Appointment";
 import Prescription from "@/models/Prescription";
 import { dbConnect } from "@/utils/dbConnect";
-import mongoose from "mongoose";
 
 // add appointment
 export async function createAppointment(data) {

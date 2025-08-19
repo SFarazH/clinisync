@@ -82,6 +82,15 @@ export async function getPrescriptions({
     }
 
     const prescriptions = await Prescription.find(query)
+      .populate("patient", "name")
+      .populate({
+        path: "appointment",
+        select: "date doctorId",
+        populate: {
+          path: "doctorId",
+          select: "name",
+        },
+      })
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });

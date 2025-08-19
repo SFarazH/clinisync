@@ -28,11 +28,17 @@ import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
+import PrescriptionManagement from "@/components/prescription-management";
+import PharmacistDashboard from "@/components/pharmacist-dashboard";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
   const [activeTab, setActiveTab] = useState(
-    authUser?.role === "doctor" ? "doctor-dashboard" : "calendar"
+    authUser?.role === "doctor"
+      ? "doctor-dashboard"
+      : authUser?.role === "pharmacist"
+      ? "prescriptions"
+      : "calendar"
   );
 
   const allTabs = [
@@ -41,6 +47,12 @@ export default function ClinicDashboard() {
       label: "Dashboard",
       icon: LayoutDashboard,
       roles: ["doctor"],
+    },
+    {
+      value: "pharmacist-dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      roles: ["pharmacist"],
     },
     {
       value: "calendar",
@@ -68,7 +80,7 @@ export default function ClinicDashboard() {
       roles: ["receptionist", "admin"],
     },
     {
-      value: "prescreptions",
+      value: "prescriptions",
       label: "Prescriptions",
       icon: NotepadText,
       roles: ["pharmacist", "admin", "doctor"],
@@ -146,6 +158,12 @@ export default function ClinicDashboard() {
               </RoleBasedWrapper>
             </TabsContent>
 
+            <TabsContent value="pharmacist-dashboard" className="space-y-6">
+              <RoleBasedWrapper allowedRoles={["pharmacist"]}>
+                <PharmacistDashboard />
+              </RoleBasedWrapper>
+            </TabsContent>
+
             <TabsContent value="calendar" className="space-y-6">
               <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
                 <AppointmentCalendar />
@@ -179,6 +197,14 @@ export default function ClinicDashboard() {
             <TabsContent value="settings" className="space-y-6">
               <RoleBasedWrapper allowedRoles={["admin"]}>
                 <ClinicSettings />
+              </RoleBasedWrapper>
+            </TabsContent>
+
+            <TabsContent value="prescriptions" className="space-y-6">
+              <RoleBasedWrapper
+                allowedRoles={["admin", "doctor", "pharmacist"]}
+              >
+                <PrescriptionManagement />
               </RoleBasedWrapper>
             </TabsContent>
           </Tabs>

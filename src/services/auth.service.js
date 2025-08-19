@@ -10,15 +10,18 @@ export async function registerUser(data) {
       return { success: false, error: "Email already registered" };
     }
 
-    const existingPhone = await Users.findOne({
-      phoneNumber: data.phoneNumber,
-    });
-    if (existingPhone) {
-      return { success: false, error: "Phone number already registered" };
+    if (data.phoneNumber && data.phoneNumber.trim() !== "") {
+      const existingPhone = await Users.findOne({
+        phoneNumber: data.phoneNumber,
+      });
+
+      if (existingPhone) {
+        return { success: false, error: "Phone number already registered" };
+      }
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const user = await Users.create({ ...data, password: hashedPassword });
+    await Users.create({ ...data, password: hashedPassword });
 
     return { success: true, message: "" };
   } catch (error) {

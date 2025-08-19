@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Check, Edit, Plus, Trash2 } from "lucide-react";
 import { emptyMedicationItem, emptyPrescription } from "../data";
+import Loader from "../loader";
 
 export default function AppointmentDetailsModal({
   isOpen,
@@ -91,221 +92,225 @@ export default function AppointmentDetailsModal({
       addPrescriptionMutation.mutateAsync(currentPrescription);
     }
     setIsEditing(false);
-    onClose();
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          setIsEditing(false);
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-[800px] max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            Appointment Details - {appointment.patientId.name}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsEditing(false);
+            setCurrentPrescription(emptyPrescription);
+            onClose();
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg">
+              {appointment.patientId.name} - {appointment.procedureId.name}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          <div>
-            <p className="text-muted-foreground mb-1">Procedure</p>
-            <p className="text-base font-medium">
-              {appointment.procedureId.name}
-            </p>
-          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-medium">
+                {isCompleted ? "Prescription" : "Add Prescription"}
+              </h3>
+              {currentPrescription.delivered ? (
+                <p className="flex items-center bg-green-200 w-fit py-1.5 px-2 rounded-2xl gap-1">
+                  Delivered <Check height={22} width={22} />
+                </p>
+              ) : (
+                isCompleted &&
+                !isEditing && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-2 text-xs"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                )
+              )}
+            </div>
 
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">
-              {isCompleted ? "Prescription" : "Add Prescription"}
-            </h3>
-            {isCompleted && !isEditing && (
-              <Button
-                size="sm"
-                variant="secondary"
-                className="gap-1"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit className="w-4 h-4" />
-                Edit
-              </Button>
+            {currentPrescription?.medications?.length === 0 ? (
+              /* Simplified empty state with less visual weight */
+              <div className="bg-gray-50 text-gray-600 text-sm p-3 rounded border">
+                No medications added yet
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {currentPrescription.medications?.map((med, index) => (
+                  <div
+                    key={index}
+                    /* Removed heavy shadows and reduced padding for cleaner look */
+                    className="border rounded p-3 bg-gray-50/50 space-y-3"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="md:col-span-2">
+                        <Label className="text-xs text-gray-600 mb-1">
+                          Medicine
+                        </Label>
+                        <Input
+                          className="h-8 text-sm focus-visible:ring-0"
+                          placeholder="Medicine name"
+                          value={med.medicine}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "medicine",
+                              e.target.value
+                            )
+                          }
+                          disabled={isCompleted && !isEditing}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1">
+                          Frequency
+                        </Label>
+                        <Input
+                          className="h-8 text-sm focus-visible:ring-0"
+                          placeholder="BD"
+                          value={med.frequency}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "frequency",
+                              e.target.value
+                            )
+                          }
+                          disabled={isCompleted && !isEditing}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1">
+                          Duration
+                        </Label>
+                        <Input
+                          className="h-8 text-sm focus-visible:ring-0"
+                          placeholder="7 days"
+                          value={med.duration}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "duration",
+                              e.target.value
+                            )
+                          }
+                          disabled={isCompleted && !isEditing}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 items-end">
+                      {(isEditing || (!isEditing && med.instructions)) && (
+                        <div className="flex-1">
+                          <Label className="text-xs text-gray-600 mb-1">
+                            Instructions
+                          </Label>
+                          <Input
+                            className="h-8 text-sm focus-visible:ring-0"
+                            value={med.instructions}
+                            onChange={(e) =>
+                              handleMedicationChange(
+                                index,
+                                "instructions",
+                                e.target.value
+                              )
+                            }
+                            disabled={isCompleted && !isEditing}
+                          />
+                        </div>
+                      )}
+
+                      {(isEditing || !isCompleted) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 focus-visible:ring-red-300 focus-visible:ring-2"
+                          onClick={() => handleRemoveMedication(index)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(isEditing || !isCompleted) && (
+              /* Made add button more subtle and compact */
+              <div className="flex items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs bg-transparent focus-visible:ring-0 cursor-pointer w-fit mx-auto"
+                  onClick={handleAddMedication}
+                >
+                  <Plus className="w-3 h-3 mr-1" /> Add Medication
+                </Button>
+              </div>
+            )}
+
+            {(isEditing ||
+              (!isEditing && currentPrescription.generalNotes)) && (
+              <div>
+                <Label className="text-xs text-gray-600 mb-1">
+                  General Instructions
+                </Label>
+                <Textarea
+                  className="text-sm min-h-[60px]"
+                  value={currentPrescription.generalNotes}
+                  onChange={(e) => handleGeneralNotesChange(e.target.value)}
+                  disabled={isCompleted && !isEditing}
+                />
+              </div>
             )}
           </div>
 
-          {currentPrescription?.medications?.length === 0 ? (
-            <div className="bg-yellow-50 text-yellow-800 text-sm p-3 rounded border border-yellow-200">
-              No medications added. Click "Add Another Medication" to begin.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <h4 className="text-md font-medium text-gray-700">Medications</h4>
-              {currentPrescription.medications?.map((med, index) => (
-                <div
-                  key={index}
-                  className="border rounded-lg p-5 bg-white shadow-sm space-y-4 relative"
-                >
-                  <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                    Medication #{index + 1}
-                  </h5>
-
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                      <Label className="mb-1" htmlFor={`medicine-${index}`}>
-                        Medicine
-                      </Label>
-                      <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`medicine-${index}`}
-                        placeholder="Amoxicillin"
-                        value={med.medicine}
-                        onChange={(e) =>
-                          handleMedicationChange(
-                            index,
-                            "medicine",
-                            e.target.value
-                          )
-                        }
-                        disabled={isCompleted && !isEditing}
-                      />
-                    </div>
-                    <div className="w-full md:w-1/4">
-                      <Label className="mb-1" htmlFor={`frequency-${index}`}>
-                        Frequency
-                      </Label>
-                      <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`frequency-${index}`}
-                        placeholder="BD"
-                        value={med.frequency}
-                        onChange={(e) =>
-                          handleMedicationChange(
-                            index,
-                            "frequency",
-                            e.target.value
-                          )
-                        }
-                        disabled={isCompleted && !isEditing}
-                      />
-                    </div>
-                    <div className="w-full md:w-1/4">
-                      <Label className="mb-1" htmlFor={`duration-${index}`}>
-                        Duration
-                      </Label>
-                      <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`duration-${index}`}
-                        placeholder="7 days"
-                        value={med.duration}
-                        onChange={(e) =>
-                          handleMedicationChange(
-                            index,
-                            "duration",
-                            e.target.value
-                          )
-                        }
-                        disabled={isCompleted && !isEditing}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center gap-4">
-                    <div className="w-full">
-                      <Label className="mb-1" htmlFor={`instructions-${index}`}>
-                        Instructions
-                      </Label>
-                      <Input
-                        className={(isEditing || !isCompleted) && "bg-white"}
-                        id={`instructions-${index}`}
-                        placeholder="e.g., Take with food"
-                        value={med.instructions}
-                        onChange={(e) =>
-                          handleMedicationChange(
-                            index,
-                            "instructions",
-                            e.target.value
-                          )
-                        }
-                        disabled={isCompleted && !isEditing}
-                      />
-                    </div>
-                    {!isCompleted && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:bg-red-100"
-                        onClick={() => handleRemoveMedication(index)}
-                        title="Remove Medication"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {(isEditing || !isCompleted) && (
+          <DialogFooter className="flex justify-between pt-4 gap-2">
             <Button
               variant="outline"
-              className="w-full flex items-center gap-2"
-              onClick={handleAddMedication}
-            >
-              <Plus className="w-4 h-4" /> Add Another Medication
-            </Button>
-          )}
-
-          <div className="mt-2">
-            <Label htmlFor="general-notes">General Prescription Notes</Label>
-            <Textarea
-              id="general-notes"
-              placeholder="Any overall notes for the patient regarding this prescription."
-              value={currentPrescription.generalNotes}
-              onChange={(e) => handleGeneralNotesChange(e.target.value)}
-              disabled={isCompleted && !isEditing}
-            />
-          </div>
-        </div>
-
-        <DialogFooter className="flex justify-between mt-4">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (isEditing) {
-                setIsEditing(false);
-                if (appointment?.prescription) {
-                  setCurrentPrescription(appointment.prescription);
+              size="sm"
+              onClick={() => {
+                if (isEditing) {
+                  setIsEditing(false);
+                  if (appointment?.prescription) {
+                    setCurrentPrescription(appointment.prescription);
+                  } else {
+                    setCurrentPrescription({
+                      medications: [],
+                      generalNotes: "",
+                      appointment: appointment._id,
+                      patient: appointment.patientId._id,
+                    });
+                  }
                 } else {
-                  setCurrentPrescription({
-                    medications: [],
-                    generalNotes: "",
-                    appointment: appointment._id,
-                    patient: appointment.patientId._id,
-                  });
+                  onClose();
+                  setIsEditing(false);
                 }
-              } else {
-                onClose();
-                setIsEditing(false);
-              }
-            }}
-          >
-            {isCompleted ? (isEditing ? "Cancel" : "Close") : "Cancel"}
-          </Button>
-
-          {(!isCompleted || isEditing) && (
-            <Button
-              className="bg-primary text-white hover:bg-primary/90"
-              onClick={handleSave}
+              }}
             >
-              {isEditing ? "Update" : "Save Prescription"}
+              {isCompleted ? (isEditing ? "Cancel" : "Close") : "Cancel"}
             </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+            {(!isCompleted || isEditing) && (
+              <Button size="sm" onClick={handleSave}>
+                {isEditing ? "Update" : "Save"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+        {(addPrescriptionMutation.isPending ||
+          updatePrescriptionMutation.isPending) && <Loader />}
+      </Dialog>
+    </>
   );
 }

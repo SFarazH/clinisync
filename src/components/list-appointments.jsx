@@ -7,7 +7,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { fetchAppointments } from "@/lib";
@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import PrescriptionModal from "./modal/prescription.modal";
 
 export default function ListAllAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -34,6 +35,9 @@ export default function ListAllAppointments() {
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({});
   const [status, setStatus] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentPrescription, setCurrentPrescription] = useState(null);
+  const [appointmentDetails, setAppointmentDetails] = useState(null);
 
   const resetPagination = () => {
     setCurrentPage(1);
@@ -67,9 +71,7 @@ export default function ListAllAppointments() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="">
-                  Appointments
-                </CardTitle>
+                <CardTitle className="">Appointments</CardTitle>
                 <CardDescription className="text-gray-600">
                   View all appointment details
                 </CardDescription>
@@ -105,13 +107,14 @@ export default function ListAllAppointments() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/12">#</TableHead>
-                    <TableHead className="w-2/12">Patient</TableHead>
-                    <TableHead className="w-2/12">Doctor</TableHead>
-                    <TableHead className="w-2/12">Procedure</TableHead>
-                    <TableHead className="w-2/12">Date</TableHead>
-                    <TableHead className="w-2/12">Time</TableHead>
-                    <TableHead className="w-2/12">Status</TableHead>
+                    <TableHead className="w-1/16">#</TableHead>
+                    <TableHead className="w-3/16">Patient</TableHead>
+                    <TableHead className="w-3/16">Doctor</TableHead>
+                    <TableHead className="w-2/16">Procedure</TableHead>
+                    <TableHead className="w-2/16">Date</TableHead>
+                    <TableHead className="w-2/16">Time</TableHead>
+                    <TableHead className="w-2/16">Status</TableHead>
+                    <TableHead className="w-1/16">Prescription</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -144,7 +147,7 @@ export default function ListAllAppointments() {
                         <TableCell className="py-3 text-sm">
                           {appointment.startTime} - {appointment.endTime}
                         </TableCell>
-                        <TableCell className="py-3 flex justify-center">
+                        <TableCell className="py-3">
                           <span
                             className={`inline-block px-3 py-1 rounded-full text-sm font-medium  ${
                               statusColors[appointment?.status]
@@ -152,6 +155,26 @@ export default function ListAllAppointments() {
                           >
                             {appointment?.status.toUpperCase() || "scheduled"}
                           </span>
+                        </TableCell>
+                        <TableCell className="flex justify-center">
+                          {appointment.prescription ? (
+                            <FileText
+                              className="cursor-pointer"
+                              onClick={() => {
+                                setCurrentPrescription(
+                                  appointment.prescription
+                                );
+                                setAppointmentDetails({
+                                  doctorName: appointment.doctorId?.name,
+                                  patientName: appointment.patientId?.name,
+                                  appointmentDate: appointment.date,
+                                });
+                                setIsDialogOpen(true);
+                              }}
+                            />
+                          ) : (
+                            "NA"
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -212,6 +235,13 @@ export default function ListAllAppointments() {
           </CardContent>
         </Card>
       </div>
+      <PrescriptionModal
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        currentPrescription={currentPrescription}
+        viewOnly={true}
+        appointmentDetails={appointmentDetails}
+      />
       {isLoading && <Loader />}
     </>
   );

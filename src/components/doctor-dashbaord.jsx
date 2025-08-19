@@ -11,9 +11,9 @@ import {
 import { useAuth } from "./context/authcontext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
-import { Tabs } from "@radix-ui/react-tabs";
-import { TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import AppointmentDetailsModal from "./modal/appointment.modal";
+import { Circle } from "lucide-react";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
@@ -71,6 +71,7 @@ export default function DoctorDashboard() {
     mutationFn: addPrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
+      handleCloseModal();
     },
   });
 
@@ -78,6 +79,7 @@ export default function DoctorDashboard() {
     mutationFn: updatePrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
+      handleCloseModal();
     },
   });
 
@@ -114,7 +116,16 @@ export default function DoctorDashboard() {
                 <div className="space-x-2">
                   <span className="font-medium">{appt.startTime} -</span>
                   <span>{appt.patientId.name}</span>
-                  <p className="text-sm">{appt.procedureId.name}</p>
+
+                  <p className="text-sm flex items-center gap-2 mt-0.5">
+                    <Circle
+                      width={15}
+                      height={15}
+                      color={appt.procedureId.color}
+                      fill={appt.procedureId.color}
+                    />
+                    {appt.procedureId.name}
+                  </p>
                 </div>
               </li>
             ))
@@ -136,28 +147,38 @@ export default function DoctorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card>
+            <div className="grid gap-6 md:grid-cols-4">
+              <Card className="bg-sky-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Appts Today</p>
+                    <p className="text-xl">{appointmentsData?.length}</p>
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card>
+              <Card className="bg-green-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Completed</p>
+                    <p className="text-xl">{appointments.completed.length}</p>
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card>
+              <Card className="bg-orange-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Upcoming</p>
+                    <p className="text-xl">{appointments.upcoming.length}</p>
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-red-100">
+                <CardHeader className="flex items-center">
+                  <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
+                    <p>Next Appt</p>
+                    <p className="text-xl">
+                      {appointments.upcoming[0]?.startTime ?? ":)"}
+                    </p>
                   </CardTitle>
                 </CardHeader>
               </Card>
@@ -188,7 +209,6 @@ export default function DoctorDashboard() {
           </Tabs>
         </Card>
       </div>
-      {loadingDoctor && <Loader />}
       <AppointmentDetailsModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -197,9 +217,7 @@ export default function DoctorDashboard() {
         updatePrescriptionMutation={updatePrescriptionMutation}
       />
 
-      {(loadingAppointments ||
-        addPrescriptionMutation.isPending ||
-        updatePrescriptionMutation.isPending) && <Loader />}
+      {(loadingAppointments || loadingDoctor) && <Loader />}
     </>
   );
 }
