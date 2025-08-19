@@ -53,9 +53,9 @@ export default function PrescriptionManagement() {
       }),
   });
 
-  const updateAppointmentMutation = useMutation({
-    mutationFn: updatePrescription,
-  });
+  // const updateAppointmentMutation = useMutation({
+  //   mutationFn: updatePrescription,
+  // });
 
   useEffect(() => {
     if (
@@ -176,8 +176,8 @@ export default function PrescriptionManagement() {
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
         currentPrescription={currentPrescription}
-        updateAppointmentMutation={updateAppointmentMutation}
-        viewOnly={false}
+        // updateAppointmentMutation={updateAppointmentMutation}
+        viewOnly={true}
       />
       {loadingPrescriptions && <Loader />}
     </div>

@@ -164,26 +164,26 @@ export default function PrescriptionModal({
               </div>
             </div>
           </div>
-          {!viewOnly && role === "pharmacist" && (
-            <div className="flex justify-end mt-2 p-0">
-              <Button
-                disabled={currentPrescription.delivered}
-                onClick={() =>
-                  updateAppointmentMutation.mutateAsync({
-                    id: currentPrescription._id,
-                    prescriptionData: {
-                      delivered: true,
-                    },
-                  })
-                }
-                className="cursor-pointer"
-              >
-                {currentPrescription.delivered
-                  ? "Delivered"
-                  : "Mark as delivered"}
-              </Button>
-            </div>
-          )}
+          {!viewOnly &&
+            !currentPrescription.delivered &&
+            role === "pharmacist" && (
+              <div className="flex justify-end mt-2 p-0">
+                <Button
+                  disabled={currentPrescription.delivered}
+                  onClick={() =>
+                    updateAppointmentMutation.mutateAsync({
+                      id: currentPrescription._id,
+                      prescriptionData: {
+                        delivered: true,
+                      },
+                    })
+                  }
+                  className="cursor-pointer"
+                >
+                  Mark as delivered
+                </Button>
+              </div>
+            )}
         </DialogContent>
       </Dialog>
     )
