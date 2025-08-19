@@ -18,7 +18,7 @@ export async function POST(req) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error in POST /api/prescreption:", error);
+    console.error("Error in POST /api/prescription:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
