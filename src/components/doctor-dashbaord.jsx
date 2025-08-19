@@ -147,28 +147,38 @@ export default function DoctorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card>
+            <div className="grid gap-6 md:grid-cols-4">
+              <Card className="bg-sky-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Appts Today</p>
+                    <p className="text-xl">{appointmentsData?.length}</p>
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card>
+              <Card className="bg-green-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Completed</p>
+                    <p className="text-xl">{appointments.completed.length}</p>
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card>
+              <Card className="bg-orange-100">
                 <CardHeader className="flex items-center">
                   <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
-                    <p>My Appointments Today</p>
-                    <p className="text-xl">6</p>
+                    <p>Upcoming</p>
+                    <p className="text-xl">{appointments.upcoming.length}</p>
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-red-100">
+                <CardHeader className="flex items-center">
+                  <CardTitle className="text-sm flex items-center justify-between font-medium w-full">
+                    <p>Next Appt</p>
+                    <p className="text-xl">
+                      {appointments.upcoming[0]?.startTime ?? ":)"}
+                    </p>
                   </CardTitle>
                 </CardHeader>
               </Card>
@@ -207,10 +217,7 @@ export default function DoctorDashboard() {
         updatePrescriptionMutation={updatePrescriptionMutation}
       />
 
-      {(loadingAppointments ||
-        addPrescriptionMutation.isPending ||
-        updatePrescriptionMutation.isPending ||
-        loadingDoctor) && <Loader />}
+      {(loadingAppointments || loadingDoctor) && <Loader />}
     </>
   );
 }
