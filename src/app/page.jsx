@@ -9,6 +9,7 @@ import {
   Stethoscope,
   NotepadText,
   LayoutDashboard,
+  Syringe,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,20 +17,20 @@ import PatientManagement from "@/components/patient-management";
 import ClinicSettings from "@/components/clinic-settings";
 import AppointmentCalendar from "@/components/appointment-calendar";
 import DoctorManagement from "@/components/doctor-management";
-import Image from "next/image";
-import logo from "../../public/clinisync-t.png";
 import ProcedureManagement from "@/components/procedure-management";
 import ListAllAppointments from "@/components/list-appointments";
 import DoctorDashboard from "@/components/doctor-dashbaord";
 import ProtectedRoute from "@/components/protected-route";
+import PrescriptionManagement from "@/components/prescription-management";
+import PharmacistDashboard from "@/components/pharmacist-dashboard";
+import Image from "next/image";
+import logo from "../../public/clinisync-t.png";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import Loader from "@/components/loader";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
-import PrescriptionManagement from "@/components/prescription-management";
-import PharmacistDashboard from "@/components/pharmacist-dashboard";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -70,7 +71,7 @@ export default function ClinicDashboard() {
     {
       value: "procedures",
       label: "Procedures",
-      icon: Clock,
+      icon: Syringe,
       roles: ["admin", "doctor"],
     },
     {
