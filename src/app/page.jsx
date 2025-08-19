@@ -29,6 +29,7 @@ import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
 import PrescriptionManagement from "@/components/prescription-management";
+import PharmacistDashboard from "@/components/pharmacist-dashboard";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -46,6 +47,12 @@ export default function ClinicDashboard() {
       label: "Dashboard",
       icon: LayoutDashboard,
       roles: ["doctor"],
+    },
+    {
+      value: "pharmacist-dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      roles: ["pharmacist"],
     },
     {
       value: "calendar",
@@ -148,6 +155,12 @@ export default function ClinicDashboard() {
             <TabsContent value="doctor-dashboard" className="space-y-6">
               <RoleBasedWrapper allowedRoles={["doctor"]}>
                 <DoctorDashboard />
+              </RoleBasedWrapper>
+            </TabsContent>
+
+            <TabsContent value="pharmacist-dashboard" className="space-y-6">
+              <RoleBasedWrapper allowedRoles={["pharmacist"]}>
+                <PharmacistDashboard />
               </RoleBasedWrapper>
             </TabsContent>
 
