@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
     gender: String,
     dob: Date,
     address: String,
+    
   },
   { timestamps: true }
 );

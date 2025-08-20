@@ -29,3 +29,15 @@ export const verifyUser = async () => {
     return { success: false };
   }
 };
+
+export const getUsers = async (role) => {
+  try {
+    const response = await axios.get("/api/auth/list", {
+      params: role ? { role } : {}, 
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};

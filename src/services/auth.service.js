@@ -45,3 +45,21 @@ export async function loginUser({ email, password }) {
     return { success: false, error: error.message };
   }
 }
+
+export async function listUsers({ role }) {
+  await dbConnect();
+  try {
+    let query = {};
+
+    if (role) {
+      query.role = role;
+    }
+
+    const users = await Users.find(query).select("-password");
+
+    return { success: true, data: users };
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return { success: false, error: error.message };
+  }
+}
