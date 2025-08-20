@@ -22,6 +22,11 @@ const doctorSchema = new mongoose.Schema(
       type: String,
       default: "#000000",
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
   },
   {
     timestamps: true,
