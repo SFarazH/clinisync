@@ -14,7 +14,11 @@ const userSchema = new mongoose.Schema(
     gender: String,
     dob: Date,
     address: String,
-    
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: false,
+    },
   },
   { timestamps: true }
 );
