@@ -47,11 +47,17 @@ export async function updateDoctor(id, data) {
 }
 
 // get all doctors
-export async function getAllDoctors() {
+export async function getAllDoctors(getUnassigned) {
   await dbConnect();
 
   try {
-    const doctors = await Doctor.find().sort({ createdAt: -1 });
+    let query = {};
+    if (getUnassigned) {
+      query = { userId: { $exists: false } };
+    }
+
+    const doctors = await Doctor.find(query).sort({ createdAt: -1 });
+
     return { success: true, data: doctors };
   } catch (error) {
     console.error("Error getting doctors:", error);

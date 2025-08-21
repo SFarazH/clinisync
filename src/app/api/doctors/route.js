@@ -1,9 +1,11 @@
 import { addDoctor, getAllDoctors } from "@/services";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req) {
   try {
-    const result = await getAllDoctors();
+    const { searchParams } = new URL(req.url);
+    const getUnassigned = searchParams.get("getUnassigned") || false;
+    const result = await getAllDoctors(getUnassigned);
 
     if (!result.success) {
       return NextResponse.json(
