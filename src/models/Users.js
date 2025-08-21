@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "doctor", "receptionist", "pharmacist"],
       required: true,
     },
-    phoneNumber: String,
+    phoneNumber: {type:String, required:false},
     gender: String,
     dob: Date,
     address: String,

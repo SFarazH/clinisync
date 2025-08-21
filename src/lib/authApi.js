@@ -1,11 +1,15 @@
 import axios from "axios";
 
-export const register = async () => {};
+export const register = async (registerData) => {
+  const response = await axios.post("/api/auth/register", registerData);
+  return response.data;
+};
 
 export const logIn = async (loginData) => {
   const response = await axios.post("/api/auth/login", loginData);
   return response.data;
 };
+
 export const logOut = async () => {
   try {
     const response = await axios.post("/api/auth/logout", {
@@ -33,7 +37,7 @@ export const verifyUser = async () => {
 export const getUsers = async (role) => {
   try {
     const response = await axios.get("/api/auth/list", {
-      params: role ? { role } : {}, 
+      params: role ? { role } : {},
     });
     return response.data;
   } catch (error) {

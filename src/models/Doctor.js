@@ -6,17 +6,17 @@ const doctorSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    specialization: {
-      type: String,
-      required: false,
-    },
     email: {
       type: String,
       unique: true,
     },
-    phone: {
+    phoneNumber: {
       type: String,
       unique: true,
+    },
+    specialization: {
+      type: String,
+      required: false,
     },
     color: {
       type: String,

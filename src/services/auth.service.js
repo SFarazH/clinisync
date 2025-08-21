@@ -1,10 +1,22 @@
 import { dbConnect } from "@/utils/dbConnect";
 import Users from "@/models/Users";
 import bcrypt from "bcryptjs";
+import Doctor from "@/models/Doctor";
 
 export async function registerUser(data) {
   await dbConnect();
   try {
+    console.log(data);
+    if (data.role === "doctor") {
+      if (!data.doctorId) {
+        return { success: false, error: "Doctor missing" };
+      }
+      const alreadyAlotted = await Users.findOne({ doctorId: data.doctorId });
+      if (alreadyAlotted) {
+        return { success: false, error: "Doctor already registered" };
+      }
+    }
+
     const existingEmail = await Users.findOne({ email: data.email });
     if (existingEmail) {
       return { success: false, error: "Email already registered" };
@@ -20,8 +32,14 @@ export async function registerUser(data) {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    await Users.create({ ...data, password: hashedPassword });
+    const hashedPassword = await bcrypt.hash(
+      data.password ?? process.env.TEST_PASSWORD,
+      10
+    );
+    const user = await Users.create({ ...data, password: hashedPassword });
+    if (data.role === "doctor") {
+      await Doctor.findByIdAndUpdate(data.doctorId, { userId: user._id });
+    }
 
     return { success: true, message: "" };
   } catch (error) {
