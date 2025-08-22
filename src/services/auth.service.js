@@ -17,8 +17,14 @@ export async function registerUser(data) {
       }
     }
 
-    const existingEmail = await Users.findOne({ email: data.email });
-    if (existingEmail) {
+    const existingEmailUsers = await Users.findOne({ email: data.email });
+    const existingEmailDoctors = await Doctor.findOne({ email: data.email });
+
+    console.log(existingEmailDoctors, existingEmailUsers, data.role);
+    if (
+      existingEmailUsers ||
+      (data.role !== "doctor" && existingEmailDoctors)
+    ) {
       return { success: false, error: "Email already registered" };
     }
 
@@ -73,8 +79,13 @@ export async function listUsers({ role }) {
       query.role = role;
     }
 
-    const users = await Users.find(query).select("-password");
+    let usersQuery = Users.find(query).select("-password");
 
+    usersQuery = usersQuery.populate("doctorId");
+
+    const users = await usersQuery;
+
+    return { success: true, data: users };
     return { success: true, data: users };
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -92,6 +103,42 @@ export async function getUsersByRole() {
     return { success: true, data: counts };
   } catch (error) {
     console.error("Error fetching users by role:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateUser(id, data) {
+  await dbConnect();
+  try {
+    const role = data.role;
+
+    if (role === "doctor") {
+      const existingUser = await Users.findById(id);
+      if (!existingUser) {
+        return { success: false, error: "User not found" };
+      }
+      if ((existingUser.address || "").trim() === (data.address || "").trim()) {
+        return { success: true, message: "No updates" };
+      } else {
+        existingUser.address = data.address.trim();
+        await existingUser.save();
+        return { success: true, message: "Address updated" };
+      }
+    } else {
+      const updated = await Users.findByIdAndUpdate(id, data, {
+        runValidators: true,
+        new: true,
+      });
+
+      if (!updated) {
+        return { success: false, error: "User not found" };
+      }
+      return { success: true, data: updated };
+    }
+
+    return {};
+  } catch (error) {
+    console.error("Error updating doctor:", error);
     return { success: false, error: error.message };
   }
 }

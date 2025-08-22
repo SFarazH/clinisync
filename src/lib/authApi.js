@@ -55,3 +55,13 @@ export const getUsersByRole = async () => {
     return { success: false };
   }
 };
+
+export const updateUserFunc = async ({ id, userData }) => {
+  try {
+    const response = await axios.put(`/api/auth/${id}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};
