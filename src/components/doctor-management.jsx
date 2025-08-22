@@ -56,7 +56,7 @@ export default function DoctorManagement() {
       name: doctor.name,
       specialization: doctor.specialization,
       email: doctor.email,
-      phone: doctor.phone,
+      phoneNumber: doctor.phoneNumber,
       color: doctor.color,
     });
     setIsDialogOpen(true);
@@ -127,7 +127,7 @@ export default function DoctorManagement() {
                           {doctor?.specialization}
                         </p>
                         <p>{doctor?.email}</p>
-                        <p>{doctor?.phone}</p>
+                        <p>{doctor?.phoneNumber}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">

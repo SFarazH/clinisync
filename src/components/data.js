@@ -83,7 +83,7 @@ export const emptyDoctor = {
   name: "",
   specialization: "",
   email: "",
-  phone: "",
+  phoneNumber: "",
   color: "#3b82f6",
 };
 

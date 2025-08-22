@@ -12,7 +12,7 @@ export async function addDoctor(data) {
       return { success: false, error: "Email already exists" };
     }
 
-    const existingPhone = await Doctor.findOne({ phone: data.phone });
+    const existingPhone = await Doctor.findOne({ phoneNumber: data.phoneNumber });
     if (existingPhone) {
       return { success: false, error: "Phone number already exists" };
     }

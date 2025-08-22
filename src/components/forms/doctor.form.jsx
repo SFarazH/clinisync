@@ -65,12 +65,12 @@ export default function DoctorForm({ dialogOptions, form, doctorOptions }) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phoneNumber">Phone</Label>
               <Input
-                id="phone"
-                value={formData.phone}
+                id="phoneNumber"
+                value={formData.phoneNumber}
                 onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
+                  setFormData({ ...formData, phoneNumber: e.target.value })
                 }
                 required
               />
