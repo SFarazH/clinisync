@@ -1,7 +1,10 @@
 import axios from "axios";
 
-export const fetchDoctors = async () => {
-  const response = await axios.get("/api/doctors");
+export const fetchDoctors = async (getUnassigned) => {
+  const response = await axios.get("/api/doctors", {
+    params: getUnassigned === true ? { getUnassigned: true } : {},
+  });
+
   return response.data.data;
 };
 

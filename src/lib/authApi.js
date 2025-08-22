@@ -1,11 +1,15 @@
 import axios from "axios";
 
-export const register = async () => {};
+export const register = async (registerData) => {
+  const response = await axios.post("/api/auth/register", registerData);
+  return response.data;
+};
 
 export const logIn = async (loginData) => {
   const response = await axios.post("/api/auth/login", loginData);
   return response.data;
 };
+
 export const logOut = async () => {
   try {
     const response = await axios.post("/api/auth/logout", {
@@ -26,6 +30,38 @@ export const verifyUser = async () => {
     return response.data;
   } catch (e) {
     console.error(e);
+    return { success: false };
+  }
+};
+
+export const getUsers = async (role) => {
+  try {
+    const response = await axios.get("/api/auth/list", {
+      params: role ? { role } : {},
+    });
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};
+
+export const getUsersByRole = async () => {
+  try {
+    const response = await axios.get("/api/auth/count");
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};
+
+export const updateUserFunc = async ({ id, userData }) => {
+  try {
+    const response = await axios.put(`/api/auth/${id}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error(error);
     return { success: false };
   }
 };
