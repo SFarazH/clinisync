@@ -42,6 +42,11 @@ export default function AppointmentDetailsModal({
     }
   }, [appointment]);
 
+  useEffect(() => {
+    console.log(isEditing, "isEditing");
+    console.log("current", currentPrescription);
+  }, [currentPrescription]);
+
   if (!appointment) return null;
 
   const isCompleted = appointment.status === "completed";
@@ -139,7 +144,6 @@ export default function AppointmentDetailsModal({
             </div>
 
             {currentPrescription?.medications?.length === 0 ? (
-              /* Simplified empty state with less visual weight */
               <div className="bg-gray-50 text-gray-600 text-sm p-3 rounded border">
                 No medications added yet
               </div>
@@ -148,7 +152,6 @@ export default function AppointmentDetailsModal({
                 {currentPrescription.medications?.map((med, index) => (
                   <div
                     key={index}
-                    /* Removed heavy shadows and reduced padding for cleaner look */
                     className="border rounded p-3 bg-gray-50/50 space-y-3"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -209,7 +212,8 @@ export default function AppointmentDetailsModal({
                     </div>
 
                     <div className="flex gap-3 items-end">
-                      {(isEditing || (!isEditing && med.instructions)) && (
+                      {(isEditing ||
+                        (!isEditing && med.instructions !== null)) && (
                         <div className="flex-1">
                           <Label className="text-xs text-gray-600 mb-1">
                             Instructions
@@ -246,7 +250,6 @@ export default function AppointmentDetailsModal({
             )}
 
             {(isEditing || !isCompleted) && (
-              /* Made add button more subtle and compact */
               <div className="flex items-center">
                 <Button
                   variant="outline"
@@ -260,7 +263,7 @@ export default function AppointmentDetailsModal({
             )}
 
             {(isEditing ||
-              (!isEditing && currentPrescription.generalNotes)) && (
+              (!isEditing && currentPrescription.generalNotes !== null)) && (
               <div>
                 <Label className="text-xs text-gray-600 mb-1">
                   General Instructions
