@@ -10,6 +10,7 @@ import {
   NotepadText,
   LayoutDashboard,
   Syringe,
+  UserCog,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
 import { useMutation } from "@tanstack/react-query";
+import UserManagement from "@/components/user-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -87,6 +89,7 @@ export default function ClinicDashboard() {
       roles: ["pharmacist", "admin", "doctor"],
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
+    { value: "users", label: "Users", icon: UserCog, roles: ["admin"] },
   ];
 
   const filteredTabs = allTabs.filter((tab) =>
@@ -206,6 +209,12 @@ export default function ClinicDashboard() {
                 allowedRoles={["admin", "doctor", "pharmacist"]}
               >
                 <PrescriptionManagement />
+              </RoleBasedWrapper>
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-6">
+              <RoleBasedWrapper allowedRoles={["admin"]}>
+                <UserManagement />
               </RoleBasedWrapper>
             </TabsContent>
           </Tabs>

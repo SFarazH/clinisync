@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { Monitor, Pill, Shield, Stethoscope, Users } from "lucide-react";
 
 export const getWeekStart = (date) => {
   const d = new Date(date);
@@ -272,5 +273,35 @@ export const displayName = (user) => {
 
     default:
       break;
+  }
+};
+
+export const getRoleStyle = (role) => {
+  switch (role) {
+    case "admin":
+      return "bg-blue-100 text-blue-800";
+    case "doctor":
+      return "bg-orange-100 text-orange-800";
+    case "pharmacist":
+      return "bg-green-100 text-green-800";
+    case "receptionist":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const getRoleIcon = (role) => {
+  switch (role) {
+    case "admin":
+      return <Shield className="w-6 h-6" />;
+    case "doctor":
+      return <Stethoscope className="w-6 h-6" />;
+    case "pharmacist":
+      return <Pill className="w-6 h-6" />;
+    case "receptionist":
+      return <Monitor className="w-6 h-6" />;
+    default:
+      return <Users className="w-6 h-6" />;
   }
 };
