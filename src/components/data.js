@@ -108,3 +108,14 @@ export const emptyMedicationItem = {
   duration: "",
   instructions: "",
 };
+
+export const emptyUser = {
+  name: "",
+  email: "",
+  role: "receptionist",
+  phoneNumber: "",
+  gender: "",
+  dob: "",
+  address: "",
+  doctorId: null,
+};
