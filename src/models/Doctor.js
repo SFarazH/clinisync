@@ -27,6 +27,11 @@ const doctorSchema = new mongoose.Schema(
       ref: "User",
       required: false,
     },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+    },
+    dob: { type: Date, required: false },
   },
   {
     timestamps: true,
