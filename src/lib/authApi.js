@@ -45,3 +45,13 @@ export const getUsers = async (role) => {
     return { success: false };
   }
 };
+
+export const getUsersByRole = async () => {
+  try {
+    const response = await axios.get("/api/auth/count");
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};

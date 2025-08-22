@@ -81,3 +81,17 @@ export async function listUsers({ role }) {
     return { success: false, error: error.message };
   }
 }
+
+export async function getUsersByRole() {
+  await dbConnect();
+
+  try {
+    const counts = await Users.aggregate([
+      { $group: { _id: "$role", count: { $sum: 1 } } },
+    ]);
+    return { success: true, data: counts };
+  } catch (error) {
+    console.error("Error fetching users by role:", error);
+    return { success: false, error: error.message };
+  }
+}
