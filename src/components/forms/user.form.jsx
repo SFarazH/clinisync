@@ -318,8 +318,9 @@ export default function UserForm({ isOpen, onClose, user = null }) {
           </DialogFooter>
         </form>
       </DialogContent>
-      {registerMutation.isPending ||
-        (updateUserMutation.isPending && <Loader />)}
+      {(registerMutation.isPending || updateUserMutation.isPending) && (
+        <Loader />
+      )}
     </Dialog>
   );
 }
