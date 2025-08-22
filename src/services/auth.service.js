@@ -86,13 +86,11 @@ export async function listUsers({ role }) {
     const users = await usersQuery;
 
     return { success: true, data: users };
-    return { success: true, data: users };
   } catch (error) {
     console.error("Error fetching users:", error);
     return { success: false, error: error.message };
   }
 }
-
 export async function getUsersByRole() {
   await dbConnect();
 
