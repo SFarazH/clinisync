@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const fetchDoctors = async (getUnassigned) => {
   const response = await axios.get("/api/doctors", {
-    params: getUnassigned ? { getUnassigned: true } : {},
+    params: getUnassigned === true ? { getUnassigned: true } : {},
   });
 
   return response.data.data;
