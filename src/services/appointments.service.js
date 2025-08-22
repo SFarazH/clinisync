@@ -52,7 +52,7 @@ export async function listAppointments({
       .populate("doctorId", "name color")
       .populate("procedureId", "name duration color abbr")
       .populate("prescription")
-      .sort({ date: 1, startTime: 1 });
+      .sort(paginate ? { date: -1 } : { date: 1, startTime: 1 });
 
     let total = await Appointment.countDocuments(query);
 
@@ -126,7 +126,7 @@ export async function deleteAppointment(id) {
   await dbConnect();
   try {
     const appointment = await Appointment.findByIdAndDelete(id);
-    await Prescription.findOneAndDelete({appointment:id})
+    await Prescription.findOneAndDelete({ appointment: id });
     if (!appointment) {
       return { success: false, error: "Appointment not found" };
     }
