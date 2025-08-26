@@ -12,7 +12,6 @@ import {
   Syringe,
   UserCog,
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import PatientManagement from "@/components/patient-management";
 import ClinicSettings from "@/components/clinic-settings";
@@ -24,18 +23,19 @@ import DoctorDashboard from "@/components/doctor-dashbaord";
 import ProtectedRoute from "@/components/protected-route";
 import PrescriptionManagement from "@/components/prescription-management";
 import PharmacistDashboard from "@/components/pharmacist-dashboard";
-import Image from "next/image";
-import logo from "../../public/clinisync-t.png";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
-import Loader from "@/components/loader";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
-import { useMutation } from "@tanstack/react-query";
 import UserManagement from "@/components/user-management";
+import logo from "../../public/clinisync-t.png";
+import Image from "next/image";
+import Loader from "@/components/loader";
+import { useMutation } from "@tanstack/react-query";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState(
     authUser?.role === "doctor"
       ? "doctor-dashboard"
@@ -86,15 +86,11 @@ export default function ClinicDashboard() {
       value: "prescriptions",
       label: "Prescriptions",
       icon: NotepadText,
-      roles: ["pharmacist", "admin", "doctor"],
+      roles: ["admin", "doctor", "pharmacist"],
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
     { value: "users", label: "Users", icon: UserCog, roles: ["admin"] },
   ];
-
-  const filteredTabs = allTabs.filter((tab) =>
-    tab.roles.includes(authUser?.role)
-  );
 
   const logoutMutation = useMutation({
     mutationFn: logOut,
@@ -103,122 +99,166 @@ export default function ClinicDashboard() {
     },
   });
 
+  const filteredTabs = allTabs.filter((tab) =>
+    tab.roles.includes(authUser?.role)
+  );
+
+  const renderActiveContent = () => {
+    switch (activeTab) {
+      case "doctor-dashboard":
+        return (
+          <RoleBasedWrapper allowedRoles={["doctor"]}>
+            <DoctorDashboard />
+          </RoleBasedWrapper>
+        );
+      case "pharmacist-dashboard":
+        return (
+          <RoleBasedWrapper allowedRoles={["pharmacist"]}>
+            <PharmacistDashboard />
+          </RoleBasedWrapper>
+        );
+      case "calendar":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin", "doctor", "receptionist"]}>
+            <AppointmentCalendar />
+          </RoleBasedWrapper>
+        );
+      case "patients":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin", "doctor", "receptionist"]}>
+            <PatientManagement />
+          </RoleBasedWrapper>
+        );
+      case "doctors":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin"]}>
+            <DoctorManagement />
+          </RoleBasedWrapper>
+        );
+      case "procedures":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
+            <ProcedureManagement />
+          </RoleBasedWrapper>
+        );
+      case "appointments":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin", "receptionist"]}>
+            <ListAllAppointments />
+          </RoleBasedWrapper>
+        );
+      case "settings":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin"]}>
+            <ClinicSettings />
+          </RoleBasedWrapper>
+        );
+      case "prescriptions":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin", "doctor", "pharmacist"]}>
+            <PrescriptionManagement />
+          </RoleBasedWrapper>
+        );
+      case "users":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin"]}>
+            <UserManagement />
+          </RoleBasedWrapper>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-3">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-14  h-14 rounded-lg flex items-center justify-center">
-                    <Image src={logo} alt="logo" />
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    ClinicSync
-                  </h1>
-                </div>
-              </div>
-
-              <p className="text-lg font-bold uppercase ">
-                {displayName(authUser)}
-              </p>
-
-              <Button
-                variant="destructive"
-                className="cursor-pointer"
-                onClick={logoutMutation.mutateAsync}
+      <div className="min-h-screen bg-gray-50 flex">
+        <div
+          className={`bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${
+            sidebarCollapsed ? "w-16" : "w-64"
+          }`}
+        >
+          {/* Sidebar Header */}
+          <div className="px-4 py-4 border-b flex items-center justify-between h-18">
+            <div
+              className={`flex items-center ${
+                sidebarCollapsed ? "justify-center" : ""
+              }`}
+            >
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="cursor-pointer w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-gray-100 transition-colors duration-200"
+                title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                Logout
-              </Button>
+                <Image src={logo} alt="logo" />
+              </button>
+              {!sidebarCollapsed && (
+                <h2 className="ml-3 text-lg font-bold text-gray-900">
+                  ClinicSync
+                </h2>
+              )}
             </div>
           </div>
-        </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-6"
-          >
-            <TabsList className={`w-full flex justify-around`}>
+          {/* Navigation Menu */}
+          <nav className="flex-1 p-2">
+            <ul className="space-y-1">
               {filteredTabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="flex items-center gap-2"
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </TabsTrigger>
+                <li key={tab.value}>
+                  <button
+                    onClick={() => setActiveTab(tab.value)}
+                    className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      activeTab === tab.value
+                        ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    } ${sidebarCollapsed ? "justify-center" : ""}`}
+                    title={sidebarCollapsed ? tab.label : ""}
+                  >
+                    <tab.icon
+                      className={`w-5 h-5 ${
+                        sidebarCollapsed ? "" : "mr-3"
+                      } flex-shrink-0`}
+                    />
+                    {!sidebarCollapsed && <span>{tab.label}</span>}
+                  </button>
+                </li>
               ))}
-            </TabsList>
+            </ul>
+          </nav>
+        </div>
 
-            <TabsContent value="doctor-dashboard" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["doctor"]}>
-                <DoctorDashboard />
-              </RoleBasedWrapper>
-            </TabsContent>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Main Header */}
+          <header className="bg-white  border-b h-18">
+            <div className="px-6 py-4 h-full">
+              <div className="flex justify-between items-center h-full">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {filteredTabs.find((tab) => tab.value === activeTab)
+                      ?.label || "Dashboard"}
+                  </h1>
+                </div>
+                <p className="text-lg font-bold uppercase text-gray-800">
+                  {displayName(authUser)}
+                </p>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="destructive"
+                    className="cursor-pointer"
+                    onClick={logoutMutation.mutateAsync}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </header>
 
-            <TabsContent value="pharmacist-dashboard" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["pharmacist"]}>
-                <PharmacistDashboard />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="calendar" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
-                <AppointmentCalendar />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="patients" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
-                <PatientManagement />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="doctors" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
-                <DoctorManagement />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="procedures" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin", "doctor"]}>
-                <ProcedureManagement />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="appointments" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
-                <ListAllAppointments />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
-                <ClinicSettings />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="prescriptions" className="space-y-6">
-              <RoleBasedWrapper
-                allowedRoles={["admin", "doctor", "pharmacist"]}
-              >
-                <PrescriptionManagement />
-              </RoleBasedWrapper>
-            </TabsContent>
-
-            <TabsContent value="users" className="space-y-6">
-              <RoleBasedWrapper allowedRoles={["admin"]}>
-                <UserManagement />
-              </RoleBasedWrapper>
-            </TabsContent>
-          </Tabs>
-        </main>
+          <main className="flex-1 p-6 overflow-auto">
+            <div className="h-full">{renderActiveContent()}</div>
+          </main>
+        </div>
       </div>
       {logoutMutation.isPending && <Loader />}
     </ProtectedRoute>
