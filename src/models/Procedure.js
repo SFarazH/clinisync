@@ -21,6 +21,15 @@ const ProcedureSchema = new mongoose.Schema(
       required: true,
       match: /^#([0-9a-fA-F]{3}){1,2}$/,
     },
+    amount: {
+      type: Number,
+      required: false,
+    },
+    canSplit: {
+      type: Boolean,
+      requred: true,
+      default: false,
+    },
   },
   { timestamps: true }
 );
