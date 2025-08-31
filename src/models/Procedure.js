@@ -21,7 +21,7 @@ const ProcedureSchema = new mongoose.Schema(
       required: true,
       match: /^#([0-9a-fA-F]{3}){1,2}$/,
     },
-    amount: {
+    cost: {
       type: Number,
       required: false,
     },
