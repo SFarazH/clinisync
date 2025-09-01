@@ -77,6 +77,8 @@ export const emptyProcedure = {
   duration: 30,
   abbr: "",
   color: "#3b82f6",
+  cost: 0,
+  canSplit: false,
 };
 
 export const emptyDoctor = {
