@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Syringe,
   UserCog,
+  ReceiptIndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PatientManagement from "@/components/patient-management";
@@ -23,11 +24,11 @@ import DoctorDashboard from "@/components/doctor-dashbaord";
 import ProtectedRoute from "@/components/protected-route";
 import PrescriptionManagement from "@/components/prescription-management";
 import PharmacistDashboard from "@/components/pharmacist-dashboard";
+import UserManagement from "@/components/user-management";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
-import UserManagement from "@/components/user-management";
 import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import Loader from "@/components/loader";
@@ -90,6 +91,7 @@ export default function ClinicDashboard() {
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
     { value: "users", label: "Users", icon: UserCog, roles: ["admin"] },
+    { value: "accounts", label: "Accounts", icon: ReceiptIndianRupee, roles: ["admin"] },
   ];
 
   const logoutMutation = useMutation({
