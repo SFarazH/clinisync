@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { daysOfWeek } from "./data";
 import { updateClinicConfig, getClinicConfig } from "@/lib";
+import Loader from "./loader";
 
 export default function ClinicSettings() {
   const queryClient = useQueryClient();
@@ -22,13 +23,11 @@ export default function ClinicSettings() {
   const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
-  // Query for clinic settings
   const { data: clinicSettings = {}, isLoading: loadingSettings } = useQuery({
     queryKey: ["clinicSettings"],
     queryFn: getClinicConfig,
   });
 
-  // Mutation for updating clinic config
   const updateClinicConfigMutation = useMutation({
     mutationFn: updateClinicConfig,
     onSuccess: () => {
@@ -38,34 +37,21 @@ export default function ClinicSettings() {
     },
     onError: (error) => {
       console.error("Update failed:", error);
-      toast({
-        title: "Update failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
     },
   });
 
-  // Initialize clinic hours when data is loaded
   useEffect(() => {
     if (clinicSettings?.openingHours) {
       setClinicHours(clinicSettings.openingHours);
     }
   }, [clinicSettings]);
 
-  // Store original hours when editing starts
   useEffect(() => {
     if (isEditing && Object.keys(clinicHours).length > 0) {
       setOriginalClinicHours({ ...clinicHours });
     }
   }, [isEditing, clinicHours]);
 
-  // Memoized function to update clinic hours
-  const updateClinicHours = useCallback((updatedConfig) => {
-    setClinicHours(updatedConfig);
-  }, []);
-
-  // Generic function to update day fields
   const updateDayField = useCallback((day, field, value) => {
     setClinicHours((prev) => ({
       ...prev,
@@ -76,7 +62,6 @@ export default function ClinicSettings() {
     }));
   }, []);
 
-  // Update day open/closed status
   const updateDayOpen = useCallback(
     (day, isOpen) => {
       updateDayField(day, "isOpen", isOpen);
@@ -84,7 +69,6 @@ export default function ClinicSettings() {
     [updateDayField]
   );
 
-  // Shift management functions
   const addShift = useCallback((day) => {
     const newShift = { start: "09:00", end: "17:00" };
     setClinicHours((prev) => ({
@@ -94,10 +78,6 @@ export default function ClinicSettings() {
         shifts: [...(prev[day]?.shifts || []), newShift],
       },
     }));
-    toast({
-      title: "Shift Added",
-      description: "New shift has been added successfully.",
-    });
   }, []);
 
   const updateShift = useCallback((day, shiftIndex, field, value) => {
@@ -138,13 +118,8 @@ export default function ClinicSettings() {
         },
       };
     });
-    toast({
-      title: "Shift Removed",
-      description: "Shift has been removed successfully.",
-    });
   }, []);
 
-  // Break management functions
   const addBreak = useCallback((day) => {
     const newBreak = { start: "12:00", end: "13:00" };
     setClinicHours((prev) => ({
@@ -154,10 +129,6 @@ export default function ClinicSettings() {
         breaks: [...(prev[day]?.breaks || []), newBreak],
       },
     }));
-    toast({
-      title: "Break Added",
-      description: "New break has been added successfully.",
-    });
   }, []);
 
   const updateBreak = useCallback((day, breakIndex, field, value) => {
@@ -198,22 +169,15 @@ export default function ClinicSettings() {
         },
       };
     });
-    toast({
-      title: "Break Removed",
-      description: "Break has been removed successfully.",
-    });
   }, []);
 
-  // Save and cancel handlers
   const handleSave = useCallback(async () => {
     try {
       await updateClinicConfigMutation.mutateAsync({
         openingHours: clinicHours,
       });
       setOriginalClinicHours({ ...clinicHours });
-    } catch (error) {
-      // Error is handled in mutation's onError
-    }
+    } catch (error) {}
   }, [clinicHours, updateClinicConfigMutation]);
 
   const handleCancel = useCallback(() => {
@@ -225,7 +189,6 @@ export default function ClinicSettings() {
     setIsEditing(true);
   }, []);
 
-  // Memoized shift and break handlers object
   const shiftHandlers = useMemo(
     () => ({
       updateShift,
@@ -244,22 +207,7 @@ export default function ClinicSettings() {
     [updateBreak, addBreak, removeBreak]
   );
 
-  // Check if there's clinic data available
   const hasClinicData = Object.keys(clinicHours).length > 0;
-
-  if (loadingSettings) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-muted-foreground">
-              Loading clinic settings...
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -344,6 +292,7 @@ export default function ClinicSettings() {
           )}
         </CardContent>
       </Card>
+      {loadingSettings && <Loader />}
     </div>
   );
 }
