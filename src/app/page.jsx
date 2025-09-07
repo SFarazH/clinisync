@@ -33,6 +33,7 @@ import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
+import AccountsManagement from "@/components/account-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -42,7 +43,7 @@ export default function ClinicDashboard() {
       ? "doctor-dashboard"
       : authUser?.role === "pharmacist"
       ? "prescriptions"
-      : "calendar"
+      : "accounts"
   );
 
   const allTabs = [
@@ -91,7 +92,12 @@ export default function ClinicDashboard() {
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
     { value: "users", label: "Users", icon: UserCog, roles: ["admin"] },
-    { value: "accounts", label: "Accounts", icon: ReceiptIndianRupee, roles: ["admin"] },
+    {
+      value: "accounts",
+      label: "Accounts",
+      icon: ReceiptIndianRupee,
+      roles: ["admin"],
+    },
   ];
 
   const logoutMutation = useMutation({
@@ -167,6 +173,12 @@ export default function ClinicDashboard() {
             <UserManagement />
           </RoleBasedWrapper>
         );
+      case "accounts":
+        return (
+          <RoleBasedWrapper allowedRoles={["doctor", "receptionist", "admin"]}>
+            <AccountsManagement />
+          </RoleBasedWrapper>
+        );
       default:
         return null;
     }
@@ -229,9 +241,7 @@ export default function ClinicDashboard() {
           </nav>
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
-          {/* Main Header */}
           <header className="bg-white  border-b h-18">
             <div className="px-6 py-4 h-full">
               <div className="flex justify-between items-center h-full">
