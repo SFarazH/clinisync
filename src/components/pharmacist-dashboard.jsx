@@ -43,7 +43,6 @@ export default function PharmacistDashboard() {
 
   useEffect(() => {
     if (prescriptionsDataObject?.data) {
-      console.log(prescriptionsDataObject.data);
       const pending = [];
       const delivered = [];
 

@@ -205,7 +205,6 @@ export default function PatientManagement() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              console.log(patient);
                               handleEditPatient(patient);
                             }}
                           >

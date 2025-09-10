@@ -42,11 +42,6 @@ export default function AppointmentDetailsModal({
     }
   }, [appointment]);
 
-  useEffect(() => {
-    console.log(isEditing, "isEditing");
-    console.log("current", currentPrescription);
-  }, [currentPrescription]);
-
   if (!appointment) return null;
 
   const isCompleted = appointment.status === "completed";

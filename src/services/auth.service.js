@@ -6,7 +6,6 @@ import Doctor from "@/models/Doctor";
 export async function registerUser(data) {
   await dbConnect();
   try {
-    console.log(data);
     if (data.role === "doctor") {
       if (!data.doctorId) {
         return { success: false, error: "Doctor missing" };
@@ -20,7 +19,6 @@ export async function registerUser(data) {
     const existingEmailUsers = await Users.findOne({ email: data.email });
     const existingEmailDoctors = await Doctor.findOne({ email: data.email });
 
-    console.log(existingEmailDoctors, existingEmailUsers, data.role);
     if (
       existingEmailUsers ||
       (data.role !== "doctor" && existingEmailDoctors)

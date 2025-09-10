@@ -6,8 +6,6 @@ export async function POST(req) {
     const body = await req.json();
     const result = await createPatient(body);
 
-    console.log(result);
-
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
