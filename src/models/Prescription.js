@@ -5,6 +5,8 @@ const medicationSchema = new mongoose.Schema({
   frequency: { type: String, required: true },
   duration: { type: Number, required: false },
   instructions: { type: String },
+  shortComposition1: { type: String, required: false, default: "" },
+  shortComposition2: { type: String, required: false, default: "" },
 });
 
 const prescriptionSchema = new mongoose.Schema(
@@ -23,7 +25,7 @@ const prescriptionSchema = new mongoose.Schema(
     generalNotes: { type: String },
     delivered: { type: Boolean, default: false },
   },
-{ timestamps: true }
+  { timestamps: true }
 );
 
 export default mongoose.models.Prescription ||
