@@ -1,12 +1,16 @@
 import mongoose from "mongoose";
 
+const medicineItemSchema = new mongoose.Schema({
+  medicineName: { type: String, required: true },
+  shortComposition1: { type: String, required: false, default: "" },
+  shortComposition2: { type: String, required: false, default: "" },
+});
+
 const medicationSchema = new mongoose.Schema({
-  medicine: { type: String, required: true },
+  medicine: medicineItemSchema,
   frequency: { type: String, required: true },
   duration: { type: Number, required: false },
   instructions: { type: String },
-  shortComposition1: { type: String, required: false, default: "" },
-  shortComposition2: { type: String, required: false, default: "" },
 });
 
 const prescriptionSchema = new mongoose.Schema(
