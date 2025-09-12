@@ -102,8 +102,14 @@ export const emptyPrescription = {
   patient: "",
 };
 
+export const emptyMedicineDetails = {
+  medicineName: "",
+  shortComposition1: "",
+  shortComposition2: "",
+};
+
 export const emptyMedicationItem = {
-  medicine: "",
+  medicine: emptyMedicineDetails,
   frequency: "",
   duration: "",
   instructions: "",
