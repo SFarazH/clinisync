@@ -75,7 +75,6 @@ export default function PrescriptionManagement() {
 
   const handleClickPrescripton = async (prescription) => {
     setIsDialogOpen(true);
-    console.log(prescription);
     setCurrentPrescripton(prescription);
   };
 

@@ -46,10 +46,12 @@ import AppointmentForm from "./forms/appointment.form";
 import MergedAppointmentsDialog from "./forms/merged-appointments";
 import CalendarView from "./forms/calendar-view";
 import Loader from "./loader";
+import { useAuth } from "@/components/context/authcontext";
 import { format } from "date-fns";
 
 export default function AppointmentCalendar() {
   const queryClient = useQueryClient();
+  const { authUser } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -59,7 +61,6 @@ export default function AppointmentCalendar() {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
-
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [overlappingAppointmentsDialog, setOverlappingAppointmentsDialog] =
@@ -126,6 +127,14 @@ export default function AppointmentCalendar() {
       queryClient.invalidateQueries(["appointments"]);
     },
   });
+
+  useEffect(() => {
+    if (authUser.role === "doctor") {
+      setSelectedDoctorId(
+        doctorsData?.filter((doc) => doc.email === authUser.email)[0]?._id
+      );
+    }
+  }, [authUser, doctorsData]);
 
   const updateAppointmentMutation = useMutation({
     mutationFn: updateAppointment,
