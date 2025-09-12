@@ -89,8 +89,8 @@ export default function AppointmentForm({
           <div className="flex justify-center">
             <div className="font-medium text-lg">
               {
-                doctorsData.filter((doc) => doc._id === selectedDoctorId)[0]
-                  .name
+                doctorsData?.filter((doc) => doc._id === selectedDoctorId)[0]
+                  ?.name
               }
             </div>
           </div>

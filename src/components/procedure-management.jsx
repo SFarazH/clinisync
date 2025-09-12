@@ -159,7 +159,6 @@ export default function ProcedureManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            console.log(procedure);
                             handleEditProcedure(procedure);
                           }}
                         >

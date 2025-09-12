@@ -114,7 +114,6 @@ export default function MergedAppointmentsDialog({
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      console.log(appointment);
                         setOverlappingAppointmentsDialog((prev) => ({
                           ...prev,
                           isOpen: false,

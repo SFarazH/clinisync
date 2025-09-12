@@ -26,10 +26,6 @@ export default function RegisterPage() {
       alert("Passwords do not match!");
       return;
     }
-    console.log("Register attempt:", { name, email, password });
-    alert(
-      "Registration functionality not implemented yet. Check console for data."
-    );
   };
 
   return (

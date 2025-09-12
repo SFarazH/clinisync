@@ -23,7 +23,6 @@ export async function addPrescription(data) {
       { prescription: prescription._id, status: "completed" },
       { new: true }
     );
-    console.log("Updated appointment:", updated);
     return { success: true, data: prescription, message: "Prescription added" };
   } catch (error) {
     console.error("Error creating prescription:", error);
