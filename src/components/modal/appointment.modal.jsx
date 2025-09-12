@@ -12,9 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, Edit, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Edit, Plus, Trash2 } from "lucide-react";
 import { emptyMedicationItem, emptyPrescription } from "../data";
 import Loader from "../loader";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 export default function AppointmentDetailsModal({
   isOpen,
@@ -26,6 +35,26 @@ export default function AppointmentDetailsModal({
   const [currentPrescription, setCurrentPrescription] =
     useState(emptyPrescription);
   const [isEditing, setIsEditing] = useState(false);
+  const [openPopover, setOpenPopover] = useState({});
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [showOtherFields, setShowOtherFields] = useState(false);
+
+  const resetQuery = () => {
+    setQuery("");
+    setPage(1);
+    setShowOtherFields(false);
+  };
+
+  const togglePopover = (index, value) => {
+    setOpenPopover((prev) => ({
+      ...prev,
+      [index]: value,
+    }));
+  };
 
   useEffect(() => {
     if (appointment) {
@@ -42,6 +71,41 @@ export default function AppointmentDetailsModal({
     }
   }, [appointment]);
 
+  const fetchMedicines = async (q, newPage = 1) => {
+    if (q.length < 3) {
+      setResults([]);
+      setHasMore(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `https://begv3q4egbx6trux2xmibfbmle0effyz.lambda-url.ap-south-1.on.aws/search?q=${q}&limit=20&page=${newPage}`
+      );
+      const data = await res.json();
+
+      if (newPage === 1) {
+        setResults(data.results);
+      } else {
+        setResults((prev) => [...prev, ...data.results]);
+      }
+
+      setHasMore(newPage < data.totalPages);
+    } catch (err) {
+      console.error("Error fetching medicines:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setPage(1);
+      fetchMedicines(query, 1);
+    }, 400);
+    return () => clearTimeout(delay);
+  }, [query]);
+
   if (!appointment) return null;
 
   const isCompleted = appointment.status === "completed";
@@ -51,6 +115,54 @@ export default function AppointmentDetailsModal({
       ...prev,
       medications: [...prev.medications, emptyMedicationItem],
     }));
+  };
+
+  // const handleSelect = (index, value) => {
+  //   if (value === "other") {
+  //     setShowOtherFields(true);
+
+  //     // handleMedicationChange(index, "medicine", "");
+  //   } else {
+  //     console.log(
+  //       value.name,
+  //       "-",
+  //       value.shortComposition1,
+  //       "-",
+  //       value.shortComposition2
+  //     );
+  //     setShowOtherFields(false);
+
+  //     handleMedicationChange("medicine", value);
+  //   }
+  //   setOpen(false);
+  // };
+
+  const handleSelect = (index, value) => {
+    if (value === "other") {
+      setShowOtherFields(true);
+
+      // clear out medicine if selecting Other
+      handleMedicationChange(index, "medicineName", "", true);
+      handleMedicationChange(index, "shortComposition1", "", true);
+      handleMedicationChange(index, "shortComposition2", "", true);
+    } else {
+      setShowOtherFields(false);
+
+      handleMedicationChange(index, "medicineName", value.name, true);
+      handleMedicationChange(
+        index,
+        "shortComposition1",
+        value.shortComposition1,
+        true
+      );
+      handleMedicationChange(
+        index,
+        "shortComposition2",
+        value.shortComposition2,
+        true
+      );
+    }
+    setOpenPopover((prev) => ({ ...prev, [index]: false }));
   };
 
   const handleRemoveMedication = (index) => {
@@ -64,10 +176,40 @@ export default function AppointmentDetailsModal({
     });
   };
 
-  const handleMedicationChange = (index, field, value) => {
+  // const handleMedicationChange = (field, value) => {
+  //   // setCurrentPrescription((prev) => {
+  //   //   const newMeds = [...prev.medications];
+  //   //   newMeds[index] = { ...newMeds[index], [field]: value };
+  //   //   return {
+  //   //     ...prev,
+  //   //     medications: newMeds,
+  //   //   };
+  //   // });
+  // };
+
+  const handleMedicationChange = (
+    index,
+    field,
+    value,
+    isMedicineField = false
+  ) => {
     setCurrentPrescription((prev) => {
       const newMeds = [...prev.medications];
-      newMeds[index] = { ...newMeds[index], [field]: value };
+
+      if (isMedicineField) {
+        // update inside medicine object
+        newMeds[index] = {
+          ...newMeds[index],
+          medicine: {
+            ...newMeds[index].medicine,
+            [field]: value,
+          },
+        };
+      } else {
+        // update top-level fields (frequency, duration, instructions)
+        newMeds[index] = { ...newMeds[index], [field]: value };
+      }
+
       return {
         ...prev,
         medications: newMeds,
@@ -83,6 +225,7 @@ export default function AppointmentDetailsModal({
   };
 
   const handleSave = () => {
+    console.log(currentPrescription);
     if (isEditing) {
       updatePrescriptionMutation.mutateAsync({
         id: currentPrescription._id,
@@ -102,6 +245,7 @@ export default function AppointmentDetailsModal({
           if (!open) {
             setIsEditing(false);
             setCurrentPrescription(emptyPrescription);
+            resetQuery();
             onClose();
           }
         }}
@@ -149,24 +293,105 @@ export default function AppointmentDetailsModal({
                     key={index}
                     className="border rounded p-3 bg-gray-50/50 space-y-3"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div className={`grid grid-cols-1 md:grid-cols-4 gap-3`}>
                       <div className="md:col-span-2">
-                        <Label className="text-xs text-gray-600 mb-1">
-                          Medicine
-                        </Label>
-                        <Input
-                          className="h-8 text-sm focus-visible:ring-0"
-                          placeholder="Medicine name"
-                          value={med.medicine}
-                          onChange={(e) =>
-                            handleMedicationChange(
-                              index,
-                              "medicine",
-                              e.target.value
-                            )
-                          }
-                          disabled={isCompleted && !isEditing}
-                        />
+                        <div className="">
+                          <Label className="text-xs text-gray-600 mb-1">
+                            Medicine
+                          </Label>
+                          <Popover
+                            open={!!openPopover[index]}
+                            onOpenChange={(val) => togglePopover(index, val)}
+                          >
+                            <PopoverTrigger
+                              className="h-8 text-sm focus-visible:ring-0"
+                              asChild
+                            >
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between font-normal truncate"
+                              >
+                                {med.medicine?.medicineName
+                                  ? med.medicine.medicineName
+                                  : "Select medicine"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Search medicine..."
+                                  value={query}
+                                  onValueChange={setQuery}
+                                />
+                                <CommandList
+                                  onWheel={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  className="max-h-60 overflow-y-auto"
+                                  onScroll={(e) => {
+                                    const {
+                                      scrollTop,
+                                      scrollHeight,
+                                      clientHeight,
+                                    } = e.currentTarget;
+                                    const isNearBottom =
+                                      scrollHeight - scrollTop - clientHeight <
+                                      50;
+                                    if (isNearBottom && hasMore && !loading) {
+                                      const nextPage = page + 1;
+                                      setPage(nextPage);
+                                      fetchMedicines(query, nextPage);
+                                    }
+                                  }}
+                                >
+                                  <CommandEmpty>
+                                    No medicines found.
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    <CommandItem
+                                      value="other"
+                                      onSelect={() =>
+                                        handleSelect(index, "other")
+                                      }
+                                    >
+                                      ➕ Other
+                                    </CommandItem>
+                                    {med.medicine.medicineName &&
+                                      query === "" && (
+                                        <CommandItem
+                                          value={med.medicine.medicineName}
+                                          key={med.medicine.medicineName}
+                                          disabled={true}
+                                        >
+                                          {med.medicine.medicineName}
+                                        </CommandItem>
+                                      )}
+                                    {results.map((medicine) => (
+                                      <CommandItem
+                                        className="w-full"
+                                        key={medicine._id}
+                                        value={medicine}
+                                        onSelect={() =>
+                                          handleSelect(index, medicine)
+                                        }
+                                      >
+                                        {medicine.name}
+                                      </CommandItem>
+                                    ))}
+                                    {loading && (
+                                      <div className="p-2 text-sm text-muted-foreground">
+                                        Loading...
+                                      </div>
+                                    )}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                       <div>
                         <Label className="text-xs text-gray-600 mb-1">
@@ -202,6 +427,78 @@ export default function AppointmentDetailsModal({
                             )
                           }
                           disabled={isCompleted && !isEditing}
+                        />
+                      </div>
+                    </div>
+
+                    {/* {isCompleted && !isEditing && (
+                      <div className="text-xs text-gray-700 my-2">
+                        {med.medicine.medicineName}
+                      </div>
+                    )} */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full md:col-span-4">
+                      {showOtherFields && (
+                        <div>
+                          <Label className="text-xs text-gray-600 mb-1">
+                            Medicine Name
+                          </Label>
+                          <Input
+                            placeholder="Medicine name"
+                            className="h-8 text-sm focus-visible:ring-0"
+                            value={med.medicine?.medicineName}
+                            onChange={(e) =>
+                              handleMedicationChange(
+                                index,
+                                "medicineName",
+                                e.target.value,
+                                true
+                              )
+                            }
+                            disabled={isCompleted && !isEditing}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1">
+                          Composition 1
+                        </Label>
+                        <Input
+                          className="h-8 text-sm focus-visible:ring-0"
+                          placeholder="Composition 1"
+                          value={med?.medicine?.shortComposition1}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "shortComposition1",
+                              e.target.value,
+                              true
+                            )
+                          }
+                          disabled={
+                            (isCompleted && !isEditing) || !showOtherFields
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1">
+                          Composition 2
+                        </Label>
+                        <Input
+                          className="h-8 text-sm focus-visible:ring-0"
+                          placeholder="Composition 2"
+                          value={med?.medicine?.shortComposition2}
+                          onChange={(e) =>
+                            handleMedicationChange(
+                              index,
+                              "shortComposition2",
+                              e.target.value,
+                              true
+                            )
+                          }
+                          disabled={
+                            (isCompleted && !isEditing) || !showOtherFields
+                          }
                         />
                       </div>
                     </div>
