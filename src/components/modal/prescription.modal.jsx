@@ -31,7 +31,7 @@ export default function PrescriptionModal({
   return (
     currentPrescription && (
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-full md:max-w-3xl p-6 bg-white border border-gray-300 shadow-lg rounded-lg">
+        <DialogContent className="w-full md:max-w-4xl p-6 bg-white border border-gray-300 shadow-lg rounded-lg">
           <div className="space-y-6">
             <DialogTitle>
               <div className="border-b pb-4 mt-1">
@@ -123,7 +123,12 @@ export default function PrescriptionModal({
                           />
                         </div>
                       )}
-                    <div className="text-gray-900">{medication.medicine}</div>
+                    <div className="text-gray-900">
+                      {medication.medicine?.medicineName}
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {`${medication.medicine?.shortComposition1} ${medication.medicine?.shortComposition2}`}
+                      </p>
+                    </div>
                     <div>{medication.frequency}</div>
                     <div>{medication.duration} days</div>
                     <div>
