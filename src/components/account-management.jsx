@@ -30,39 +30,41 @@ export default function AccountsManagement({ invoices, payments }) {
   ).length;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue (MTD)</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">
-          {formatCurrency(totalRevenue)}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Outstanding A/R</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">
-          {formatCurrency(outstanding)}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Today’s Revenue</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">
-          {formatCurrency(todaysRevenue)}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoices</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">
-          12 paid / 3 open
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue (MTD)</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">
+            {formatCurrency(totalRevenue)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Outstanding A/R</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">
+            {formatCurrency(outstanding)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Today’s Revenue</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">
+            {formatCurrency(todaysRevenue)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Invoices</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">
+            12 paid / 3 open
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -25,6 +25,7 @@ import ProtectedRoute from "@/components/protected-route";
 import PrescriptionManagement from "@/components/prescription-management";
 import PharmacistDashboard from "@/components/pharmacist-dashboard";
 import UserManagement from "@/components/user-management";
+import AccountsManagement from "@/components/account-management";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
@@ -33,7 +34,6 @@ import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
-import AccountsManagement from "@/components/account-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -96,7 +96,7 @@ export default function ClinicDashboard() {
       value: "accounts",
       label: "Accounts",
       icon: ReceiptIndianRupee,
-      roles: ["admin"],
+      roles: ["admin", "receptionist"],
     },
   ];
 
