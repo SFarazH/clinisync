@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const attachmentSchema = new mongoose.Schema(
+  {
+    fileName: { type: String, required: false },
+    s3FileKey: { type: String, required: false },
+  },
+  { timestamps: true },
+  { _id: false }
+);
+
 const appointmentSchema = new mongoose.Schema(
   {
     patientId: {
@@ -31,6 +40,7 @@ const appointmentSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
+    attachments: [attachmentSchema],
     notes: String,
   },
   { timestamps: true }

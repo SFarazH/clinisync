@@ -6,3 +6,4 @@ export * from "./appointments.service";
 export * from "./auth.service";
 export * from "./medicines.service";
 export * from "./prescriptions.service";
+export * from "./s3.service";

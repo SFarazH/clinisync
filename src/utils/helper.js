@@ -156,6 +156,7 @@ export const transformAppointmentData = (rawAppointments) => {
       patient: appointment.patientId,
       doctor: appointment.doctorId,
       procedure: appointment.procedureId,
+      attachments: appointment.attachments,
     }));
 };
 
