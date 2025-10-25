@@ -58,6 +58,7 @@ export default function AppointmentCalendar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("all");
   const [formData, setFormData] = useState(emptyAppointment);
+  const [attachments, setAttachments] = useState([]);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
@@ -281,6 +282,7 @@ export default function AppointmentCalendar() {
       notes: appointment.notes || "",
       status: appointment.status || "scheduled",
     });
+    setAttachments(appointment.attachments);
     setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
@@ -687,6 +689,7 @@ export default function AppointmentCalendar() {
                 timeOptions,
                 setFormData,
                 selectedDoctorId,
+                attachments,
               }}
               handleSubmit={handleSubmit}
               handleDelete={handleDelete}
