@@ -1,3 +1,5 @@
+import Appointment from "@/models/Appointment";
+import { dbConnect } from "@/utils/dbConnect";
 import {
   GetObjectCommand,
   PutObjectCommand,
@@ -12,8 +14,13 @@ const s3 = new S3Client({
   },
 });
 
-export const s3Upload = async (file) => {
-  console.log(file);
+export const s3Upload = async (file, appointmentId) => {
+  await dbConnect();
+
+  const appointment = await Appointment.findById(appointmentId);
+  if (!appointment) {
+    return "Appointment not found";
+  }
 
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -23,7 +30,6 @@ export const s3Upload = async (file) => {
     .slice(0, -1)
     .join("-")
     .replace(/\s+/g, "")}-${Date.now()}.${keyArr[keyArr.length - 1]}`;
-  //   console.log(`dcura/${key}`);
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -32,18 +38,27 @@ export const s3Upload = async (file) => {
     ContentType: file.type,
   };
 
-  const s3Response = await s3.send(new PutObjectCommand(params));
-  console.log(s3Response, "s3");
-  return "ss";
+  const attachmentItem = {
+    fileName: file.name,
+    s3FileKey: key,
+  };
+
+  try {
+    await s3.send(new PutObjectCommand(params));
+    appointment.attachments.push(attachmentItem);
+    await appointment.save();
+    return { success: true, data: key };
+  } catch (error) {
+    console.log(error);
+    return { success: false, error: error.message };
+  }
 };
 
-export const getImage = async (key) => {
+export const getS3Image = async (key) => {
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: key,
   });
-
-  console.log(command);
 
   const s3Object = await s3.send(command);
   const stream = s3Object.Body;
