@@ -1,4 +1,4 @@
-import { getImage } from "@/services";
+import { getS3Image } from "@/services";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
@@ -13,9 +13,7 @@ export async function GET(_, { params }) {
     );
   }
 
-  const { bufferResponse, contentType } = await getImage(key);
-  console.log(bufferResponse, contentType);
-
+  const { bufferResponse, contentType } = await getS3Image(key);
   try {
     return new NextResponse(new Uint8Array(bufferResponse), {
       status: 200,
