@@ -8,11 +8,6 @@ const labWorkSchema = new mongoose.Schema(
       ref: "Patient",
       required: true,
     },
-    appointment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Appointment",
-      required: true,
-    },
     work: { type: String, required: true },
     isReceived: { type: Boolean, requred: true, default: false },
     dateSubmitted: { type: Date, required: true },

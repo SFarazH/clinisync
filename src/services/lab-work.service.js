@@ -37,29 +37,21 @@ export async function getAllLabWorks({
   paginate = true,
   page = 1,
   limit = 10,
-  appointment,
+  patientId,
   isReceived,
 }) {
   await dbConnect();
+  console.log(patientId, "inside func");
   try {
     const query = {};
 
-    if (appointment) {
-      query.appointment = appointment;
+    if (patientId) {
+      query.patientId = patientId;
     }
     if (isReceived) {
       query.isReceived = isReceived;
     }
-    let labWorkQuery = LabWork.find(query)
-      .populate("patientId", "name")
-      .populate({
-        path: "appointment",
-        select: "date procedureId",
-        populate: {
-          path: "procedureId",
-          select: "name",
-        },
-      });
+    let labWorkQuery = LabWork.find(query).populate("patientId", "name");
     let total;
     if (paginate) {
       labWorkQuery = labWorkQuery.skip((page - 1) * limit).limit(limit);

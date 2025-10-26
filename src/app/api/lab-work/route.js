@@ -32,14 +32,14 @@ export async function GET(req) {
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
     const paginate = searchParams.get("paginate");
-    const appointment = searchParams.get("appointment");
+    const patientId = searchParams.get("patientId");
     const isReceived = searchParams.get("isReceived");
 
     const result = await getAllLabWorks({
       paginate,
       page,
       limit,
-      appointment,
+      patientId,
       isReceived,
     });
 
