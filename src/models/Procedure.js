@@ -25,11 +25,6 @@ const ProcedureSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
-    canSplit: {
-      type: Boolean,
-      requred: true,
-      default: false,
-    },
   },
   { timestamps: true }
 );
