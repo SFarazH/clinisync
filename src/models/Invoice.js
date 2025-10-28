@@ -17,7 +17,6 @@ const InvoiceSchema = new mongoose.Schema(
     appointment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Appointment",
-      required: true,
     },
 
     // if for lab work
@@ -27,7 +26,7 @@ const InvoiceSchema = new mongoose.Schema(
     },
 
     // purpose of payment
-    paymentPurpose: {
+    invoiceType: {
       type: String,
       enum: ["appointment", "labWork"],
       required: true,
