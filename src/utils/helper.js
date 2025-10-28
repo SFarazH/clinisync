@@ -87,17 +87,27 @@ export const generateTimeSlots = (
 };
 
 export const isTimeSlotAvailable = (date, time, clinicHours) => {
-  if (!clinicHours) return false;
-  const dayName = date
+  // Ensure all required data exists
+  if (!date || !time || !clinicHours || Object.keys(clinicHours).length === 0) {
+    return false;
+  }
+
+  const dayName = new Date(date)
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();
   const dayHours = clinicHours[dayName];
-
-  if (!dayHours?.isOpen || dayHours.shifts.length === 0) return false;
+  if (
+    !dayHours ||
+    !dayHours.isOpen ||
+    !Array.isArray(dayHours.shifts) ||
+    dayHours.shifts.length === 0
+  ) {
+    return false;
+  }
 
   const slotTime = new Date(`2000-01-01T${time}:00`);
 
-  // Check if time is within any shift
+  // Check if time is within any valid shift
   const isInShift = dayHours.shifts.some((shift) => {
     const shiftStart = new Date(`2000-01-01T${shift.start}:00`);
     const shiftEnd = new Date(`2000-01-01T${shift.end}:00`);
@@ -106,8 +116,8 @@ export const isTimeSlotAvailable = (date, time, clinicHours) => {
 
   if (!isInShift) return false;
 
-  // Check if time is during a break
-  const isDuringBreak = dayHours.breaks.some((breakTime) => {
+  // Check for breaks
+  const isDuringBreak = (dayHours.breaks || []).some((breakTime) => {
     const breakStart = new Date(`2000-01-01T${breakTime.start}:00`);
     const breakEnd = new Date(`2000-01-01T${breakTime.end}:00`);
     return slotTime >= breakStart && slotTime < breakEnd;
@@ -146,6 +156,7 @@ export const transformAppointmentData = (rawAppointments) => {
       patient: appointment.patientId,
       doctor: appointment.doctorId,
       procedure: appointment.procedureId,
+      attachments: appointment.attachments,
     }));
 };
 

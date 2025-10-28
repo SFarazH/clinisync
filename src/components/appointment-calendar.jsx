@@ -58,6 +58,7 @@ export default function AppointmentCalendar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("all");
   const [formData, setFormData] = useState(emptyAppointment);
+  const [attachments, setAttachments] = useState([]);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFromCalendarSlot, setIsFromCalendarSlot] = useState(false);
@@ -281,6 +282,7 @@ export default function AppointmentCalendar() {
       notes: appointment.notes || "",
       status: appointment.status || "scheduled",
     });
+    setAttachments(appointment.attachments);
     setErrorMessage(""); // Clear error message
     setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
     setIsDialogOpen(true);
@@ -403,32 +405,35 @@ export default function AppointmentCalendar() {
       .toLowerCase();
     const dayHours = clinicHours[dayName];
 
-    if (!dayHours?.isOpen || dayHours.shifts.length === 0) return [];
+    if (
+      !dayHours?.isOpen ||
+      !Array.isArray(dayHours.shifts) ||
+      dayHours.shifts.length === 0
+    ) {
+      return [];
+    }
 
-    // Find the latest end time for this specific day
-    const getLatestEndTimeForDay = () => {
-      let latestHour = slotsEndHour ?? 23; // default fallback
-      dayHours.shifts.forEach((shift) => {
-        const endHour = Number.parseInt(shift.end.split(":")[0]);
-        if (endHour > latestHour) {
-          latestHour = endHour;
-        }
-      });
-      return latestHour;
-    };
-
-    const endHour = getLatestEndTimeForDay();
     const options = [];
 
-    for (let hour = 8; hour <= endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
+    // iterate through all shifts
+    for (const shift of dayHours.shifts) {
+      const [startHour, startMinute] = shift.start.split(":").map(Number);
+      const [endHour, endMinute] = shift.end.split(":").map(Number);
+
+      // convert start & end times into minutes from midnight
+      const startInMinutes = startHour * 60 + startMinute;
+      const endInMinutes = endHour * 60 + endMinute;
+
+      for (let mins = startInMinutes; mins < endInMinutes; mins += 15) {
+        const hour = Math.floor(mins / 60);
+        const minute = mins % 60;
         const timeString = `${hour.toString().padStart(2, "0")}:${minute
           .toString()
           .padStart(2, "0")}`;
-        // When editing, be more permissive with time options
+
         if (
           editingAppointment ||
-          isTimeSlotAvailable(selectedDateObj, timeString, !!clinicHours)
+          isTimeSlotAvailable(selectedDateObj, timeString, clinicHours)
         ) {
           options.push(timeString);
         }
@@ -445,7 +450,7 @@ export default function AppointmentCalendar() {
     setSelectedTime("");
     setFormData(emptyAppointment);
     setErrorMessage("");
-    setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
+    setIsFromCalendarSlot(false);
     setIsDialogOpen(true);
   };
 
@@ -684,6 +689,7 @@ export default function AppointmentCalendar() {
                 timeOptions,
                 setFormData,
                 selectedDoctorId,
+                attachments,
               }}
               handleSubmit={handleSubmit}
               handleDelete={handleDelete}

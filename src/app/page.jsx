@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Syringe,
   UserCog,
+  FlaskConical,
   ReceiptIndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
+import LabWorkManagement from "@/components/lab-work-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -72,6 +74,12 @@ export default function ClinicDashboard() {
       roles: ["admin", "receptionist", "doctor"],
     },
     { value: "doctors", label: "Doctors", icon: Stethoscope, roles: ["admin"] },
+    {
+      value: "lab-work",
+      label: "Lab Work",
+      icon: FlaskConical,
+      roles: ["admin"],
+    },
     {
       value: "procedures",
       label: "Procedures",
@@ -177,6 +185,12 @@ export default function ClinicDashboard() {
         return (
           <RoleBasedWrapper allowedRoles={["doctor", "receptionist", "admin"]}>
             <AccountsManagement />
+          </RoleBasedWrapper>
+        );
+      case "lab-work":
+        return (
+          <RoleBasedWrapper allowedRoles={["admin"]}>
+            <LabWorkManagement />
           </RoleBasedWrapper>
         );
       default:

@@ -127,3 +127,13 @@ export const emptyUser = {
   address: "",
   doctorId: null,
 };
+
+export const emptyLabWork = {
+  nameOfLab: "",
+  patientId: "",
+  work: "",
+  isReceived: false,
+  dateSubmitted: "",
+  dateExpected: "",
+  amount: 0,
+};
