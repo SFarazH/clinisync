@@ -31,6 +31,12 @@ const appointmentSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
+    invoice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      required: false,
+      default: null,
+    },
     notes: String,
   },
   { timestamps: true }
