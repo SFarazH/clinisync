@@ -1,16 +1,66 @@
 import Appointment from "@/models/Appointment";
+import Invoice from "@/models/Invoice";
 import Prescription from "@/models/Prescription";
+import Procedure from "@/models/Procedure";
 import { dbConnect } from "@/utils/dbConnect";
 
 // add appointment
 export async function createAppointment(data) {
   await dbConnect();
+  const session = await Appointment.startSession();
+  session.startTransaction();
+
   try {
-    const appointment = await Appointment.create(data);
-    return { success: true, data: appointment };
-  } catch (error) {
-    console.error("Error creating appointment:", error);
-    return { success: false, error: error.message };
+    const procedure = await Procedure.findById(data.procedureId).session(
+      session
+    );
+    if (!procedure) {
+      return { success: false, message: "Procedure not found" };
+    }
+
+    console.log(procedure);
+
+    const totalAmount = procedure.cost;
+
+    const appointment = await Appointment.create(
+      [
+        {
+          ...data,
+        },
+      ],
+      { session }
+    );
+
+    const invoice = await Invoice.create(
+      [
+        {
+          paymentPurpose: "appointment",
+          invoiceType: "income",
+          patient: data.patientId,
+          appointment: appointment[0]._id,
+          totalAmount: totalAmount,
+          amountPaid: 0,
+          isPaymentComplete: false,
+        },
+      ],
+      { session }
+    );
+
+    appointment[0].invoiceId = invoice[0]._id;
+    await appointment[0].save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      success: true,
+      data: { appointment: appointment[0], invoice: invoice[0] },
+    };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error creating appointment/invoice:", err);
+    return { success: false, message: err };
   }
 }
 

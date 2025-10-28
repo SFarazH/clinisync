@@ -1,14 +1,45 @@
+import Invoice from "@/models/Invoice";
 import LabWork from "@/models/LabWork";
 import { dbConnect } from "@/utils/dbConnect";
+import mongoose from "mongoose";
 
 export async function addLabWork(data) {
   await dbConnect();
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const labWork = await LabWork.create(data);
-    return { success: true, data: labWork };
+    const labWork = await LabWork.create([data], { session });
+
+    const invoice = await Invoice.create(
+      [
+        {
+          paymentPurposes: "labWork",
+          invoiceType: "expense",
+          patient: data.patientId,
+          labWork: labWork[0]._id,
+          totalAmount: data.amount,
+          amountPaid: 0,
+          isPaymentComplete: false,
+        },
+      ],
+      { session }
+    );
+
+    // 4️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      success: true,
+      data: { labWork: labWork[0], invoice: invoice[0] },
+    };
   } catch (error) {
-    console.error("Error creating lab work:", error);
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error creating lab work/invoice:", error);
     return { success: false, error: error.message };
   }
 }

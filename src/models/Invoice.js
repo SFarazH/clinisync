@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const InvoiceSchema = new mongoose.Schema(
   {
     // income or expense
-    transactionType: {
+    invoiceType: {
       type: String,
       enum: ["income", "expense"],
       required: true,
