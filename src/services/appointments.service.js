@@ -34,9 +34,9 @@ export async function createAppointment(data) {
     const invoice = await Invoice.create(
       [
         {
-          paymentPurpose: "appointment",
-          invoiceType: "income",
-          patient: data.patientId,
+          invoiceType: "appointment",
+          transactionType: "income",
+          patientId: data.patientId,
           appointment: appointment[0]._id,
           totalAmount: totalAmount,
           amountPaid: 0,

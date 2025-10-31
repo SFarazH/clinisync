@@ -15,9 +15,9 @@ export async function addLabWork(data) {
     const invoice = await Invoice.create(
       [
         {
-          paymentPurposes: "labWork",
-          invoiceType: "expense",
-          patient: data.patientId,
+          invoiceType: "labWork",
+          transactionType: "expense",
+          patientId: data.patientId,
           labWork: labWork[0]._id,
           totalAmount: data.amount,
           amountPaid: 0,
