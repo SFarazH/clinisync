@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 const InvoiceSchema = new mongoose.Schema(
   {
     // income or expense
-    invoiceType: {
+    transactionType: {
       type: String,
       enum: ["income", "expense"],
       required: true,
     },
 
     // if for appointment
-    patient: {
+    patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
     },
@@ -54,7 +54,7 @@ const InvoiceSchema = new mongoose.Schema(
         amount: { type: Number, required: true },
         method: {
           type: String,
-          enum: ["cash", "card", "online"],
+          enum: ["cash", "card", "online", "upi"],
           default: "cash",
         },
       },
