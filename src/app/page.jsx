@@ -26,7 +26,6 @@ import ProtectedRoute from "@/components/protected-route";
 import PrescriptionManagement from "@/components/prescription-management";
 import PharmacistDashboard from "@/components/pharmacist-dashboard";
 import UserManagement from "@/components/user-management";
-import AccountsManagement from "@/components/account-management";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
@@ -36,6 +35,7 @@ import Image from "next/image";
 import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
 import LabWorkManagement from "@/components/lab-work-management";
+import InvoiceManagement from "@/components/invoice-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -184,7 +184,7 @@ export default function ClinicDashboard() {
       case "accounts":
         return (
           <RoleBasedWrapper allowedRoles={["doctor", "receptionist", "admin"]}>
-            <AccountsManagement />
+            <InvoiceManagement />
           </RoleBasedWrapper>
         );
       case "lab-work":
