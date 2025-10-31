@@ -19,69 +19,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDOB } from "@/utils/helper";
 import Loader from "./loader";
 import { addPaymentToInvoiceApi, getInvocies } from "@/lib";
-
-const DUMMY_INVOICES = [
-  {
-    _id: "1",
-    invoiceType: "appointment",
-    totalAmount: 500,
-    amountPaid: 300,
-    isPaymentComplete: false,
-    patientId: { name: "John Doe", email: "john@example.com" },
-    appointment: { date: "2025-10-30", time: "10:00 AM" },
-    paymentsHistory: [
-      {
-        date: new Date("2025-10-25"),
-        amount: 300,
-        method: "cash",
-      },
-    ],
-  },
-  {
-    _id: "2",
-    invoiceType: "appointment",
-    totalAmount: 1000,
-    amountPaid: 1000,
-    isPaymentComplete: true,
-    patientId: { name: "Jane Smith", email: "jane@example.com" },
-    appointment: { date: "2025-10-28", time: "2:00 PM" },
-    paymentsHistory: [
-      {
-        date: new Date("2025-10-28"),
-        amount: 1000,
-        method: "card",
-      },
-    ],
-  },
-  {
-    _id: "3",
-    invoiceType: "labWork",
-    labWork: { nameOfLab: "ABC" },
-    totalAmount: 750,
-    amountPaid: 0,
-    isPaymentComplete: false,
-    patientId: { name: "Mike Johnson", email: "mike@example.com" },
-    appointment: { date: "2025-11-01", time: "11:30 AM" },
-    paymentsHistory: [],
-  },
-  {
-    _id: "4",
-    invoiceType: "labWork",
-    labWork: { nameOfLab: "XYZ" },
-    totalAmount: 1200,
-    amountPaid: 600,
-    isPaymentComplete: false,
-    patientId: { name: "Sarah Williams", email: "sarah@example.com" },
-    appointment: { date: "2025-10-29", time: "3:00 PM" },
-    paymentsHistory: [
-      {
-        date: new Date("2025-10-29"),
-        amount: 600,
-        method: "online",
-      },
-    ],
-  },
-];
+import PatientSelect from "./patient-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Label } from "./ui/label";
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
@@ -93,19 +39,30 @@ export default function InvoiceManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({});
+  const [patientId, setPatientId] = useState(null);
+  const [isPaymentComplete, setIsPaymentComplete] = useState("All");
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const { data: invoicesDataObject = {}, isLoading: loadingInvoices } =
     useQuery({
-      queryKey: ["invoices", invoiceType, currentPage, limit],
+      queryKey: [
+        "invoices",
+        invoiceType,
+        currentPage,
+        limit,
+        isPaymentComplete,
+      ],
       queryFn: async () =>
         getInvocies({
-          // page:currentPage,
+          page: currentPage,
           invoiceType: invoiceType,
-          isPaymentComplete: null,
-          paginate: false,
+          isPaymentComplete:
+            isPaymentComplete === "All"
+              ? null
+              : isPaymentComplete === "Completed",
+          paginate: true,
         }),
     });
 
@@ -142,7 +99,7 @@ export default function InvoiceManagement() {
   }, [invoicesData]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Invoice Management</h1>
@@ -193,16 +150,39 @@ export default function InvoiceManagement() {
       {/* Invoices Table */}
       <Card className="shadow-md border rounded-2xl">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <CardTitle className="text-xl">Invoices</CardTitle>
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by patient or amount"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-sm"
-              />
+          </div>
+
+          <div className="flex gap-8">
+            <PatientSelect
+              patientId={patientId}
+              setPatientId={setPatientId}
+              addedStyle="mb-2 w-1/4"
+            />
+            <div className="grid gap-2 w-1/4 mb-2">
+              <Label htmlFor="isPaymentComplete">Payment Status</Label>
+              <Select
+                value={isPaymentComplete}
+                onValueChange={(value) => setIsPaymentComplete(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { key: null, value: "All" },
+                    { key: true, value: "Completed" },
+                    { key: false, value: "Pending" },
+                  ].map((status) => (
+                    <SelectItem key={status.key} value={status.value}>
+                      <div className="flex items-center gap-2">
+                        {status.value}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
