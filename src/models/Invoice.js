@@ -32,6 +32,11 @@ const InvoiceSchema = new mongoose.Schema(
       required: true,
     },
 
+    appointmentDate: {
+      type: Date,
+      required: false,
+    },
+
     // financials
     totalAmount: {
       type: Number,
