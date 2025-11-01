@@ -11,8 +11,6 @@ export async function addPaymentForInvoice(invoiceId, amount, paymentMethod) {
       return { success: false, error: "Invoice not found" };
     }
 
-    console.log(invoice.amountPaid + parseInt(amount), "check");
-
     if (invoice.amountPaid + parseInt(amount) > invoice.totalAmount) {
       return { success: false, error: "Payment exceeds total amount" };
     }

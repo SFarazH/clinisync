@@ -19,13 +19,16 @@ export async function addLabWork(data) {
           transactionType: "expense",
           patientId: data.patientId,
           labWork: labWork[0]._id,
-          totalAmount: data.amount,
+          totalAmount: parseInt(data.amount),
           amountPaid: 0,
           isPaymentComplete: false,
         },
       ],
       { session }
     );
+
+    labWork[0].invoice = invoice[0]._id;
+    await labWork[0].save({ session });
 
     // 4️⃣ Commit transaction
     await session.commitTransaction();
@@ -46,19 +49,48 @@ export async function addLabWork(data) {
 
 export async function updateLabWork(id, data) {
   await dbConnect();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const updated = await LabWork.findByIdAndUpdate(id, data, {
+    // 1️⃣ Update the LabWork
+    const updatedLabWork = await LabWork.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
+      session,
     });
 
-    if (!updated) {
+    if (!updatedLabWork) {
+      await session.abortTransaction();
+      session.endSession();
       return { success: false, error: "Lab work not found" };
     }
 
-    return { success: true, data: updated };
+    if (parseInt(data.amount) !== undefined && updatedLabWork.invoice) {
+      const invoiceToUpdate = await Invoice.findById(updatedLabWork.invoice);
+      const isPending = parseInt(data.amount) > invoiceToUpdate.amountPaid;
+      const updatedInvoice = await Invoice.findByIdAndUpdate(
+        updatedLabWork.invoice,
+        { totalAmount: parseInt(data.amount), isPaymentComplete: !isPending },
+        { new: true, session }
+      );
+
+      if (!updatedInvoice) {
+        await session.abortTransaction();
+        session.endSession();
+        return { success: false, error: "Invoice not found" };
+      }
+    }
+
+    // 3️⃣ Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, data: updatedLabWork };
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
     console.error("Error updating lab work:", error);
     return { success: false, error: error.message };
   }
@@ -72,7 +104,6 @@ export async function getAllLabWorks({
   isReceived,
 }) {
   await dbConnect();
-  console.log(patientId, "inside func");
   try {
     const query = {};
 
@@ -129,16 +160,35 @@ export async function markLabWorkComplete(id) {
 
 export async function deleteLabWork(id) {
   await dbConnect();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const deleted = await LabWork.findByIdAndDelete(id);
-    if (!deleted) {
+    // 1️⃣ Find the lab work
+    const labWork = await LabWork.findById(id).session(session);
+    if (!labWork) {
+      await session.abortTransaction();
+      session.endSession();
       return { success: false, error: "Lab work not found" };
     }
 
-    return { success: true, data: deleted };
+    // 2️⃣ Delete the related invoice if it exists
+    if (labWork.invoice) {
+      await Invoice.findByIdAndDelete(labWork.invoice, { session });
+    }
+
+    // 3️⃣ Delete the lab work itself
+    await LabWork.findByIdAndDelete(id, { session });
+
+    // 4️⃣ Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return { success: true, data: labWork };
   } catch (error) {
-    console.error("Error deleting lab work:", error);
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error deleting lab work and invoice:", error);
     return { success: false, error: error.message };
   }
 }

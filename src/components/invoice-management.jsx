@@ -201,12 +201,13 @@ export default function InvoiceManagement() {
                 <TableHeader>
                   {invoiceType === "appointment" ? (
                     <TableRow className="bg-gray-50">
-                      <TableHead className="w-2/12">Patient</TableHead>
-                      <TableHead className="w-2/12">Total Amount</TableHead>
-                      <TableHead className="w-3/12">Payment Progress</TableHead>
-                      <TableHead className="w-2/12">Status</TableHead>
-                      <TableHead className="w-2/12">Date</TableHead>
-                      <TableHead className="w-1/12"></TableHead>
+                      <TableHead className="w-2/14">Patient</TableHead>
+                      <TableHead className="w-2/14">Total Amount</TableHead>
+                      <TableHead className="w-3/14">Payment Progress</TableHead>
+                      <TableHead className="w-2/14">Status</TableHead>
+                      <TableHead className="w-2/14">Date</TableHead>
+                      <TableHead className="w-2/14">Appt Date</TableHead>
+                      <TableHead className="w-1/14"></TableHead>
                     </TableRow>
                   ) : (
                     <TableRow className="bg-gray-50">
@@ -265,6 +266,13 @@ export default function InvoiceManagement() {
                           <TableCell className="text-sm">
                             {formatDOB(invoice?.createdAt)}
                           </TableCell>
+                          {invoiceType === "appointment" && (
+                            <TableCell>
+                              {invoice?.appointmentDate
+                                ? formatDOB(invoice?.appointmentDate)
+                                : "NA"}
+                            </TableCell>
+                          )}
                           <TableCell>
                             <Button
                               variant="outline"

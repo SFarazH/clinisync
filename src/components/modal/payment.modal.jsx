@@ -30,6 +30,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import Loader from "../loader";
 import { getInvoiceById } from "@/lib";
+import { formatDOB } from "@/utils/helper";
 
 export default function PaymentModal({
   isOpen,
@@ -103,6 +104,18 @@ export default function PaymentModal({
                 <p className="text-xs text-muted-foreground">Type</p>
                 <p className="capitalize font-medium">{invoice?.invoiceType}</p>
               </div>
+              {invoice.invoiceType === "appointment" && (
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Appointment Date
+                  </p>
+                  <p className="capitalize font-medium">
+                    {invoice?.appointmentDate
+                      ? formatDOB(invoice.appointmentDate)
+                      : "NA"}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">

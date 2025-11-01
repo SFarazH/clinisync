@@ -2,8 +2,6 @@ import axios from "axios";
 
 export const addPaymentToInvoiceApi = async ({ invoiceId, data }) => {
   const res = await axios.put(`/api/invoice/${invoiceId}`, data);
-
-  console.log(res);
 };
 
 export const getInvocies = async ({
@@ -30,6 +28,5 @@ export const getInvocies = async ({
 export const getInvoiceById = async (invoiceId) => {
   // data-> amount, paymentMethod
   const res = await axios.get(`/api/invoice/${invoiceId}`);
-  console.log(res);
   return res;
 };

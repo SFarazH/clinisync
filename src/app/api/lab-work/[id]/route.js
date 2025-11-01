@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   try {
+    const { id } = await params;
     const body = await req.json();
-    const result = await updateLabWork(params.id, body);
+    const result = await updateLabWork(id, body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -25,7 +26,8 @@ export async function PUT(req, { params }) {
 
 export async function PATCH(_, { params }) {
   try {
-    const result = await markLabWorkComplete(params.id);
+    const { id } = await params;
+    const result = await markLabWorkComplete(id);
 
     if (!result.success) {
       return NextResponse.json(
