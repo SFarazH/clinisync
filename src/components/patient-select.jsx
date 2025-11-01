@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { listPatients } from "@/lib";

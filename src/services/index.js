@@ -8,3 +8,4 @@ export * from "./medicines.service";
 export * from "./prescriptions.service";
 export * from "./s3.service";
 export * from "./lab-work.service";
+export * from "./payments.service";

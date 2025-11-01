@@ -13,6 +13,12 @@ const labWorkSchema = new mongoose.Schema(
     dateSubmitted: { type: Date, required: true },
     dateExpected: { type: Date, required: true },
     amount: { type: Number, required: true },
+    invoice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      required: false,
+      default: null,
+    },
   },
   { timestamps: true }
 );

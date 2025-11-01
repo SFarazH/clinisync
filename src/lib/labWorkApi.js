@@ -7,8 +7,6 @@ export const fetchPaginatedLabWorks = async ({
   isReceived = "",
   paginate = true,
 } = {}) => {
-  console.log("called");
-  console.log(patientId, "ppp");
   const response = await axios.get("/api/lab-work", {
     params: { paginate, page, limit, patientId, isReceived },
   });

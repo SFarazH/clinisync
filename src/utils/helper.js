@@ -316,3 +316,15 @@ export const getRoleIcon = (role) => {
       return <Users className="w-6 h-6" />;
   }
 };
+
+export function formatCurrency(cents, currency = "INR") {
+  const amount = (cents || 0) / 100;
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(
+    amount
+  );
+}
+
+export function parsePriceInputToCents(input) {
+  const value = Number.parseFloat(input || "0");
+  return Math.max(0, Math.round(value * 100));
+}

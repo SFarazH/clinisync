@@ -22,7 +22,6 @@ import {
 import { emptyLabWork } from "./data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
-import Loader from "./loader";
 import {
   fetchPaginatedLabWorks,
   updateLabWork,
@@ -39,6 +38,7 @@ import {
 } from "./ui/select";
 import LabWorkForm from "./forms/lab-work.form";
 import PatientSelect from "./patient-select";
+import Loader from "./loader";
 
 export default function LabWorkManagement() {
   const queryClient = useQueryClient();
@@ -116,7 +116,6 @@ export default function LabWorkManagement() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
 
     if (editingLabWork) {
       updateLabWorkMutation.mutateAsync({
@@ -132,6 +131,11 @@ export default function LabWorkManagement() {
     setIsDialogOpen(false);
   };
 
+  const handleAddLabWork = () => {
+    setIsDialogOpen(true);
+    setFormData(emptyLabWork);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -141,11 +145,7 @@ export default function LabWorkManagement() {
               <CardTitle>Lab Work Management</CardTitle>
               <CardDescription>Add and manage Lab Work</CardDescription>
             </div>
-            <Button
-              onClick={() => {
-                setIsDialogOpen(true);
-              }}
-            >
+            <Button onClick={handleAddLabWork}>
               <Plus className="w-4 h-4 mr-2" />
               Add Lab Work
             </Button>

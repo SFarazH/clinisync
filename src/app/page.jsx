@@ -12,6 +12,7 @@ import {
   Syringe,
   UserCog,
   FlaskConical,
+  ReceiptIndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PatientManagement from "@/components/patient-management";
@@ -24,16 +25,17 @@ import DoctorDashboard from "@/components/doctor-dashbaord";
 import ProtectedRoute from "@/components/protected-route";
 import PrescriptionManagement from "@/components/prescription-management";
 import PharmacistDashboard from "@/components/pharmacist-dashboard";
+import UserManagement from "@/components/user-management";
 import { RoleBasedWrapper } from "@/components/context/role-checker";
 import { useAuth } from "@/components/context/authcontext";
 import { logOut } from "@/lib/authApi";
 import { displayName } from "@/utils/helper";
-import UserManagement from "@/components/user-management";
 import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
 import LabWorkManagement from "@/components/lab-work-management";
+import InvoiceManagement from "@/components/invoice-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -43,7 +45,7 @@ export default function ClinicDashboard() {
       ? "doctor-dashboard"
       : authUser?.role === "pharmacist"
       ? "prescriptions"
-      : "calendar"
+      : "accounts"
   );
 
   const allTabs = [
@@ -98,6 +100,12 @@ export default function ClinicDashboard() {
     },
     { value: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
     { value: "users", label: "Users", icon: UserCog, roles: ["admin"] },
+    {
+      value: "accounts",
+      label: "Accounts",
+      icon: ReceiptIndianRupee,
+      roles: ["admin", "receptionist"],
+    },
   ];
 
   const logoutMutation = useMutation({
@@ -173,6 +181,12 @@ export default function ClinicDashboard() {
             <UserManagement />
           </RoleBasedWrapper>
         );
+      case "accounts":
+        return (
+          <RoleBasedWrapper allowedRoles={["doctor", "receptionist", "admin"]}>
+            <InvoiceManagement />
+          </RoleBasedWrapper>
+        );
       case "lab-work":
         return (
           <RoleBasedWrapper allowedRoles={["admin"]}>
@@ -241,9 +255,7 @@ export default function ClinicDashboard() {
           </nav>
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
-          {/* Main Header */}
           <header className="bg-white  border-b h-18">
             <div className="px-6 py-4 h-full">
               <div className="flex justify-between items-center h-full">

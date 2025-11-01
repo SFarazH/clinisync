@@ -41,6 +41,12 @@ const appointmentSchema = new mongoose.Schema(
       default: null,
     },
     attachments: [attachmentSchema],
+    invoice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      required: false,
+      default: null,
+    },
     notes: String,
   },
   { timestamps: true }

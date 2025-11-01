@@ -27,7 +27,7 @@ export async function GET(_, { params }) {
   }
 }
 
-export async function PUT(req, {params}) {
+export async function PUT(req, { params }) {
   const { id } = await params;
   try {
     const body = await req.json();
