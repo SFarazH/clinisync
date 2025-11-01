@@ -34,7 +34,7 @@ export const updateLabWork = async ({ id, labWorkData }) => {
 
 // ✅ Mark lab work as complete (isReceived = true)
 export const markLabWorkComplete = async (id) => {
-  const response = await axios.patch(`/api/lab-work/${id}/complete`);
+  const response = await axios.patch(`/api/lab-work/${id}`);
   return response.data.data;
 };
 
