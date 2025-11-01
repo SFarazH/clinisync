@@ -12,7 +12,7 @@ export const getInvocies = async ({
   page = 1,
   limit = 10,
 }) => {
-  await axios.get(`/api/invoice`, {
+  const res = await axios.get(`/api/invoice`, {
     params: {
       invoiceType: invoiceType || "appointment",
       patientId: patientId,
@@ -22,6 +22,7 @@ export const getInvocies = async ({
       limit: paginate ? limit : null,
     },
   });
+  return res.data;
 };
 
 export const getInvoiceById = async (invoiceId) => {
