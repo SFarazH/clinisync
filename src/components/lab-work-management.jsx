@@ -27,6 +27,7 @@ import {
   updateLabWork,
   deleteLabWork,
   addNewLabWork,
+  markLabWorkComplete,
 } from "@/lib";
 import { Label } from "./ui/label";
 import {
@@ -96,6 +97,13 @@ export default function LabWorkManagement() {
     },
   });
 
+  const markLabWorkAsReceivedMutation = useMutation({
+    mutationFn: markLabWorkComplete,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["labWork"]);
+    },
+  });
+
   const handleEditLabWork = (labWork) => {
     setEditingLabWork(labWork);
     setFormData({
@@ -108,6 +116,10 @@ export default function LabWorkManagement() {
       amount: labWork.amount,
     });
     setIsDialogOpen(true);
+  };
+
+  const handleMarkLabWork = (labWorkId) => {
+    markLabWorkAsReceivedMutation.mutateAsync(labWorkId);
   };
 
   const handleDeletePatient = (patientId) => {
@@ -191,11 +203,11 @@ export default function LabWorkManagement() {
                     <TableHead className="w-1/18">ID</TableHead>
                     <TableHead className="w-3/18">Name</TableHead>
                     <TableHead className="w-2/18">Patient</TableHead>
-                    <TableHead className="w-3/18">Lab Name</TableHead>
+                    <TableHead className="w-2/18">Lab Name</TableHead>
                     <TableHead className="w-2/18">Submitted</TableHead>
                     <TableHead className="w-2/18">Expected</TableHead>
                     <TableHead className="w-2/18">Amount</TableHead>
-                    <TableHead className="w-2/18">Received</TableHead>
+                    <TableHead className="w-3/18">Received</TableHead>
                     <TableHead className="w-1/18"></TableHead>
                     <TableHead className="w-1/18"></TableHead>
                   </TableRow>
@@ -225,7 +237,21 @@ export default function LabWorkManagement() {
                         </TableCell>
                         <TableCell>{labWork.amount}</TableCell>
                         <TableCell>
-                          {labWork.isReceived ? "Yes" : "No"}
+                          {labWork.isReceived ? (
+                            <Button
+                              variant="outline"
+                              className="bg-green-500 text-white hover:bg-green-500 cursor-default hover:text-white"
+                            >
+                              Received
+                            </Button>
+                          ) : (
+                            <Button
+                              className="cursor-pointer"
+                              onClick={() => handleMarkLabWork(labWork._id)}
+                            >
+                              Mark as Received
+                            </Button>
+                          )}
                         </TableCell>
 
                         <TableCell>
