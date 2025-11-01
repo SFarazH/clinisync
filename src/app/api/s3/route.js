@@ -6,7 +6,6 @@ export async function POST(req) {
   const file = formData.get("file");
   const appointmentId = formData.get("appointmentId");
   try {
-    console.log(file);
     const result = await s3Upload(file, appointmentId);
 
     if (!result.success) {

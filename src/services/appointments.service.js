@@ -18,8 +18,6 @@ export async function createAppointment(data) {
       return { success: false, message: "Procedure not found" };
     }
 
-    console.log(procedure);
-
     const totalAmount = procedure.cost;
 
     const appointment = await Appointment.create(

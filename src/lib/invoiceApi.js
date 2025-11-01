@@ -2,8 +2,6 @@ import axios from "axios";
 
 export const addPaymentToInvoiceApi = async ({ invoiceId, data }) => {
   const res = await axios.put(`/api/invoice/${invoiceId}`, data);
-
-  console.log(res);
 };
 
 export const getInvocies = async ({
@@ -14,7 +12,7 @@ export const getInvocies = async ({
   page = 1,
   limit = 10,
 }) => {
-  const res = await axios.get(`/api/invoice`, {
+  await axios.get(`/api/invoice`, {
     params: {
       invoiceType: invoiceType || "appointment",
       patientId: patientId,
@@ -24,12 +22,10 @@ export const getInvocies = async ({
       limit: paginate ? limit : null,
     },
   });
-  return res.data;
 };
 
 export const getInvoiceById = async (invoiceId) => {
   // data-> amount, paymentMethod
   const res = await axios.get(`/api/invoice/${invoiceId}`);
-  console.log(res);
   return res;
 };

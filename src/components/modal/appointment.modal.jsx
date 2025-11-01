@@ -117,26 +117,6 @@ export default function AppointmentDetailsModal({
     }));
   };
 
-  // const handleSelect = (index, value) => {
-  //   if (value === "other") {
-  //     setShowOtherFields(true);
-
-  //     // handleMedicationChange(index, "medicine", "");
-  //   } else {
-  //     console.log(
-  //       value.name,
-  //       "-",
-  //       value.shortComposition1,
-  //       "-",
-  //       value.shortComposition2
-  //     );
-  //     setShowOtherFields(false);
-
-  //     handleMedicationChange("medicine", value);
-  //   }
-  //   setOpen(false);
-  // };
-
   const handleSelect = (index, value) => {
     if (value === "other") {
       setShowOtherFields(true);
@@ -225,7 +205,6 @@ export default function AppointmentDetailsModal({
   };
 
   const handleSave = () => {
-    console.log(currentPrescription);
     if (isEditing) {
       updatePrescriptionMutation.mutateAsync({
         id: currentPrescription._id,

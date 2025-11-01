@@ -49,7 +49,7 @@ export const s3Upload = async (file, appointmentId) => {
     await appointment.save();
     return { success: true, data: key };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { success: false, error: error.message };
   }
 };
