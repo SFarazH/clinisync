@@ -3,6 +3,7 @@ import Invoice from "@/models/Invoice";
 import Prescription from "@/models/Prescription";
 import Procedure from "@/models/Procedure";
 import { dbConnect } from "@/utils/dbConnect";
+import mongoose from "mongoose";
 
 // add appointment
 export async function createAppointment(data) {
@@ -39,12 +40,13 @@ export async function createAppointment(data) {
           totalAmount: totalAmount,
           amountPaid: 0,
           isPaymentComplete: false,
+          appointmentDate: appointment[0].date,
         },
       ],
       { session }
     );
 
-    appointment[0].invoiceId = invoice[0]._id;
+    appointment[0].invoice = invoice[0]._id;
     await appointment[0].save({ session });
 
     await session.commitTransaction();
@@ -150,20 +152,56 @@ export async function getAppointmentById(id) {
 // update appointment
 export async function updateAppointment(id, data) {
   await dbConnect();
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const appointment = await Appointment.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
+      session,
     })
       .populate("patientId", "name")
       .populate("doctorId", "name")
-      .populate("procedureId", "name duration color abbr");
+      .populate("procedureId", "name duration color abbr cost");
 
     if (!appointment) {
+      await session.abortTransaction();
+      session.endSession();
       return { success: false, error: "Appointment not found" };
     }
+
+    const procedureCost = appointment.procedureId?.cost;
+    const existingInvoice = await Invoice.findById(appointment.invoice).session(
+      session
+    );
+
+    if (existingInvoice) {
+      const isPending = procedureCost > existingInvoice.amountPaid;
+
+      const updatedInvoice = await Invoice.findByIdAndUpdate(
+        appointment.invoice,
+        {
+          totalAmount: procedureCost,
+          isPaymentComplete: !isPending,
+          appointmentDate: appointment.date,
+        },
+        { new: true, session }
+      );
+      console.log(updatedInvoice.totalAmount, "updated");
+
+      if (!updatedInvoice) {
+        await session.abortTransaction();
+        session.endSession();
+        return { success: false, error: "Invoice not found" };
+      }
+    }
+    await session.commitTransaction();
+    session.endSession();
+
     return { success: true, data: appointment };
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error updating appointment:", error);
     return { success: false, error: error.message };
   }
@@ -172,14 +210,34 @@ export async function updateAppointment(id, data) {
 // delete appointment
 export async function deleteAppointment(id) {
   await dbConnect();
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const appointment = await Appointment.findByIdAndDelete(id);
-    await Prescription.findOneAndDelete({ appointment: id });
+    const appointment = await Appointment.findById(id).session(session);
+
     if (!appointment) {
+      await session.abortTransaction();
+      session.endSession();
       return { success: false, error: "Appointment not found" };
     }
+
+    if (appointment.invoice) {
+      await Invoice.findByIdAndDelete(appointment.invoice, { session });
+    }
+
+    if (appointment.prescription) {
+      await Prescription.findOneAndDelete({ appointment: id }, { session });
+    }
+
+    await Appointment.findByIdAndDelete(id, { session });
+    await session.commitTransaction();
+    session.endSession();
+
     return { success: true, data: appointment };
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error deleting appointment:", error);
     return { success: false, error: error.message };
   }
