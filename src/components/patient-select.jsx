@@ -24,8 +24,12 @@ export default function PatientSelect({
 }) {
   const [open, setOpen] = useState(false);
 
-  const currentPatientId = patientId ?? formData?.patientId ?? null;
-
+  const currentPatientId =
+    patientId ??
+    (typeof formData?.patientId === "object"
+      ? formData?.patientId?._id
+      : formData?.patientId) ??
+    null;
   const handleSelect = (id) => {
     if (setPatientId) {
       setPatientId(id);
