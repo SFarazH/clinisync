@@ -158,22 +158,6 @@ export async function markLabWorkComplete(id) {
   }
 }
 
-// export async function deleteLabWork(id) {
-//   await dbConnect();
-
-//   try {
-//     const deleted = await LabWork.findByIdAndDelete(id);
-//     if (!deleted) {
-//       return { success: false, error: "Lab work not found" };
-//     }
-
-//     return { success: true, data: deleted };
-//   } catch (error) {
-//     console.error("Error deleting lab work:", error);
-//     return { success: false, error: error.message };
-//   }
-// }
-
 export async function deleteLabWork(id) {
   await dbConnect();
   const session = await mongoose.startSession();
