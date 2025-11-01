@@ -113,7 +113,6 @@ export default function InvoiceManagement() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-blue-50">
           <CardHeader className="flex items-center">
@@ -147,7 +146,6 @@ export default function InvoiceManagement() {
         </Card>
       </div>
 
-      {/* Invoices Table */}
       <Card className="shadow-md border rounded-2xl">
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
