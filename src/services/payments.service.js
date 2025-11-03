@@ -40,15 +40,29 @@ export async function getInvoices({
   paginate,
   page = 1,
   limit = 10,
+  startDate = null,
+  endDate = null,
 }) {
   await dbConnect();
-
   try {
     paginate = paginate === "true" || paginate === true;
     const query = {};
     query.invoiceType = invoiceType;
+
     if (patientId) {
       query.patientId = patientId;
+    }
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      query.createdAt = { $gte: start, $lte: end };
+    } else if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) };
+    } else if (endDate) {
+      query.createdAt = { $lte: new Date(endDate) };
     }
 
     if (isPaymentComplete) {

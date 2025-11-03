@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PaymentModal from "./modal/payment.modal";
@@ -27,10 +26,11 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Label } from "./ui/label";
-import { DateRangePicker } from "./date-picker";
+import { useDateRange } from "./context/dateRangeContext";
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
+  const { dateRange } = useDateRange();
 
   const [invoiceType, setInvoiceType] = useState("appointment");
 
@@ -53,6 +53,7 @@ export default function InvoiceManagement() {
         limit,
         isPaymentComplete,
         patientId,
+        dateRange,
       ],
       queryFn: async () =>
         getInvocies({
@@ -64,6 +65,8 @@ export default function InvoiceManagement() {
               : isPaymentComplete === "Completed",
           paginate: true,
           patientId: patientId,
+          startDate: dateRange?.from,
+          endDate: dateRange?.to,
         }),
     });
 
