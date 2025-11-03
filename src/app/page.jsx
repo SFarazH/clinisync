@@ -36,6 +36,7 @@ import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
 import LabWorkManagement from "@/components/lab-work-management";
 import InvoiceManagement from "@/components/invoice-management";
+import { DateRangePicker } from "@/components/date-picker";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -268,7 +269,8 @@ export default function ClinicDashboard() {
                 <p className="text-lg font-bold uppercase text-gray-800">
                   {displayName(authUser)}
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-12">
+                  <DateRangePicker />
                   <Button
                     variant="destructive"
                     className="cursor-pointer"
