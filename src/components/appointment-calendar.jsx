@@ -544,14 +544,14 @@ export default function AppointmentCalendar() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">
                 {weekStart.toLocaleDateString("en-US", {
-                  month: "long",
+                  month: "short",
                   day: "numeric",
                 })}{" "}
                 -{" "}
                 {weekEnd.toLocaleDateString("en-US", {
-                  month: "long",
+                  month: "short",
                   day: "numeric",
-                  year: "numeric",
+                  year: "2-digit",
                 })}
               </h2>
               <div className="flex gap-2 items-center">
