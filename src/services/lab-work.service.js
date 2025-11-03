@@ -102,6 +102,8 @@ export async function getAllLabWorks({
   limit = 10,
   patientId,
   isReceived,
+  startDate = null,
+  endDate = null,
 }) {
   await dbConnect();
   try {
@@ -113,6 +115,19 @@ export async function getAllLabWorks({
     if (isReceived) {
       query.isReceived = isReceived;
     }
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      query.createdAt = { $gte: start, $lte: end };
+    } else if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) };
+    } else if (endDate) {
+      query.createdAt = { $lte: new Date(endDate) };
+    }
+
     let labWorkQuery = LabWork.find(query).populate("patientId", "name");
     let total;
     if (paginate) {

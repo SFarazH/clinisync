@@ -6,9 +6,19 @@ export const fetchPaginatedLabWorks = async ({
   patientId = "",
   isReceived = "",
   paginate = true,
+  startDate = null,
+  endDate = null,
 } = {}) => {
   const response = await axios.get("/api/lab-work", {
-    params: { paginate, page, limit, patientId, isReceived },
+    params: {
+      paginate,
+      page,
+      limit,
+      patientId,
+      isReceived,
+      startDate,
+      endDate,
+    },
   });
   return response.data; // returns { success, data, pagination }
 };

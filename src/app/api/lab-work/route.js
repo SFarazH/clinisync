@@ -34,6 +34,8 @@ export async function GET(req) {
     const paginate = searchParams.get("paginate");
     const patientId = searchParams.get("patientId");
     const isReceived = searchParams.get("isReceived");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     const result = await getAllLabWorks({
       paginate,
@@ -41,6 +43,8 @@ export async function GET(req) {
       limit,
       patientId,
       isReceived,
+      startDate,
+      endDate,
     });
 
     if (!result.success) {
