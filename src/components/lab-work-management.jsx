@@ -40,9 +40,11 @@ import {
 import LabWorkForm from "./forms/lab-work.form";
 import PatientSelect from "./patient-select";
 import Loader from "./loader";
+import { useDateRange } from "./context/dateRangeContext";
 
 export default function LabWorkManagement() {
   const queryClient = useQueryClient();
+  const { dateRange } = useDateRange();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyLabWork);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -206,7 +208,6 @@ export default function LabWorkManagement() {
                     <TableHead className="w-2/18">Lab Name</TableHead>
                     <TableHead className="w-2/18">Submitted</TableHead>
                     <TableHead className="w-2/18">Expected</TableHead>
-                    <TableHead className="w-2/18">Amount</TableHead>
                     <TableHead className="w-3/18">Received</TableHead>
                     <TableHead className="w-1/18"></TableHead>
                     <TableHead className="w-1/18"></TableHead>
@@ -235,7 +236,6 @@ export default function LabWorkManagement() {
                         <TableCell>
                           {formatDate(labWork?.dateExpected)}
                         </TableCell>
-                        <TableCell>{labWork.amount}</TableCell>
                         <TableCell>
                           {labWork.isReceived ? (
                             <Button
@@ -246,10 +246,10 @@ export default function LabWorkManagement() {
                             </Button>
                           ) : (
                             <Button
-                              className="cursor-pointer"
+                              className="cursor-pointer bg-blue-500 hover:bg-blue-600"
                               onClick={() => handleMarkLabWork(labWork._id)}
                             >
-                              Mark as Received
+                              Mark Received
                             </Button>
                           )}
                         </TableCell>
