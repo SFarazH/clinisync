@@ -1,5 +1,4 @@
 "use client";
-
 import { format, subDays, subMonths } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -11,20 +10,11 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Label } from "./ui/label";
+import { useDateRange } from "@/components/context/dateRangeContext";
 
 export function DateRangePicker() {
-  const today = new Date();
-  const oneWeekAgo = subDays(today, 7);
-  const oneMonthAgo = subMonths(today, 1);
-  const threeMonthsAgo = subMonths(today, 3);
-
-  const [date, setDate] = useState({
-    from: oneWeekAgo,
-    to: today,
-  });
-
-  const [open, setOpen] = useState(false); // 👈 track popover state
+  const { dateRange, setDateRange } = useDateRange();
+  const [open, setOpen] = useState(false);
 
   const handleQuickSelect = (rangeType) => {
     let newRange;
@@ -44,32 +34,27 @@ export function DateRangePicker() {
       default:
         return;
     }
-    setDate(newRange);
+    setDateRange(newRange);
     setOpen(false);
-  };
-
-  const handleDateSelect = (selected) => {
-    setDate(selected);
   };
 
   return (
     <div className="flex flex-col gap-2">
-      {/* <Label htmlFor="isPaymentComplete">Date Range</Label> */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant="outline"
             className={cn(
-              "w-full justify-center text-left font-normal whitespace-normal break-words",
-              !date && "text-muted-foreground"
+              " w-full justify-center text-left whitespace-normal break-words bg-blue-50 font-semibold",
+              !dateRange && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-            <span className="break-words whitespace-normal">
-              {date?.from && date?.to
-                ? `${format(date.from, "dd/MM/yy")} - ${format(
-                    date.to,
+            <span>
+              {dateRange?.from && dateRange?.to
+                ? `${format(dateRange.from, "dd/MM/yy")} - ${format(
+                    dateRange.to,
                     "dd/MM/yy"
                   )}`
                 : "Pick a date range"}
@@ -77,7 +62,7 @@ export function DateRangePicker() {
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="flex w-auto p-0" align="left">
+        <PopoverContent className="flex w-auto p-0" align="right">
           <div className="flex flex-col border-r p-2 w-32 bg-muted/50">
             <Button
               variant="ghost"
@@ -107,10 +92,10 @@ export function DateRangePicker() {
             <div className="border-t my-2"></div>
 
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
               onClick={() => handleQuickSelect("reset")}
-              className="justify-start"
+              className="justify-center border-red-500"
             >
               Reset
             </Button>
@@ -120,9 +105,9 @@ export function DateRangePicker() {
             <Calendar
               initialFocus
               mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={handleDateSelect}
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={(value) => setDateRange(value)}
               numberOfMonths={1}
             />
           </div>
