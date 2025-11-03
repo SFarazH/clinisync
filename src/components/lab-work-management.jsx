@@ -56,7 +56,14 @@ export default function LabWorkManagement() {
   const [pagination, setPagination] = useState({});
 
   const { data: labWorkDataObject = {}, isLoading: loadingLabWork } = useQuery({
-    queryKey: ["labWork", currentPage, limit, selectedPatient, receivedBool],
+    queryKey: [
+      "labWork",
+      currentPage,
+      limit,
+      selectedPatient,
+      receivedBool,
+      dateRange,
+    ],
     queryFn: async () =>
       fetchPaginatedLabWorks({
         page: currentPage,
@@ -64,6 +71,8 @@ export default function LabWorkManagement() {
         paginate: true,
         patientId: selectedPatient,
         isReceived: receivedBool === "All" ? null : receivedBool === "Received",
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
       }),
   });
 
@@ -253,7 +262,6 @@ export default function LabWorkManagement() {
                             </Button>
                           )}
                         </TableCell>
-
                         <TableCell>
                           <Button
                             variant="outline"
