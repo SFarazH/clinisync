@@ -108,10 +108,6 @@ export default function InvoiceManagement() {
             Track and manage all invoices and payments
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          New Invoice
-        </Button>
       </div>
 
       {/* <div className="grid gap-6 md:grid-cols-3">
