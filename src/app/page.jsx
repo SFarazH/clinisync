@@ -270,7 +270,7 @@ export default function ClinicDashboard() {
                         ?.label || "Dashboard"}
                     </h1>
                   </div> */}
-                  <DateRangePicker />
+                  {activeTab !== "calendar" ? <DateRangePicker /> : <div></div>}
                   <p className="text-lg font-bold uppercase text-gray-800">
                     {displayName(authUser)}
                   </p>
