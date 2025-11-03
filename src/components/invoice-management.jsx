@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +27,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Label } from "./ui/label";
+import { DateRangePicker } from "./date-picker";
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
@@ -52,6 +52,7 @@ export default function InvoiceManagement() {
         currentPage,
         limit,
         isPaymentComplete,
+        patientId,
       ],
       queryFn: async () =>
         getInvocies({
@@ -62,6 +63,7 @@ export default function InvoiceManagement() {
               ? null
               : isPaymentComplete === "Completed",
           paginate: true,
+          patientId: patientId,
         }),
     });
 
@@ -112,7 +114,7 @@ export default function InvoiceManagement() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      {/* <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-blue-50">
           <CardHeader className="flex items-center">
             <CardTitle className="text-md flex items-center justify-between font-medium w-full">
@@ -143,7 +145,7 @@ export default function InvoiceManagement() {
             </CardTitle>
           </CardHeader>
         </Card>
-      </div>
+      </div> */}
 
       <Card className="shadow-md border rounded-2xl">
         <CardHeader>
@@ -180,6 +182,19 @@ export default function InvoiceManagement() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-end mb-2">
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                disabled={patientId === null && isPaymentComplete === "All"}
+                onClick={() => {
+                  setPatientId(null);
+                  setIsPaymentComplete("All");
+                }}
+              >
+                Clear
+              </Button>
             </div>
           </div>
         </CardHeader>
