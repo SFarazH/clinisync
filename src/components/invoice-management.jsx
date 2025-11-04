@@ -238,11 +238,6 @@ export default function InvoiceManagement() {
                 <TableBody>
                   {invoicesData?.length > 0 ? (
                     invoicesData?.map((invoice) => {
-                      const progressPercent = (
-                        (invoice.amountPaid / invoice.totalAmount) *
-                        100
-                      ).toFixed(0);
-
                       return (
                         <TableRow
                           key={invoice._id}
