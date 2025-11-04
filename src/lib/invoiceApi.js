@@ -11,6 +11,8 @@ export const getInvocies = async ({
   paginate,
   page = 1,
   limit = 10,
+  startDate = null,
+  endDate = null,
 }) => {
   const res = await axios.get(`/api/invoice`, {
     params: {
@@ -20,6 +22,8 @@ export const getInvocies = async ({
       paginate,
       page: paginate ? page : null,
       limit: paginate ? limit : null,
+      startDate: startDate,
+      endDate: endDate,
     },
   });
   return res.data;

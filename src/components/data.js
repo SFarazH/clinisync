@@ -132,7 +132,7 @@ export const emptyLabWork = {
   patientId: "",
   work: "",
   isReceived: false,
-  dateSubmitted: "",
+  dateSubmitted: Date.now(  ),
   dateExpected: "",
   amount: 0,
 };

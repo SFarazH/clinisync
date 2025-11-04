@@ -10,6 +10,8 @@ export async function GET(req) {
     const patientId = searchParams.get("patientId");
     const invoiceType = searchParams.get("invoiceType");
     const isPaymentComplete = searchParams.get("isPaymentComplete");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     const result = await getInvoices({
       invoiceType,
@@ -18,6 +20,8 @@ export async function GET(req) {
       paginate,
       page,
       limit,
+      startDate,
+      endDate,
     });
 
     if (!result.success) {

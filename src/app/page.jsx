@@ -36,6 +36,8 @@ import Loader from "@/components/loader";
 import { useMutation } from "@tanstack/react-query";
 import LabWorkManagement from "@/components/lab-work-management";
 import InvoiceManagement from "@/components/invoice-management";
+import { DateRangePicker } from "@/components/date-picker";
+import { DateRangeProvider } from "@/components/context/dateRangeContext";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
@@ -200,93 +202,98 @@ export default function ClinicDashboard() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 flex">
-        <div
-          className={`bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${
-            sidebarCollapsed ? "w-16" : "w-64"
-          }`}
-        >
-          {/* Sidebar Header */}
-          <div className="px-4 py-4 border-b flex items-center justify-between h-18">
-            <div
-              className={`flex items-center ${
-                sidebarCollapsed ? "justify-center" : ""
-              }`}
-            >
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="cursor-pointer w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-gray-100 transition-colors duration-200"
-                title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      <DateRangeProvider>
+        <div className="min-h-screen bg-gray-50 flex">
+          <div
+            className={`bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${
+              sidebarCollapsed ? "w-16" : "w-64"
+            }`}
+          >
+            {/* Sidebar Header */}
+            <div className="px-4 py-4 border-b flex items-center justify-between h-18">
+              <div
+                className={`flex items-center ${
+                  sidebarCollapsed ? "justify-center" : ""
+                }`}
               >
-                <Image src={logo} alt="logo" />
-              </button>
-              {!sidebarCollapsed && (
-                <h2 className="ml-3 text-lg font-bold text-gray-900">
-                  ClinicSync
-                </h2>
-              )}
-            </div>
-          </div>
-
-          {/* Navigation Menu */}
-          <nav className="flex-1 p-2">
-            <ul className="space-y-1">
-              {filteredTabs.map((tab) => (
-                <li key={tab.value}>
-                  <button
-                    onClick={() => setActiveTab(tab.value)}
-                    className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      activeTab === tab.value
-                        ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    } ${sidebarCollapsed ? "justify-center" : ""}`}
-                    title={sidebarCollapsed ? tab.label : ""}
-                  >
-                    <tab.icon
-                      className={`w-5 h-5 ${
-                        sidebarCollapsed ? "" : "mr-3"
-                      } flex-shrink-0`}
-                    />
-                    {!sidebarCollapsed && <span>{tab.label}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-
-        <div className="flex-1 flex flex-col">
-          <header className="bg-white  border-b h-18">
-            <div className="px-6 py-4 h-full">
-              <div className="flex justify-between items-center h-full">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {filteredTabs.find((tab) => tab.value === activeTab)
-                      ?.label || "Dashboard"}
-                  </h1>
-                </div>
-                <p className="text-lg font-bold uppercase text-gray-800">
-                  {displayName(authUser)}
-                </p>
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="destructive"
-                    className="cursor-pointer"
-                    onClick={logoutMutation.mutateAsync}
-                  >
-                    Logout
-                  </Button>
-                </div>
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="cursor-pointer w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-gray-100 transition-colors duration-200"
+                  title={
+                    sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                  }
+                >
+                  <Image src={logo} alt="logo" />
+                </button>
+                {!sidebarCollapsed && (
+                  <h2 className="ml-3 text-lg font-bold text-gray-900">
+                    ClinicSync
+                  </h2>
+                )}
               </div>
             </div>
-          </header>
 
-          <main className="flex-1 p-6 overflow-auto">
-            <div className="h-full">{renderActiveContent()}</div>
-          </main>
+            {/* Navigation Menu */}
+            <nav className="flex-1 p-2">
+              <ul className="space-y-1">
+                {filteredTabs.map((tab) => (
+                  <li key={tab.value}>
+                    <button
+                      onClick={() => setActiveTab(tab.value)}
+                      className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                        activeTab === tab.value
+                          ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      } ${sidebarCollapsed ? "justify-center" : ""}`}
+                      title={sidebarCollapsed ? tab.label : ""}
+                    >
+                      <tab.icon
+                        className={`w-5 h-5 ${
+                          sidebarCollapsed ? "" : "mr-3"
+                        } flex-shrink-0`}
+                      />
+                      {!sidebarCollapsed && <span>{tab.label}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+
+          <div className="flex-1 flex flex-col">
+            <header className="bg-white  border-b h-18">
+              <div className="px-6 py-4 h-full">
+                <div className="flex justify-between items-center h-full">
+                  {/* <div>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {filteredTabs.find((tab) => tab.value === activeTab)
+                        ?.label || "Dashboard"}
+                    </h1>
+                  </div> */}
+                  {activeTab !== "calendar" ? <DateRangePicker /> : <div></div>}
+                  <p className="text-lg font-bold uppercase text-gray-800">
+                    {displayName(authUser)}
+                  </p>
+                  <div className="flex items-center">
+                    <Button
+                      variant="destructive"
+                      className="cursor-pointer"
+                      onClick={logoutMutation.mutateAsync}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <main className="flex-1 p-6 overflow-auto">
+              <div className="h-full">{renderActiveContent()}</div>
+            </main>
+          </div>
         </div>
-      </div>
-      {logoutMutation.isPending && <Loader />}
+        {logoutMutation.isPending && <Loader />}
+      </DateRangeProvider>
     </ProtectedRoute>
   );
 }

@@ -104,14 +104,14 @@ export default function PaymentModal({
                 <p className="text-xs text-muted-foreground">Type</p>
                 <p className="capitalize font-medium">{invoice?.invoiceType}</p>
               </div>
-              {invoice.invoiceType === "appointment" && (
+              {invoice?.invoiceType === "appointment" && (
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Appointment Date
                   </p>
                   <p className="capitalize font-medium">
                     {invoice?.appointmentDate
-                      ? formatDOB(invoice.appointmentDate)
+                      ? formatDOB(invoice?.appointmentDate)
                       : "NA"}
                   </p>
                 </div>
