@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -27,6 +27,7 @@ import {
 } from "./ui/select";
 import { Label } from "./ui/label";
 import { useDateRange } from "./context/dateRangeContext";
+import { Pagination } from "./pagination";
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
@@ -58,6 +59,7 @@ export default function InvoiceManagement() {
       queryFn: async () =>
         getInvocies({
           page: currentPage,
+          limit: limit,
           invoiceType: invoiceType,
           isPaymentComplete:
             isPaymentComplete === "All"
@@ -104,14 +106,14 @@ export default function InvoiceManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Invoice Management</h1>
           <p className="text-muted-foreground">
             Track and manage all invoices and payments
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-blue-50">
@@ -148,11 +150,15 @@ export default function InvoiceManagement() {
 
       <Card className="shadow-md border rounded-2xl">
         <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <CardTitle className="text-xl">Invoices</CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Invoice Management</CardTitle>
+              <CardDescription>Add and manage payments</CardDescription>
+            </div>
           </div>
-
-          <div className="flex gap-8">
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-8 mb-4">
             <PatientSelect
               patientId={patientId}
               setPatientId={setPatientId}
@@ -196,8 +202,6 @@ export default function InvoiceManagement() {
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
           <Tabs
             value={invoiceType}
             onValueChange={(e) => {
@@ -303,49 +307,12 @@ export default function InvoiceManagement() {
                   )}
                 </TableBody>
               </Table>
-              <div className="flex flex-col text-sm md:flex-row justify-between items-center mt-6 gap-2">
-                <div>
-                  Page <b>{pagination?.page}</b> of <b>{pagination?.pages}</b>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination?.page <= 1}
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination?.page >= pagination?.pages}
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="limit">Rows per page:</label>
-                    <select
-                      id="limit"
-                      value={limit}
-                      onChange={(e) => {
-                        setLimit(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="border rounded p-1"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <Pagination
+                limit={limit}
+                pagination={pagination}
+                setCurrentPage={setCurrentPage}
+                setLimit={setLimit}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
