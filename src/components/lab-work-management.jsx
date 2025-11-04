@@ -41,6 +41,7 @@ import LabWorkForm from "./forms/lab-work.form";
 import PatientSelect from "./patient-select";
 import Loader from "./loader";
 import { useDateRange } from "./context/dateRangeContext";
+import { Pagination } from "./pagination";
 
 export default function LabWorkManagement() {
   const queryClient = useQueryClient();
@@ -206,6 +207,19 @@ export default function LabWorkManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex items-end mb-2">
+                <Button
+                  variant="outline"
+                  className="cursor-pointer"
+                  disabled={selectedPatient === null && receivedBool === "All"}
+                  onClick={() => {
+                    setSelectedPatient(null);
+                    setReceivedBool("All");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
             <div className="grid gap-4">
               <Table>
@@ -294,49 +308,12 @@ export default function LabWorkManagement() {
                   )}
                 </TableBody>
               </Table>
-              <div className="flex flex-col text-sm md:flex-row justify-between items-center mt-4 gap-2">
-                <div>
-                  Page <b>{pagination.page}</b> of <b>{pagination.pages}</b>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page <= 1}
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page >= pagination.pages}
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="limit">Rows per page:</label>
-                    <select
-                      id="limit"
-                      value={limit}
-                      onChange={(e) => {
-                        setLimit(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="border rounded p-1"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <Pagination
+                pagination={pagination}
+                limit={limit}
+                setCurrentPage={setCurrentPage}
+                setLimit={setLimit}
+              />
             </div>
           </div>
         </CardContent>
