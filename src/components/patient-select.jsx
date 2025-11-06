@@ -46,7 +46,12 @@ export default function PatientSelect({
   return (
     <div className={`grid gap-2 ${addedStyle}`}>
       <Label htmlFor="patient">Patient</Label>
-      <Popover open={open} onOpenChange={setOpen} className="w-full">
+      <Popover
+        open={open}
+        onOpenChange={setOpen}
+        className="w-full"
+        modal={true}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -60,7 +65,7 @@ export default function PatientSelect({
             <ChevronsUpDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] overflow-y-auto">
           <Command className="w-full">
             {loadingPatients ? (
               <CommandList>
