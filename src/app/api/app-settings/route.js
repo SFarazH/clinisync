@@ -1,7 +1,17 @@
 import { createOrUpdateAppSettings, getAppSettings } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const auth = await requireAuth(rolePermissions.appSettings.getSettings);
+  if (!auth.ok) {
+    return NextResponse.json(
+      { success: false, error: auth.message },
+      { status: auth.status }
+    );
+  }
+
   const result = await getAppSettings();
 
   if (!result.success) {
@@ -16,6 +26,16 @@ export async function GET() {
 
 export async function POST(req) {
   try {
+    const auth = await requireAuth(
+      rolePermissions.appSettings.createOrUpdateSettings
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+
     const body = await req.json();
     const result = await createOrUpdateAppSettings(body);
 

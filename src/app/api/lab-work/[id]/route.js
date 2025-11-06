@@ -1,8 +1,17 @@
 import { deleteLabWork, markLabWorkComplete, updateLabWork } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.labWork.updateLabWork);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { id } = await params;
     const body = await req.json();
     const result = await updateLabWork(id, body);
@@ -26,6 +35,13 @@ export async function PUT(req, { params }) {
 
 export async function PATCH(_, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.labWork.markLabWorkComplete);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { id } = await params;
     const result = await markLabWorkComplete(id);
 
@@ -48,6 +64,13 @@ export async function PATCH(_, { params }) {
 
 export async function DELETE(_, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.labWork.deleteLabWork);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const result = await deleteLabWork(params.id);
 
     if (!result.success) {

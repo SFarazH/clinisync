@@ -1,8 +1,18 @@
 import { createProcedure, getProcedures } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
+    const auth = await requireAuth(rolePermissions.procedures.createProcedure);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+
     const body = await req.json();
     const result = await createProcedure(body);
 
@@ -26,9 +36,16 @@ export async function POST(req) {
   }
 }
 
-export async function GET(req) {
-  const result = await getProcedures();
+export async function GET() {
   try {
+    const auth = await requireAuth(rolePermissions.procedures.getProcedures);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const result = await getProcedures();
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },

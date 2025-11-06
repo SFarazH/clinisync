@@ -1,8 +1,17 @@
 import { getInvoices } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
+    const auth = await requireAuth(rolePermissions.invocie.getInvocies);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;

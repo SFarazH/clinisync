@@ -1,8 +1,16 @@
 import { searchPatients } from "@/services";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
+    const auth = await requireAuth(rolePermissions.patients.searchPatients);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { searchParams } = new URL(req.url);
     const searchTerm = searchParams.get("q") || "";
 

@@ -1,10 +1,11 @@
 import { createPatient, getPaginatedPatients } from "@/services";
 import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const auth = await requireAuth(["admin", "receptionist"]);
+    const auth = await requireAuth(rolePermissions.patients.createPatient);
     if (!auth.ok) {
       return NextResponse.json(
         { success: false, error: auth.message },
@@ -36,7 +37,7 @@ export async function POST(req) {
 
 export async function GET(req) {
   try {
-    const auth = await requireAuth(["admin", "receptionist"]);
+    const auth = await requireAuth(rolePermissions.patients.getPaginatedPatients);
     if (!auth.ok) {
       return NextResponse.json(
         { success: false, error: auth.message },

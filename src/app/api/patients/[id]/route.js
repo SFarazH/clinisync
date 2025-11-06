@@ -1,8 +1,17 @@
 import { deletePatient, getPatientById, updatePatient } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.patients.getPatientById);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { id } = await params;
     const result = await getPatientById(id);
 
@@ -25,6 +34,13 @@ export async function GET(_, { params }) {
 
 export async function PUT(req, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.patients.updatePatient);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const body = await req.json();
     const result = await updatePatient(params.id, body);
 
@@ -47,6 +63,13 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(_, { params }) {
   try {
+    const auth = await requireAuth(rolePermissions.patients.deletePatient);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const result = await deletePatient(params.id);
 
     if (!result.success) {

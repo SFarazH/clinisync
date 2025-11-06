@@ -4,10 +4,19 @@ import {
   updateDoctor,
   deleteDoctor,
 } from "@/services/doctors.service";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 
 export async function GET(_, { params }) {
-  const { id } = await params;
   try {
+    const auth = await requireAuth(rolePermissions.doctors.getDoctorById);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { id } = await params;
     const result = await getDoctorById(id);
 
     if (!result.success) {
@@ -28,8 +37,15 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  const { id } = await params;
   try {
+    const auth = await requireAuth(rolePermissions.doctors.updateDoctor);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { id } = await params;
     const body = await req.json();
     const result = await updateDoctor(id, body);
 
@@ -51,8 +67,15 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(_, { params }) {
-  const { id } = await params;
   try {
+    const auth = await requireAuth(rolePermissions.doctors.deleteDoctor);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { id } = await params;
     const result = await deleteDoctor(id);
 
     if (!result.success) {

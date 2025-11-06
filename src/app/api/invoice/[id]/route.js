@@ -1,8 +1,19 @@
 import { addPaymentForInvoice, getInvoiceById } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   try {
+    const auth = await requireAuth(
+      rolePermissions.invocie.addPaymentForInvoice
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const body = await req.json();
     const { id } = await params;
     const result = await addPaymentForInvoice(
@@ -29,8 +40,16 @@ export async function PUT(req, { params }) {
 }
 
 export async function GET(_, { params }) {
-  const { id } = await params;
   try {
+    const auth = await requireAuth(rolePermissions.invocie.getInvoiceById);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+
+    const { id } = await params;
     const result = await getInvoiceById(id);
 
     if (!result.success) {

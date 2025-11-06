@@ -1,10 +1,19 @@
 import { deleteProcedure, getProcedureById, updateProcedure } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
   const { id } = await params;
 
   try {
+    const auth = await requireAuth(rolePermissions.procedures.getProcedureById);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const result = await getProcedureById(id);
 
     if (!result.success) {
@@ -28,6 +37,13 @@ export async function PUT(req, { params }) {
   const { id } = await params;
 
   try {
+    const auth = await requireAuth(rolePermissions.procedures.updateProcedure);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const body = await req.json();
     const result = await updateProcedure(id, body);
 
@@ -52,6 +68,13 @@ export async function DELETE(_, { params }) {
   const { id } = await params;
 
   try {
+    const auth = await requireAuth(rolePermissions.procedures.deleteProcedure);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const result = await deleteProcedure(id);
 
     if (!result.success) {

@@ -1,7 +1,16 @@
 import { getS3Image } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
+  const auth = await requireAuth(rolePermissions.s3.getS3Image);
+  if (!auth.ok) {
+    return NextResponse.json(
+      { success: false, error: auth.message },
+      { status: auth.status }
+    );
+  }
   const { id: key } = await params;
 
   if (!key) {
