@@ -1,6 +1,8 @@
 "use client";
 
+import { useAuth } from "@/components/context/authcontext";
 import { redirect } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ClinicDashboard() {
   const { authUser } = useAuth();
@@ -11,5 +13,10 @@ export default function ClinicDashboard() {
     }
   }, [authUser]);
 
-  return <h1>Welcome to CliniSync</h1>;
+  return (
+    <>
+      <h1>Welcome to CliniSync</h1>
+      <button onClick={() => redirect("/login")}>login</button>
+    </>
+  );
 }

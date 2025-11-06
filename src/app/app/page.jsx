@@ -37,6 +37,7 @@ import { DateRangePicker } from "@/components/date-picker";
 import Image from "next/image";
 import { displayName } from "@/utils/helper";
 import logo from "../../../public/clinisync-t.png";
+import Loader from "@/components/loader";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser } = useAuth();
