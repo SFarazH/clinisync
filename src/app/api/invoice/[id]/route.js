@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 export async function PUT(req, { params }) {
   try {
     const body = await req.json();
+    const { id } = await params;
     const result = await addPaymentForInvoice(
-      params.id,
+      id,
       body.amount,
       body.paymentMethod
     );
