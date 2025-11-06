@@ -17,7 +17,9 @@ export const listPatients = async () => {
 };
 
 export const createNewPatient = async (patientData) => {
-  const response = await axios.post("/api/patients", patientData);
+  const response = await axios.post("/api/patients", patientData, {
+    withCredentials: true,
+  });
   return response.data.data;
 };
 

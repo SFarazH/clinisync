@@ -1,8 +1,16 @@
 import { createPatient, getPaginatedPatients } from "@/services";
+import { requireAuth } from "@/utils/require-auth";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
+    const auth = await requireAuth(["admin", "receptionist"]);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const body = await req.json();
     const result = await createPatient(body);
 
@@ -28,6 +36,13 @@ export async function POST(req) {
 
 export async function GET(req) {
   try {
+    const auth = await requireAuth(["admin", "receptionist"]);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
