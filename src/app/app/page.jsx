@@ -209,7 +209,6 @@ export default function ClinicDashboard() {
               sidebarCollapsed ? "w-16" : "w-64"
             }`}
           >
-            {/* Sidebar Header */}
             <div className="px-4 py-4 border-b flex items-center justify-between h-18">
               <div
                 className={`flex items-center ${
@@ -233,7 +232,6 @@ export default function ClinicDashboard() {
               </div>
             </div>
 
-            {/* Navigation Menu */}
             <nav className="flex-1 p-2">
               <ul className="space-y-1">
                 {filteredTabs.map((tab) => (
