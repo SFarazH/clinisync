@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.addLabWork);
     if (!auth.ok) {
@@ -37,6 +38,7 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.getAllLabWorks);
     if (!auth.ok) {

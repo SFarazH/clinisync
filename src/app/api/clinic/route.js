@@ -1,12 +1,10 @@
-import { updatePrescription } from "@/services";
+import { addClinic } from "@/services/clinic.service";
 import { NextResponse } from "next/server";
 
-export async function PUT(req, { params }) {
-  const dbName = req.headers.get("db-name");
-  const { id } = await params;
+export async function POST(req) {
   try {
     const body = await req.json();
-    const result = await updatePrescription(id, body);
+    const result = await addClinic(body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -15,9 +13,12 @@ export async function PUT(req, { params }) {
       );
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return NextResponse.json(
+      { success: true, data: result.data },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Error in PUT /api/prescriptions/[id]:", error);
+    console.error("Error in POST /api/clinic:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

@@ -2,6 +2,7 @@ import { addPrescription, getPrescriptions } from "@/services";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const body = await req.json();
     const result = await addPrescription(body);
@@ -27,6 +28,7 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;

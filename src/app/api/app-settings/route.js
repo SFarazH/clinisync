@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.appSettings.getSettings);
   if (!auth.ok) {
     return NextResponse.json(
@@ -25,6 +26,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
       rolePermissions.appSettings.createOrUpdateSettings

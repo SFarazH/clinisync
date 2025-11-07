@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.getPatientById);
     if (!auth.ok) {
@@ -33,6 +34,7 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.updatePatient);
     if (!auth.ok) {
@@ -62,6 +64,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.deletePatient);
     if (!auth.ok) {

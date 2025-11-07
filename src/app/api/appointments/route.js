@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
       rolePermissions.appointments.createAppointment
@@ -38,17 +39,18 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
-        const auth = await requireAuth(
-          rolePermissions.appointments.listAppointments
-        );
-        if (!auth.ok) {
-          return NextResponse.json(
-            { success: false, error: auth.message },
-            { status: auth.status }
-          );
-        }
-
+    const auth = await requireAuth(
+      rolePermissions.appointments.listAppointments
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const dbName = req.headers.get("db-name");
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
@@ -66,6 +68,7 @@ export async function GET(req) {
       endDate,
       paginate,
       status,
+      dbName,
     });
 
     if (!result.success) {

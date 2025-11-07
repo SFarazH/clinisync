@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
       rolePermissions.invocie.addPaymentForInvoice
@@ -40,6 +41,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function GET(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.invocie.getInvoiceById);
     if (!auth.ok) {

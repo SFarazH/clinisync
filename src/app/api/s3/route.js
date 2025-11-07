@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.s3.s3Upload);
   if (!auth.ok) {
     return NextResponse.json(

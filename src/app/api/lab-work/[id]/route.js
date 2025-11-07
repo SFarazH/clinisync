@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.updateLabWork);
     if (!auth.ok) {
@@ -34,6 +35,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function PATCH(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.markLabWorkComplete);
     if (!auth.ok) {
@@ -63,6 +65,7 @@ export async function PATCH(_, { params }) {
 }
 
 export async function DELETE(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.deleteLabWork);
     if (!auth.ok) {

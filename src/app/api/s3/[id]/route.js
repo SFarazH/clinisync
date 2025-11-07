@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
+  const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.s3.getS3Image);
   if (!auth.ok) {
     return NextResponse.json(

@@ -8,6 +8,7 @@ import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions";
 
 export async function GET(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.getDoctorById);
     if (!auth.ok) {
@@ -37,6 +38,7 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.updateDoctor);
     if (!auth.ok) {
@@ -67,6 +69,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(_, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.deleteDoctor);
     if (!auth.ok) {

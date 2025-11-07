@@ -8,6 +8,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function GET(_, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
     const auth = await requireAuth(
@@ -40,6 +41,7 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
     const auth = await requireAuth(
@@ -73,6 +75,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(_, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
     const auth = await requireAuth(

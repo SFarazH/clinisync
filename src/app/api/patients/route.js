@@ -4,6 +4,7 @@ import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.createPatient);
     if (!auth.ok) {
@@ -13,7 +14,7 @@ export async function POST(req) {
       );
     }
     const body = await req.json();
-    const result = await createPatient(body);
+    const result = await createPatient(body, body.dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -35,9 +36,11 @@ export async function POST(req) {
   }
 }
 
-export async function GET(req) {
+export async function GET(req) {const dbName = req.headers.get("db-name");
   try {
-    const auth = await requireAuth(rolePermissions.patients.getPaginatedPatients);
+    const auth = await requireAuth(
+      rolePermissions.patients.getPaginatedPatients
+    );
     if (!auth.ok) {
       return NextResponse.json(
         { success: false, error: auth.message },
