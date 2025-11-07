@@ -4,32 +4,26 @@ import dotenv from "dotenv";
 dotenv.config({ quiet: true });
 const DB_URL = process.env.DB_URL;
 
-let cached = global.mongoose;
+const connections = global.connections || new Map();
+global.connections = connections;
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+export async function getDatabaseConnection(dbName) {
+  if (!dbName) throw new Error("Database name is required.");
 
-async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
+  if (dbName === "clinisync") {
+    const fullUri = `${DB_URL}/${dbName}`;
+    const conn = await mongoose.createConnection(fullUri).asPromise();
+    return conn;
   }
 
-  if (!cached.promise) {
-    cached.promise = mongoose
-      .connect(DB_URL)
-      .then((mongooseInstance) => {
-        console.log("Database connected successfully");
-        return mongooseInstance;
-      })
-      .catch((error) => {
-        console.error("Failed to connect to DB:", error);
-        throw error;
-      });
+  if (connections.has(dbName)) {
+    return connections.get(dbName);
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
+  const fullUri = `${DB_URL}/${dbName}`;
+  const conn = await mongoose.createConnection(fullUri).asPromise();
+  console.log(`✅ Connected to database: ${dbName}`);
 
-export { dbConnect };
+  connections.set(dbName, conn);
+  return conn;
+}
