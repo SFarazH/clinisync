@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Users from "@/models/Users";
 import { cookies } from "next/headers";
-import { dbConnect } from "./dbConnect";
+import { getDatabaseConnection } from "./dbConnect";
 
 dotenv.config({ quiet: true });
 
@@ -15,12 +15,13 @@ export const authenticate = async () => {
   }
 
   try {
-    await dbConnect();
+    const clinisyncConn = await getDatabaseConnection("clinisync");
+    const usersModel = clinisyncConn.model("Users", Users.schema);
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    const user = await Users.findById(decodedToken.id).select(
-      "_id name email role"
-    );
+    const user = await usersModel
+      .findById(decodedToken.id)
+      .select("_id name email role");
 
     if (!user) {
       return { success: false, message: "User not found" };
