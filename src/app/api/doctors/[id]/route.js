@@ -5,7 +5,7 @@ import {
   deleteDoctor,
 } from "@/services/doctors.service";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 
 export async function GET(_, { params }) {
   const dbName = req.headers.get("db-name");
