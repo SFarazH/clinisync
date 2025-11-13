@@ -11,11 +11,13 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [authUser, setAuthUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authClinic, setAuthClinic] = useState(null);
 
   const checkUser = async () => {
     const res = await verifyUser();
     if (res.success) {
       setAuthUser(res.user);
+      setAuthClinic(res.user.clinic);
     } else {
       setAuthUser(null);
     }
@@ -27,6 +29,8 @@ export function AuthProvider({ children }) {
     setAuthUser,
     isLoading,
     checkUser,
+    authClinic,
+    setAuthClinic,
   };
 
   useEffect(() => {
