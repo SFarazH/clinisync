@@ -1,19 +1,25 @@
 import Patient from "@/models/Patient";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
 // create patient
-export async function createPatient(data) {
-  await dbConnect();
+export async function createPatient(data, dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
 
   try {
-    const existingPatient = await Patient.findOne({ email: data.email });
+    const existingPatient = await patientsModel.findOne({ email: data.email });
+
     if (existingPatient) {
       return { success: false, error: "Email already exists" };
     }
 
-    const existingPatientByPhone = await Patient.findOne({
+    const existingPatientByPhone = await patientsModel.findOne({
       phone: data.phone,
     });
+
     if (existingPatientByPhone) {
       if (existingPatientByPhone.name === data.name) {
         return {
@@ -23,7 +29,7 @@ export async function createPatient(data) {
       }
     }
 
-    const patient = await Patient.create(data);
+    const patient = await patientsModel.create(data);
     return { success: true, data: patient };
   } catch (error) {
     console.error("Error creating patient:", error);
@@ -32,11 +38,15 @@ export async function createPatient(data) {
 }
 
 // update patient
-export async function updatePatient(id, data) {
-  await dbConnect();
+export async function updatePatient(id, data, dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
 
   try {
-    const updatedPatient = await Patient.findByIdAndUpdate(id, data, {
+    const updatedPatient = await patientsModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
@@ -52,10 +62,14 @@ export async function updatePatient(id, data) {
   }
 }
 
-export async function listPatients() {
-  await dbConnect();
+export async function listPatients(dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
   try {
-    const patients = await Patient.find({}, "name dob");
+    const patients = await patientsModel.find({}, "name dob");
     return {
       success: true,
       data: patients,
@@ -71,8 +85,13 @@ export async function getPaginatedPatients({
   page = 1,
   limit = 10,
   search = "",
+  dbName,
 }) {
-  await dbConnect();
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
 
   try {
     const query = search
@@ -85,12 +104,13 @@ export async function getPaginatedPatients({
         }
       : {};
 
-    const patients = await Patient.find(query)
+    const patients = await patientsModel
+      .find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const total = await Patient.countDocuments(query);
+    const total = await patientsModel.countDocuments(query);
 
     return {
       success: true,
@@ -109,10 +129,14 @@ export async function getPaginatedPatients({
 }
 
 // get patient by id
-export async function getPatientById(id) {
-  await dbConnect();
+export async function getPatientById(id, dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
 
-  const patient = await Patient.findById(id);
+  const patient = await patientsModel.findById(id);
   if (!patient) {
     return { success: false, error: "Patient not found" };
   }
@@ -120,8 +144,12 @@ export async function getPatientById(id) {
 }
 
 // search patients
-export async function searchPatients(searchTerm) {
-  await dbConnect();
+export async function searchPatients(searchTerm, dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
   try {
     const query = searchTerm
       ? {
@@ -132,7 +160,8 @@ export async function searchPatients(searchTerm) {
         }
       : {};
 
-    const patients = await Patient.find(query)
+    const patients = await patientsModel
+      .find(query)
       .limit(20)
       .sort({ createdAt: -1 });
 
@@ -149,10 +178,14 @@ export async function searchPatients(searchTerm) {
 }
 
 // delete patients
-export async function deletePatient(id) {
-  await dbConnect();
+export async function deletePatient(id, dbName) {
+  const patientsModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema
+  );
 
-  const patient = await Patient.findByIdAndDelete(id);
+  const patient = await patientsModel.findByIdAndDelete(id);
   if (!patient) {
     return { success: false, error: "Patient not found" };
   }

@@ -1,5 +1,5 @@
 import Appointment from "@/models/Appointment";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 import {
   GetObjectCommand,
   PutObjectCommand,
@@ -14,10 +14,14 @@ const s3 = new S3Client({
   },
 });
 
-export const s3Upload = async (file, appointmentId) => {
-  await dbConnect();
+export const s3Upload = async (file, appointmentId, dbName) => {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
 
-  const appointment = await Appointment.findById(appointmentId);
+  const appointment = await appointmentsModel.findById(appointmentId);
   if (!appointment) {
     return "Appointment not found";
   }

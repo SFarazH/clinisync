@@ -1,12 +1,18 @@
 import Medicine from "@/models/Medicine";
-import { dbConnect } from "@/utils/dbConnect";
+import { dbConnect, getMongooseModel } from "@/utils/dbConnect";
 
 export async function getPaginatedMedicines({
   page = 1,
   limit = 10,
   search = "",
+  dbName,
 }) {
-  await dbConnect();
+  // await dbConnect();
+  const medicinesModel = await getMongooseModel(
+    dbName,
+    "Medicine",
+    Medicine.schema
+  );
 
   try {
     if (search.length < 4) {
@@ -32,14 +38,14 @@ export async function getPaginatedMedicines({
         }
       : {};
 
-    const medicines = await Medicine.find(query).select(
-      "id name shortComposition1 shortComposition2"
-    );
+    const medicines = await medicinesModel
+      .find(query)
+      .select("id name shortComposition1 shortComposition2");
     // .skip((page - 1) * limit)
     // .limit(limit);
     //   .sort({ price: 1 }); // ascending price
 
-    const total = await Medicine.countDocuments(query);
+    const total = await medicinesModel.countDocuments(query);
 
     return {
       success: true,

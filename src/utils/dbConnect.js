@@ -7,14 +7,8 @@ const DB_URL = process.env.DB_URL;
 const connections = global.connections || new Map();
 global.connections = connections;
 
-export async function getDatabaseConnection(dbName) {
+async function getDatabaseConnection(dbName) {
   if (!dbName) throw new Error("Database name is required.");
-
-  if (dbName === "clinisync") {
-    const fullUri = `${DB_URL}/${dbName}`;
-    const conn = await mongoose.createConnection(fullUri).asPromise();
-    return conn;
-  }
 
   if (connections.has(dbName)) {
     return connections.get(dbName);
@@ -22,8 +16,14 @@ export async function getDatabaseConnection(dbName) {
 
   const fullUri = `${DB_URL}/${dbName}`;
   const conn = await mongoose.createConnection(fullUri).asPromise();
+
   console.log(`✅ Connected to database: ${dbName}`);
 
   connections.set(dbName, conn);
   return conn;
+}
+
+export async function getMongooseModel(dbName, modelName, schema) {
+  const conn = await getDatabaseConnection(dbName);
+  return conn.models[modelName] || conn.model(modelName, schema);
 }

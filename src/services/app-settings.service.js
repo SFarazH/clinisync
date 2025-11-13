@@ -1,14 +1,18 @@
 import AppSettings from "@/models/AppSettings";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
-export async function createOrUpdateAppSettings(data) {
-  await dbConnect();
+export async function createOrUpdateAppSettings(data, dbName) {
+  const appSettingsModel = await getMongooseModel(
+    dbName,
+    "AppSettings",
+    AppSettings.schema
+  );
 
   try {
-    let settings = await AppSettings.findOne();
+    let settings = await appSettingsModel.findOne();
 
     if (settings) {
-      settings = await AppSettings.findOneAndUpdate({}, data, {
+      settings = await appSettingsModel.findOneAndUpdate({}, data, {
         new: true,
         runValidators: true,
       });
@@ -18,7 +22,7 @@ export async function createOrUpdateAppSettings(data) {
         message: "Updated clinic settings",
       };
     } else {
-      settings = await AppSettings.create(data);
+      settings = await appSettingsModel.create(data);
       return {
         success: true,
         data: settings,
@@ -31,11 +35,15 @@ export async function createOrUpdateAppSettings(data) {
   }
 }
 
-export async function getAppSettings() {
-  await dbConnect();
+export async function getAppSettings(dbName) {
+  const appSettingsModel = await getMongooseModel(
+    dbName,
+    "AppSettings",
+    AppSettings.schema
+  );
 
   try {
-    const settings = await AppSettings.findOne();
+    const settings = await appSettingsModel.findOne();
     if (!settings) {
       return { success: false, error: "App settings not found" };
     }

@@ -1,12 +1,21 @@
 import Invoice from "@/models/Invoice";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
-export async function addPaymentForInvoice(invoiceId, amount, paymentMethod) {
+export async function addPaymentForInvoice(
+  invoiceId,
+  amount,
+  paymentMethod,
+  dbName
+) {
   // data -> invoiceId, amount
-  await dbConnect();
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
 
   try {
-    const invoice = await Invoice.findById(invoiceId);
+    const invoice = await invoicesModel.findById(invoiceId);
     if (!invoice) {
       return { success: false, error: "Invoice not found" };
     }
@@ -42,8 +51,14 @@ export async function getInvoices({
   limit = 10,
   startDate = null,
   endDate = null,
+  dbName,
 }) {
-  await dbConnect();
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
   try {
     paginate = paginate === "true" || paginate === true;
     const query = {};
@@ -69,14 +84,14 @@ export async function getInvoices({
       query.isPaymentComplete = isPaymentComplete;
     }
 
-    let invoiceQuery = Invoice.find(query).populate("patientId", "name");
+    let invoiceQuery = invoicesModel.find(query).populate("patientId", "name");
     if (invoiceType === "labWork") {
       invoiceQuery.populate("labWork", "nameOfLab work  ");
     }
     let total;
     if (paginate) {
       invoiceQuery = invoiceQuery.skip((page - 1) * limit).limit(limit);
-      total = await Invoice.countDocuments(query);
+      total = await invoicesModel.countDocuments(query);
     }
 
     const invoiceData = await invoiceQuery;
@@ -97,10 +112,15 @@ export async function getInvoices({
   }
 }
 
-export async function getInvoiceById(invoiceId) {
-  dbConnect();
+export async function getInvoiceById(invoiceId, dbName) {
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
   try {
-    const invoice = await Invoice.findById(invoiceId);
+    const invoice = await invoicesModel.findById(invoiceId);
     if (!invoice) {
       return { success: false, error: "Invoice not found" };
     }
@@ -115,18 +135,22 @@ export async function getInvoiceById(invoiceId) {
   }
 }
 
-export async function deleteInvocie(id) {
-  await dbConnect();
+// export async function deleteInvocie(id, dbName) {
+//     const invoicesModel = await getMongooseModel(
+//       dbName,
+//       "Invoice",
+//       Invoice.schema
+//     );
 
-  try {
-    const deleted = await Invoice.findByIdAndDelete(id);
-    if (!deleted) {
-      return { success: false, error: "Invoice not found" };
-    }
+//   try {
+//     const deleted = await Invoice.findByIdAndDelete(id);
+//     if (!deleted) {
+//       return { success: false, error: "Invoice not found" };
+//     }
 
-    return { success: true, data: deleted };
-  } catch (error) {
-    console.error("Error deleting lab work:", error);
-    return { success: false, error: error.message };
-  }
-}
+//     return { success: true, data: deleted };
+//   } catch (error) {
+//     console.error("Error deleting lab work:", error);
+//     return { success: false, error: error.message };
+//   }
+// }
