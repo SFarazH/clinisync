@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Users from "@/models/Users";
-import Clinic from "@/models/Clinic"; // make sure this is registered globally
+import Clinic from "@/models/Clinic";
 import { cookies } from "next/headers";
 import { getMongooseModel } from "./dbConnect";
 
