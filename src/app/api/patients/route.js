@@ -14,7 +14,7 @@ export async function POST(req) {
       );
     }
     const body = await req.json();
-    const result = await createPatient(body, body.dbName);
+    const result = await createPatient(body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -36,7 +36,8 @@ export async function POST(req) {
   }
 }
 
-export async function GET(req) {const dbName = req.headers.get("db-name");
+export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
       rolePermissions.patients.getPaginatedPatients
@@ -47,12 +48,32 @@ export async function GET(req) {const dbName = req.headers.get("db-name");
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+
+    if (clinic?.databaseName !== dbName) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access" },
+        { status: 403 }
+      );
+    }
+
+    if (!clinic.features.patients) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Feature not enabled for this clinic",
+        },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
     const search = searchParams.get("search") || "";
 
-    const result = await getPaginatedPatients({ page, limit, search });
+    const result = await getPaginatedPatients({ page, limit, search, dbName });
 
     if (!result.success) {
       return NextResponse.json(

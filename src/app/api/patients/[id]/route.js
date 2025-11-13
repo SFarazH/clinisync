@@ -3,7 +3,7 @@ import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions";
 import { NextResponse } from "next/server";
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.getPatientById);
@@ -14,7 +14,7 @@ export async function GET(_, { params }) {
       );
     }
     const { id } = await params;
-    const result = await getPatientById(id);
+    const result = await getPatientById(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function PUT(req, { params }) {
       );
     }
     const body = await req.json();
-    const result = await updatePatient(params.id, body);
+    const result = await updatePatient(params.id, body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -63,7 +63,7 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.deletePatient);
@@ -73,7 +73,7 @@ export async function DELETE(_, { params }) {
         { status: auth.status }
       );
     }
-    const result = await deletePatient(params.id);
+    const result = await deletePatient(params.id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
