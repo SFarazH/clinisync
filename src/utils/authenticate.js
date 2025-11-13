@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Users from "@/models/Users";
+import Clinic from "@/models/Clinic"; // make sure this is registered globally
 import { cookies } from "next/headers";
-import { getDatabaseConnection } from "./dbConnect";
+import { getMongooseModel } from "./dbConnect";
 
 dotenv.config({ quiet: true });
 
@@ -15,19 +16,33 @@ export const authenticate = async () => {
   }
 
   try {
-    const clinisyncConn = await getDatabaseConnection("clinisync");
-    const usersModel = clinisyncConn.model("Users", Users.schema);
+    const usersModel = await getMongooseModel(
+      "clinisync",
+      "Users",
+      Users.schema
+    );
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     const user = await usersModel
       .findById(decodedToken.id)
-      .select("_id name email role");
+      .populate("clinic")
+      .select("_id name email role clinic");
 
     if (!user) {
       return { success: false, message: "User not found" };
     }
 
-    return { success: true, data: user };
+    let clinic = user.clinic;
+    if (!clinic && user.clinic?._id) {
+      const clinicModel = await getMongooseModel(
+        "clinisync",
+        "Clinic",
+        Clinic.schema
+      );
+      clinic = await clinicModel.findById(user.clinic._id);
+    }
+
+    return { success: true, data: { user, clinic } };
   } catch (error) {
     console.error("Error during token verification:", error);
     return { success: false, message: "User not found" };
