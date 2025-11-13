@@ -1,23 +1,40 @@
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 import Users from "@/models/Users";
 import bcrypt from "bcryptjs";
 import Doctor from "@/models/Doctor";
+import Clinic from "@/models/Clinic";
 
-export async function registerUser(data) {
-  await dbConnect();
+//TODO: add check for list users
+export async function registerUser(data, dbName) {
   try {
+    const usersModel = await getMongooseModel(
+      "clinisync",
+      "Users",
+      Users.schema
+    );
+
+    const doctorsModel = await getMongooseModel(
+      dbName,
+      "Doctor",
+      Doctor.schema
+    );
+
     if (data.role === "doctor") {
       if (!data.doctorId) {
         return { success: false, error: "Doctor missing" };
       }
-      const alreadyAlotted = await Users.findOne({ doctorId: data.doctorId });
+      const alreadyAlotted = await usersModel.findOne({
+        doctorId: data.doctorId,
+      });
       if (alreadyAlotted) {
         return { success: false, error: "Doctor already registered" };
       }
     }
 
-    const existingEmailUsers = await Users.findOne({ email: data.email });
-    const existingEmailDoctors = await Doctor.findOne({ email: data.email });
+    const existingEmailUsers = await usersModel.findOne({ email: data.email });
+    const existingEmailDoctors = await doctorsModel.findOne({
+      email: data.email,
+    });
 
     if (
       existingEmailUsers ||
@@ -27,7 +44,7 @@ export async function registerUser(data) {
     }
 
     if (data.phoneNumber && data.phoneNumber.trim() !== "") {
-      const existingPhone = await Users.findOne({
+      const existingPhone = await usersModel.findOne({
         phoneNumber: data.phoneNumber,
       });
 
@@ -40,9 +57,9 @@ export async function registerUser(data) {
       data.password ?? process.env.TEST_PASSWORD,
       10
     );
-    const user = await Users.create({ ...data, password: hashedPassword });
+    const user = await usersModel.create({ ...data, password: hashedPassword });
     if (data.role === "doctor") {
-      await Doctor.findByIdAndUpdate(data.doctorId, { userId: user._id });
+      await doctorsModel.findByIdAndUpdate(data.doctorId, { userId: user._id });
     }
 
     return { success: true, message: "" };
@@ -53,14 +70,15 @@ export async function registerUser(data) {
 }
 
 export async function loginUser({ email, password }) {
-  await dbConnect();
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+  await getMongooseModel("clinisync", "Clinic", Clinic.schema);
+
   try {
-    const user = await Users.findOne({ email });
+    const user = await usersModel.findOne({ email }).populate("clinic").exec();
     if (!user) return { success: false, error: "Invalid email or password" };
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return { success: false, error: "Invalid email or password" };
-
     return { success: true, data: user };
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -69,7 +87,7 @@ export async function loginUser({ email, password }) {
 }
 
 export async function listUsers({ role }) {
-  await dbConnect();
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
   try {
     let query = {};
 
@@ -77,7 +95,7 @@ export async function listUsers({ role }) {
       query.role = role;
     }
 
-    let usersQuery = Users.find(query).select("-password");
+    let usersQuery = usersModel.find(query).select("-password");
 
     usersQuery = usersQuery.populate("doctorId");
 
@@ -89,11 +107,11 @@ export async function listUsers({ role }) {
     return { success: false, error: error.message };
   }
 }
-export async function getUsersByRole() {
-  await dbConnect();
 
+export async function getUsersByRole() {
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
   try {
-    const counts = await Users.aggregate([
+    const counts = await usersModel.aggregate([
       { $group: { _id: "$role", count: { $sum: 1 } } },
     ]);
     return { success: true, data: counts };
@@ -104,12 +122,13 @@ export async function getUsersByRole() {
 }
 
 export async function updateUser(id, data) {
-  await dbConnect();
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+
   try {
     const role = data.role;
 
     if (role === "doctor") {
-      const existingUser = await Users.findById(id);
+      const existingUser = await usersModel.findById(id);
       if (!existingUser) {
         return { success: false, error: "User not found" };
       }
@@ -121,7 +140,7 @@ export async function updateUser(id, data) {
         return { success: true, message: "Address updated" };
       }
     } else {
-      const updated = await Users.findByIdAndUpdate(id, data, {
+      const updated = await usersModel.findByIdAndUpdate(id, data, {
         runValidators: true,
         new: true,
       });
@@ -131,8 +150,6 @@ export async function updateUser(id, data) {
       }
       return { success: true, data: updated };
     }
-
-    return {};
   } catch (error) {
     console.error("Error updating doctor:", error);
     return { success: false, error: error.message };
