@@ -6,10 +6,11 @@ export const requireAuth = async (allowedRoles = []) => {
     return { ok: false, status: 401, message: auth.message };
   }
 
-  const user = auth.data;
+  const { user, clinic } = auth.data;
+
   if (allowedRoles.length && !allowedRoles.includes(user.role)) {
     return { ok: false, status: 403, message: "Forbidden" };
   }
 
-  return { ok: true, user };
+  return { ok: true, user, clinic };
 };
