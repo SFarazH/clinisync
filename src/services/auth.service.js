@@ -1,8 +1,9 @@
-import { getMongooseModel } from "@/utils/dbConnect";
+import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
 import Users from "@/models/Users";
 import bcrypt from "bcryptjs";
 import Doctor from "@/models/Doctor";
 import Clinic from "@/models/Clinic";
+import { roles } from "@/utils/role-permissions.mapping";
 
 //TODO: add check for list users
 export async function registerUser(data, dbName) {
@@ -69,6 +70,91 @@ export async function registerUser(data, dbName) {
   }
 }
 
+export async function addClinicAdmin(data) {
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinic",
+    Clinic.schema
+  );
+
+  const conn = await getDatabaseConnection("clinisync");
+  const session = await conn.startSession();
+  session.startTransaction();
+  try {
+    const dbName = data.dbName;
+    console.log(data);
+
+    const clinicDoc = await clinicsModel
+      .findOne({ databaseName: dbName })
+      .session(session);
+
+    console.log(clinicDoc);
+
+    const existingEmailUsers = await usersModel.findOne({ email: data.email });
+    if (existingEmailUsers) {
+      return { success: false, error: "Email already registered" };
+    }
+
+    if (data.phoneNumber && data.phoneNumber.trim() !== "") {
+      const existingPhone = await usersModel.findOne({
+        phoneNumber: data.phoneNumber,
+      });
+
+      if (existingPhone) {
+        return { success: false, error: "Phone number already registered" };
+      }
+    }
+
+    if (!clinicDoc) {
+      await session.abortTransaction();
+      session.endSession();
+      return { success: false, error: "Clinic does not exist" };
+    }
+
+    if (clinicDoc.admin) {
+      await session.abortTransaction();
+      session.endSession();
+      return { success: false, error: "Admin already exists for this clinic" };
+    }
+    const hashedPassword = await bcrypt.hash(
+      data.password ?? process.env.TEST_PASSWORD,
+      10
+    );
+
+    const newUser = await usersModel.create(
+      [
+        {
+          ...data,
+          password: hashedPassword,
+          role: roles.ADMIN,
+          clinic: clinicDoc._id,
+        },
+      ],
+      { session }
+    );
+
+    clinicDoc.admin = newUser[0]._id;
+    await clinicDoc.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      success: true,
+      message: "Clinic admin created successfully",
+      clinic: clinicDoc,
+      user: newUser[0],
+    };
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Transaction failed:", err);
+
+    return { success: false, error: err.message };
+  }
+}
+
 export async function loginUser({ email, password }) {
   const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
   await getMongooseModel("clinisync", "Clinic", Clinic.schema);
@@ -82,41 +168,6 @@ export async function loginUser({ email, password }) {
     return { success: true, data: user };
   } catch (error) {
     console.error("Error logging in user:", error);
-    return { success: false, error: error.message };
-  }
-}
-
-export async function listUsers({ role }) {
-  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
-  try {
-    let query = {};
-
-    if (role) {
-      query.role = role;
-    }
-
-    let usersQuery = usersModel.find(query).select("-password");
-
-    usersQuery = usersQuery.populate("doctorId");
-
-    const users = await usersQuery;
-
-    return { success: true, data: users };
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getUsersByRole() {
-  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
-  try {
-    const counts = await usersModel.aggregate([
-      { $group: { _id: "$role", count: { $sum: 1 } } },
-    ]);
-    return { success: true, data: counts };
-  } catch (error) {
-    console.error("Error fetching users by role:", error);
     return { success: false, error: error.message };
   }
 }
