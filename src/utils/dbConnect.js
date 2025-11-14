@@ -7,10 +7,11 @@ const DB_URL = process.env.DB_URL;
 const connections = global.connections || new Map();
 global.connections = connections;
 
-async function getDatabaseConnection(dbName) {
+export async function getDatabaseConnection(dbName) {
   if (!dbName) throw new Error("Database name is required.");
 
   if (connections.has(dbName)) {
+    console.log(`Already connected to ${dbName}`);
     return connections.get(dbName);
   }
 
@@ -24,6 +25,7 @@ async function getDatabaseConnection(dbName) {
 }
 
 export async function getMongooseModel(dbName, modelName, schema) {
+  console.log(`called for ${modelName}`);
   const conn = await getDatabaseConnection(dbName);
   return conn.models[modelName] || conn.model(modelName, schema);
 }
