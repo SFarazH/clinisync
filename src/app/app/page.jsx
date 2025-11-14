@@ -40,25 +40,42 @@ import logo from "../../../public/clinisync-t.png";
 import Loader from "@/components/loader";
 
 export default function ClinicDashboard() {
-  const { authUser, setAuthUser, authClinic } = useAuth();
+  const { authUser, setAuthUser, authClinic, setAuthClinic } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState(
-    authUser?.role === "doctor"
+    authUser?.role === "super-admin"
+      ? "super-dashboard"
+      : authUser?.role === "doctor"
       ? "doctor-dashboard"
       : authUser?.role === "pharmacist"
       ? "prescriptions"
       : "calendar"
   );
 
-  // const logoutMutation = useMutation({
-  //   mutationFn: logOut,
-  //   onSuccess: () => {
-  //     setAuthUser(null);
-  //     setAuthClinic(null)
-  //   },
-  // });
+  const logoutMutation = useMutation({
+    mutationFn: logOut,
+    onSuccess: () => {
+      setAuthUser(null);
+      setAuthClinic(null);
+    },
+  });
 
   const allTabs = [
+    {
+      value: "super-dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      roles: ["super-admin"],
+      // featureKey: "doctors",
+    },
+    {
+      value: "clinics",
+      label: "Clinics",
+      icon: LayoutDashboard,
+      roles: ["super-admin"],
+      // featureKey: "clinics",
+    },
+
     {
       value: "doctor-dashboard",
       label: "Dashboard",
@@ -147,6 +164,20 @@ export default function ClinicDashboard() {
 
   const renderActiveContent = () => {
     switch (activeTab) {
+      case "super-dashboard":
+        return (
+          <RoleBasedWrapper allowedRoles={["super-admin"]}>
+            <h1>Super Admin</h1>
+          </RoleBasedWrapper>
+        );
+
+      case "clinics":
+        return (
+          <RoleBasedWrapper allowedRoles={["super-admin"]}>
+            <h1>CLinics babyy</h1>
+          </RoleBasedWrapper>
+        );
+
       case "doctor-dashboard":
         return (
           <RoleBasedWrapper allowedRoles={["doctor"]} featureKey="doctors">
@@ -322,7 +353,9 @@ export default function ClinicDashboard() {
                       <div></div>
                     )}
                     <p className="text-xl font-semibold text-gray-800">
-                      {authClinic.name}
+                      {authUser?.role === "super-admin"
+                        ? "Super Admin"
+                        : authClinic?.name}
                     </p>
                   </div>
                   <p className="text-lg font-bold uppercase text-gray-800">
@@ -333,7 +366,7 @@ export default function ClinicDashboard() {
                     <Button
                       variant="destructive"
                       className="cursor-pointer"
-                      // onClick={logoutMutation.mutateAsync}
+                      onClick={logoutMutation.mutateAsync}
                     >
                       Logout
                     </Button>
@@ -347,7 +380,7 @@ export default function ClinicDashboard() {
             </main>
           </div>
         </div>
-        {/* {logoutMutation.isPending && <Loader />} */}
+        {logoutMutation.isPending && <Loader />}
       </DateRangeProvider>
     </ProtectedRoute>
     // <>hi</>
