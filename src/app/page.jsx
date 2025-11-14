@@ -4,7 +4,7 @@ import { useAuth } from "@/components/context/authcontext";
 import { redirect } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ClinicDashboard() {
+export default function HomePage() {
   const { authUser } = useAuth();
 
   useEffect(() => {
