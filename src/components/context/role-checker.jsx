@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "./authcontext";
+import { roles } from "@/utils/role-permissions.mapping";
 
 export const RoleBasedWrapper = ({
   allowedRoles,
@@ -7,11 +8,12 @@ export const RoleBasedWrapper = ({
   children,
 }) => {
   const { authUser, authClinic } = useAuth();
-  const router = useRouter();
 
   if (!authUser) {
     return null;
   }
+
+  if (authUser.role === roles.SUPER_ADMIN) return children;
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(authUser.role)) {
     return null;
