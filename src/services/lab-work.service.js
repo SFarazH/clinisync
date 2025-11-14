@@ -15,7 +15,8 @@ export async function addLabWork(data, dbName) {
     Invoice.schema
   );
 
-  const session = await mongoose.startSession();
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
@@ -68,7 +69,9 @@ export async function updateLabWork(id, data, dbName) {
     "Invoice",
     Invoice.schema
   );
-  const session = await mongoose.startSession();
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
@@ -216,7 +219,9 @@ export async function deleteLabWork(id, dbName) {
     "Invoice",
     Invoice.schema
   );
-  const session = await mongoose.startSession();
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {

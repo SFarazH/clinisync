@@ -23,8 +23,8 @@ export async function createAppointment(data, dbName) {
     "Invoice",
     Invoice.schema
   );
-
-  const session = await appointmentsModel.startSession();
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
@@ -189,9 +189,10 @@ export async function updateAppointment(id, data, dbName) {
     "Invoice",
     Invoice.schema
   );
-
-  const session = await mongoose.startSession();
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
+
   try {
     const appointment = await appointmentsModel
       .findByIdAndUpdate(id, data, {
@@ -265,7 +266,8 @@ export async function deleteAppointment(id, dbName) {
     Prescription.schema
   );
 
-  const session = await mongoose.startSession();
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
