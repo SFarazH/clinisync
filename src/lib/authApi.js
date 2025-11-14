@@ -34,31 +34,22 @@ export const verifyUser = async () => {
   }
 };
 
-export const getUsers = async (role) => {
-  try {
-    const response = await axios.get("/api/auth/list", {
-      params: role ? { role } : {},
-    });
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return { success: false };
-  }
-};
-
-export const getUsersByRole = async () => {
-  try {
-    const response = await axios.get("/api/auth/count");
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return { success: false };
-  }
-};
-
 export const updateUserFunc = async ({ id, userData }) => {
   try {
     const response = await axios.put(`/api/auth/${id}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false };
+  }
+};
+
+export const addClinicAdmin = async (clinicAdminData) => {
+  try {
+    const response = await axios.post(
+      `/api/auth/register/admin`,
+      clinicAdminData
+    );
     return response.data;
   } catch (error) {
     console.error(error);
