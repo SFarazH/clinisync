@@ -7,7 +7,6 @@ export async function addPaymentForInvoice(
   paymentMethod,
   dbName
 ) {
-  // data -> invoiceId, amount
   const invoicesModel = await getMongooseModel(
     dbName,
     "Invoice",

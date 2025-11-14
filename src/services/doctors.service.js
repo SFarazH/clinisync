@@ -28,7 +28,7 @@ export async function addDoctor(data, dbName) {
 }
 
 // update doctor
-export async function updateDoctor(id, data) {
+export async function updateDoctor(id, data, dbName) {
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
@@ -49,7 +49,7 @@ export async function updateDoctor(id, data) {
 }
 
 // get all doctors
-export async function getAllDoctors(getUnassigned) {
+export async function getAllDoctors(getUnassigned, dbName) {
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
@@ -68,7 +68,7 @@ export async function getAllDoctors(getUnassigned) {
 }
 
 // get doctor by ID
-export async function getDoctorById(userId) {
+export async function getDoctorById(userId, dbName) {
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
@@ -88,7 +88,7 @@ export async function getDoctorById(userId) {
 
 // delete doctor
 //TODO: remove user also!!
-export async function deleteDoctor(id) {
+export async function deleteDoctor(id, dbName) {
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
