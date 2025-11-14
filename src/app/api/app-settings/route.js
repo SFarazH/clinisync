@@ -1,10 +1,11 @@
 import { createOrUpdateAppSettings, getAppSettings } from "@/services";
+import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req) {
   const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.appSettings.getSettings);
   if (!auth.ok) {

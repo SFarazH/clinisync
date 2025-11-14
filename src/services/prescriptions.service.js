@@ -26,9 +26,14 @@ export async function addPrescription(data, dbName) {
       };
     }
 
-    const prescription = await prescriptionsModel.create(data);
+    const appointmentDoc = await appointmentsModel.findById(data.appointment);
 
-    const updated = await appointmentsModel.findByIdAndUpdate(
+    const prescription = await prescriptionsModel.create({
+      ...data,
+      patient: appointmentDoc.patientId,
+    });
+
+    await appointmentsModel.findByIdAndUpdate(
       data.appointment,
       { prescription: prescription._id, status: "completed" },
       { new: true }
@@ -48,6 +53,13 @@ export async function updatePrescription(id, data, dbName) {
   );
 
   try {
+    const forbiddenFields = ["patient", "appointment"];
+    forbiddenFields.forEach((field) => {
+      if (field in data) {
+        delete data[field];
+      }
+    });
+    
     const updatedPrescription = await prescriptionsModel.findByIdAndUpdate(
       id,
       data,

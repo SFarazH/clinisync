@@ -11,6 +11,7 @@ const ProcedureSchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: false,
+      sparse: true,
     },
     duration: {
       type: Number,
@@ -23,7 +24,7 @@ const ProcedureSchema = new mongoose.Schema(
     },
     cost: {
       type: Number,
-      required: false,
+      required: true,
     },
   },
   { timestamps: true }

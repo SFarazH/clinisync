@@ -1,4 +1,5 @@
 import { createAppointment, listAppointments } from "@/services";
+import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
@@ -34,7 +35,10 @@ export async function POST(req) {
     }
 
     return NextResponse.json(
-      { success: true, data: result.data },
+      {
+        success: true,
+        data: result.data,
+      },
       { status: 201 }
     );
   } catch (error) {

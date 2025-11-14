@@ -9,9 +9,14 @@ export async function createProcedure(data, dbName) {
     Procedure.schema
   );
   try {
-    const existing = await proceduresModel.findOne({ abbr: data.abbr });
-    if (existing) {
-      return { success: false, error: "Procedure abbreviation already exists" };
+    if (data.abbr && data.abbr.trim() !== "") {
+      const existing = await proceduresModel.findOne({ abbr: data.abbr });
+      if (existing) {
+        return {
+          success: false,
+          error: "Procedure abbreviation already exists",
+        };
+      }
     }
 
     const procedure = await proceduresModel.create(data);

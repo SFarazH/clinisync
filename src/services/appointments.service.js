@@ -1,8 +1,25 @@
 import Appointment from "@/models/Appointment";
+import Doctor from "@/models/Doctor";
 import Invoice from "@/models/Invoice";
+import Patient from "@/models/Patient";
 import Prescription from "@/models/Prescription";
 import Procedure from "@/models/Procedure";
-import mongoose from "mongoose";
+import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
+
+function calculateEndTime(startTime, durationMinutes) {
+  const [hours, minutes] = startTime.split(":").map(Number);
+
+  const startDate = new Date();
+  startDate.setHours(hours);
+  startDate.setMinutes(minutes);
+
+  const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+
+  const endHours = String(endDate.getHours()).padStart(2, "0");
+  const endMinutes = String(endDate.getMinutes()).padStart(2, "0");
+
+  return `${endHours}:${endMinutes}`;
+}
 
 // add appointment
 export async function createAppointment(data, dbName) {
@@ -41,6 +58,7 @@ export async function createAppointment(data, dbName) {
       [
         {
           ...data,
+          endTime: calculateEndTime(data.startTime, procedure.duration),
         },
       ],
       { session }
@@ -96,6 +114,7 @@ export async function listAppointments({
     "Appointment",
     Appointment.schema
   );
+  await getMongooseModel(dbName, "Prescription", Prescription.schema);
   try {
     const query = {};
 
@@ -189,6 +208,10 @@ export async function updateAppointment(id, data, dbName) {
     "Invoice",
     Invoice.schema
   );
+
+  await getMongooseModel(dbName, "Patient", Patient.schema);
+  await getMongooseModel(dbName, "Doctor", Doctor.schema);
+
   const conn = await getDatabaseConnection(dbName);
   const session = await conn.startSession();
   session.startTransaction();

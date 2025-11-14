@@ -99,7 +99,7 @@ export async function GET(req) {
       pagination: result.pagination,
     });
   } catch (error) {
-    console.error("Error in GET /api/patients:", error);
+    console.error("Error in GET /api/prescriptions:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

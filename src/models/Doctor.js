@@ -9,10 +9,12 @@ const doctorSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
+      required: true,
     },
     phoneNumber: {
       type: String,
       unique: true,
+      sparse: true,
     },
     specialization: {
       type: String,

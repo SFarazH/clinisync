@@ -12,11 +12,13 @@ export async function addDoctor(data, dbName) {
       return { success: false, error: "Email already exists" };
     }
 
-    const existingPhone = await doctorsModel.findOne({
-      phoneNumber: data.phoneNumber,
-    });
-    if (existingPhone) {
-      return { success: false, error: "Phone number already exists" };
+    if (data.phoneNumber && data.phoneNumber.trim() !== "") {
+      const existingPhone = await doctorsModel.findOne({
+        phoneNumber: data.phoneNumber,
+      });
+      if (existingPhone) {
+        return { success: false, error: "Phone number already exists" };
+      }
     }
 
     const doctor = await doctorsModel.create(data);
@@ -68,13 +70,11 @@ export async function getAllDoctors(getUnassigned, dbName) {
 }
 
 // get doctor by ID
-export async function getDoctorById(userId, dbName) {
+export async function getDoctorById(doctorId, dbName) {
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
-    const doctor = await doctorsModel.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
-    });
+    const doctor = await doctorsModel.findById(doctorId);
     if (!doctor) {
       return { success: false, error: "Doctor not found" };
     }

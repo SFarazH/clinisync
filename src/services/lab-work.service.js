@@ -1,6 +1,6 @@
 import Invoice from "@/models/Invoice";
 import LabWork from "@/models/LabWork";
-import mongoose from "mongoose";
+import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
 
 export async function addLabWork(data, dbName) {
   const labWorkModel = await getMongooseModel(
@@ -88,21 +88,23 @@ export async function updateLabWork(id, data, dbName) {
       return { success: false, error: "Lab work not found" };
     }
 
-    if (parseInt(data.amount) !== undefined && updatedLabWork.invoice) {
-      const invoiceToUpdate = await invoicesModel.findById(
-        updatedLabWork.invoice
-      );
-      const isPending = parseInt(data.amount) > invoiceToUpdate.amountPaid;
-      const updatedInvoice = await invoicesModel.findByIdAndUpdate(
-        updatedLabWork.invoice,
-        { totalAmount: parseInt(data.amount), isPaymentComplete: !isPending },
-        { new: true, session }
-      );
+    if (data.amount) {
+      if (parseInt(data.amount) !== undefined && updatedLabWork.invoice) {
+        const invoiceToUpdate = await invoicesModel.findById(
+          updatedLabWork.invoice
+        );
+        const isPending = parseInt(data.amount) > invoiceToUpdate.amountPaid;
+        const updatedInvoice = await invoicesModel.findByIdAndUpdate(
+          updatedLabWork.invoice,
+          { totalAmount: parseInt(data.amount), isPaymentComplete: !isPending },
+          { new: true, session }
+        );
 
-      if (!updatedInvoice) {
-        await session.abortTransaction();
-        session.endSession();
-        return { success: false, error: "Invoice not found" };
+        if (!updatedInvoice) {
+          await session.abortTransaction();
+          session.endSession();
+          return { success: false, error: "Invoice not found" };
+        }
       }
     }
 

@@ -10,10 +10,14 @@ export async function createPatient(data, dbName) {
   );
 
   try {
-    const existingPatient = await patientsModel.findOne({ email: data.email });
+    if (data.email && data.email.trim() !== "") {
+      const existingPatient = await patientsModel.findOne({
+        email: data.email,
+      });
 
-    if (existingPatient) {
-      return { success: false, error: "Email already exists" };
+      if (existingPatient) {
+        return { success: false, error: "Email already exists" };
+      }
     }
 
     const existingPatientByPhone = await patientsModel.findOne({

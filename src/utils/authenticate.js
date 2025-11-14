@@ -21,6 +21,12 @@ export const authenticate = async () => {
       "Users",
       Users.schema
     );
+
+    const clinicsModel = await getMongooseModel(
+      "clinisync",
+      "Clinic",
+      Clinic.schema
+    );
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     const user = await usersModel
@@ -34,12 +40,7 @@ export const authenticate = async () => {
 
     let clinic = user.clinic;
     if (!clinic && user.clinic?._id) {
-      const clinicModel = await getMongooseModel(
-        "clinisync",
-        "Clinic",
-        Clinic.schema
-      );
-      clinic = await clinicModel.findById(user.clinic._id);
+      clinic = await clinicsModel.findById(user.clinic._id);
     }
 
     return { success: true, data: { user, clinic } };

@@ -7,8 +7,9 @@ import {
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { FeatureMapping } from "@/utils/feature.mapping";
+import { checkAccess } from "@/utils";
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.getDoctorById);
@@ -77,7 +78,7 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.deleteDoctor);

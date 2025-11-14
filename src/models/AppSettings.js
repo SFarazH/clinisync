@@ -19,11 +19,6 @@ const dayScheduleSchema = new mongoose.Schema(
 
 const appSettingsSchema = new mongoose.Schema(
   {
-    clinicName: {
-      type: String,
-      required: true,
-      default: "Demo Clinic",
-    },
     address: String,
     phone: String,
     email: String,
