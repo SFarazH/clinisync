@@ -1,4 +1,5 @@
 import { createAppointment, listAppointments } from "@/services";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
@@ -15,8 +16,15 @@ export async function POST(req) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(
+      clinic,
+      dbName,
+      FeatureMapping.APPOINTMENTS
+    );
+    if (accessError) return accessError;
     const body = await req.json();
-    const result = await createAppointment(body);
+    const result = await createAppointment(body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -50,7 +58,13 @@ export async function GET(req) {
         { status: auth.status }
       );
     }
-    const dbName = req.headers.get("db-name");
+    const { clinic } = auth;
+    const accessError = checkAccess(
+      clinic,
+      dbName,
+      FeatureMapping.APPOINTMENTS
+    );
+    if (accessError) return accessError;
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;

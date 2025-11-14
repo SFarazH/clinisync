@@ -1,4 +1,5 @@
 import { addDoctor, getAllDoctors } from "@/services";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
@@ -13,10 +14,13 @@ export async function GET(req) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.DOCTORS);
+    if (accessError) return accessError;
 
     const { searchParams } = new URL(req.url);
     const getUnassigned = searchParams.get("getUnassigned") || false;
-    const result = await getAllDoctors(getUnassigned);
+    const result = await getAllDoctors(getUnassigned, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -45,8 +49,13 @@ export async function POST(req) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.DOCTORS);
+    if (accessError) return accessError;
+
     const body = await req.json();
-    const result = await addDoctor(body);
+    const result = await addDoctor(body, dbName);
 
     if (!result.success) {
       return NextResponse.json(

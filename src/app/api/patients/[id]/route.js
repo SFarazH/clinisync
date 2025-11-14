@@ -13,6 +13,11 @@ export async function GET(req, { params }) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const { id } = await params;
     const result = await getPatientById(id, dbName);
 
@@ -43,6 +48,11 @@ export async function PUT(req, { params }) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const body = await req.json();
     const result = await updatePatient(params.id, body, dbName);
 
@@ -73,6 +83,11 @@ export async function DELETE(req, { params }) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const result = await deletePatient(params.id, dbName);
 
     if (!result.success) {

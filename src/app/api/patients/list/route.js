@@ -13,6 +13,11 @@ export async function GET(req) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const result = await listPatients();
 
     if (!result.success) {

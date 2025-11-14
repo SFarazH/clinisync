@@ -1,4 +1,5 @@
 import { createOrUpdateAppSettings, getAppSettings } from "@/services";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
@@ -13,7 +14,11 @@ export async function GET() {
     );
   }
 
-  const result = await getAppSettings();
+  const { clinic } = auth;
+  const accessError = checkAccess(clinic, dbName, FeatureMapping.SETTINGS);
+  if (accessError) return accessError;
+
+  const result = await getAppSettings(dbName);
 
   if (!result.success) {
     return NextResponse.json(
@@ -38,8 +43,12 @@ export async function POST(req) {
       );
     }
 
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.SETTINGS);
+    if (accessError) return accessError;
+
     const body = await req.json();
-    const result = await createOrUpdateAppSettings(body);
+    const result = await createOrUpdateAppSettings(body, dbName);
 
     if (!result.success) {
       return NextResponse.json(

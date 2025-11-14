@@ -1,4 +1,6 @@
 import { createPatient, getPaginatedPatients } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
@@ -13,6 +15,10 @@ export async function POST(req) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const body = await req.json();
     const result = await createPatient(body, dbName);
 
@@ -50,23 +56,8 @@ export async function GET(req) {
     }
 
     const { clinic } = auth;
-
-    if (clinic?.databaseName !== dbName) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 403 }
-      );
-    }
-
-    if (!clinic.features.patients) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Feature not enabled for this clinic",
-        },
-        { status: 403 }
-      );
-    }
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;

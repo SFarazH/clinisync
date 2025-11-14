@@ -1,4 +1,6 @@
 import { addPaymentForInvoice, getInvoiceById } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
@@ -15,12 +17,17 @@ export async function PUT(req, { params }) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.INVOICES);
+    if (accessError) return accessError;
+
     const body = await req.json();
     const { id } = await params;
     const result = await addPaymentForInvoice(
       id,
       body.amount,
-      body.paymentMethod
+      body.paymentMethod,
+      dbName
     );
 
     if (!result.success) {
@@ -40,7 +47,7 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.invocie.getInvoiceById);
@@ -50,9 +57,12 @@ export async function GET(_, { params }) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.INVOICES);
+    if (accessError) return accessError;
 
     const { id } = await params;
-    const result = await getInvoiceById(id);
+    const result = await getInvoiceById(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
