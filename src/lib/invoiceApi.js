@@ -30,7 +30,6 @@ export const getInvocies = async ({
 };
 
 export const getInvoiceById = async (invoiceId) => {
-  // data-> amount, paymentMethod
   const res = await axios.get(`/api/invoice/${invoiceId}`);
   return res;
 };
