@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const clinicSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  owner: {
+  admin: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: false,
