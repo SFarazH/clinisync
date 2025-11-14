@@ -5,7 +5,6 @@ import Doctor from "@/models/Doctor";
 import Clinic from "@/models/Clinic";
 import { roles } from "@/utils/role-permissions.mapping";
 
-//TODO: add check for list users
 export async function registerUser(data, dbName) {
   try {
     const usersModel = await getMongooseModel(
