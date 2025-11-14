@@ -2,6 +2,7 @@ import { getUsersByRole } from "@/services";
 import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -18,7 +19,7 @@ export async function GET(req) {
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.USERS);
     if (accessError) return accessError;
-    const result = await getUsersByRole();
+    const result = await getUsersByRole(clinic._id);
 
     if (!result.success) {
       return NextResponse.json(

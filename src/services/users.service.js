@@ -1,10 +1,13 @@
 import Users from "@/models/Users";
+import Clinic from "@/models/Clinic";
 import { getMongooseModel } from "@/utils/dbConnect";
 
-export async function listUsers({ role, dbName }) {
+export async function listUsers({ role, clinicId }) {
   const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
   try {
-    let query = {};
+    let query = {
+      clinic: clinicId,
+    };
 
     if (role) {
       query.role = role;
@@ -23,12 +26,18 @@ export async function listUsers({ role, dbName }) {
   }
 }
 
-export async function getUsersByRole(dbName) {
+export async function getUsersByRole(clinicId) {
   const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+  const usersPipeline = [
+    {
+      $match: {
+        clinic: clinicId,
+      },
+    },
+    { $group: { _id: "$role", count: { $sum: 1 } } },
+  ];
   try {
-    const counts = await usersModel.aggregate([
-      { $group: { _id: "$role", count: { $sum: 1 } } },
-    ]);
+    const counts = await usersModel.aggregate(usersPipeline);
     return { success: true, data: counts };
   } catch (error) {
     console.error("Error fetching users by role:", error);
