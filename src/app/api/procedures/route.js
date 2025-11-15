@@ -67,7 +67,7 @@ export async function GET(req) {
 
     return NextResponse.json(
       { success: true, data: result.data },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error in GET /api/procedure:", error);

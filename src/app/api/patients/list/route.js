@@ -20,7 +20,7 @@ export async function GET(req) {
     const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
     if (accessError) return accessError;
 
-    const result = await listPatients();
+    const result = await listPatients(dbName);
 
     if (!result.success) {
       return NextResponse.json(

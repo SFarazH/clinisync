@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const fetchDoctors = async (getUnassigned) => {
+export const fetchDoctors = async ({ getUnassigned }) => {
   const response = await axios.get("/api/doctors", {
     params: getUnassigned === true ? { getUnassigned: true } : {},
   });
@@ -8,7 +8,7 @@ export const fetchDoctors = async (getUnassigned) => {
   return response.data.data;
 };
 
-export const addNewDoctor = async (doctorData) => {
+export const addNewDoctor = async ({ doctorData }) => {
   const response = await axios.post("/api/doctors", doctorData);
   return response.data.data;
 };
@@ -18,12 +18,12 @@ export const updateDoctor = async ({ id, doctorData }) => {
   return response.data.data;
 };
 
-export const deleteDoctor = async (id) => {
-  const response = await axios.delete(`/api/doctors/${id}`);
+export const deleteDoctor = async ({ id }) => {
+  const response = await axios.delete(`/api/doctors/${id}`, {});
   return response.data;
 };
 
-export const fetchDoctorById = async (id) => {
-  const response = await axios.get(`/api/doctors/${id}`);
+export const fetchDoctorById = async ({ id }) => {
+  const response = await axios.get(`/api/doctors/${id}`, {});
   return response.data;
 };
