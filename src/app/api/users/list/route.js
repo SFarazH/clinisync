@@ -23,7 +23,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role");
 
-    const result = await listUsers({ role, clinicId: clinic._id });
+    const result = await listUsers({ role, clinicId: clinic._id, dbName });
 
     if (!result.success) {
       return NextResponse.json(

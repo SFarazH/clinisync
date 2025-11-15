@@ -19,6 +19,13 @@ export async function registerUser(data, dbName) {
       Doctor.schema
     );
 
+    const clinicsModel = await getMongooseModel(
+      "clinisync",
+      "Clinic",
+      Clinic.schema
+    );
+    const clinicDoc = await clinicsModel.findOne({ databaseName: dbName });
+
     if (data.role === "doctor") {
       if (!data.doctorId) {
         return { success: false, error: "Doctor missing" };
@@ -57,7 +64,11 @@ export async function registerUser(data, dbName) {
       data.password ?? process.env.TEST_PASSWORD,
       10
     );
-    const user = await usersModel.create({ ...data, password: hashedPassword });
+    const user = await usersModel.create({
+      ...data,
+      password: hashedPassword,
+      clinic: clinicDoc._id,
+    });
     if (data.role === "doctor") {
       await doctorsModel.findByIdAndUpdate(data.doctorId, { userId: user._id });
     }

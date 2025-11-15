@@ -23,6 +23,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchDoctors, register, updateUserFunc } from "@/lib";
 import Loader from "../loader";
 import { Loader2, TriangleAlert } from "lucide-react";
+import { useMutationWrapper, useQueryWrapper } from "../wrappers";
 
 export default function UserForm({ isOpen, onClose, user = null }) {
   const queryClient = useQueryClient();
@@ -47,12 +48,15 @@ export default function UserForm({ isOpen, onClose, user = null }) {
     onClose();
   }, [onClose]);
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
-    queryKey: ["doctors"],
-    queryFn: () => fetchDoctors(true),
-  });
+  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
+    {
+      queryKey: ["doctors"],
+      queryFn: fetchDoctors,
+      params: { getUnassigned: true },
+    }
+  );
 
-  const registerMutation = useMutation({
+  const registerMutation = useMutationWrapper({
     mutationFn: register,
     onSuccess: () => {
       handleCloseModal();
@@ -60,7 +64,7 @@ export default function UserForm({ isOpen, onClose, user = null }) {
     },
   });
 
-  const updateUserMutation = useMutation({
+  const updateUserMutation = useMutationWrapper({
     mutationFn: updateUserFunc,
     onSuccess: () => {
       handleCloseModal();
@@ -84,10 +88,10 @@ export default function UserForm({ isOpen, onClose, user = null }) {
     if (isEditing) {
       await updateUserMutation.mutateAsync({
         id: formData._id,
-        userData,
+        userData: userData,
       });
     } else {
-      await registerMutation.mutateAsync(userData);
+      await registerMutation.mutateAsync({ registerData: userData });
     }
   };
 

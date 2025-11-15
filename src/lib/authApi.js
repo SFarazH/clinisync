@@ -1,7 +1,9 @@
 import axios from "axios";
 
-export const register = async (registerData) => {
-  const response = await axios.post("/api/auth/register", registerData);
+export const register = async ({ registerData, dbName }) => {
+  const response = await axios.post("/api/auth/register", registerData, {
+    headers: { "db-name": dbName },
+  });
   return response.data;
 };
 
@@ -34,9 +36,11 @@ export const verifyUser = async () => {
   }
 };
 
-export const updateUserFunc = async ({ id, userData }) => {
+export const updateUserFunc = async ({ id, userData, dbName }) => {
   try {
-    const response = await axios.put(`/api/auth/${id}`, userData);
+    const response = await axios.put(`/api/auth/${id}`, userData, {
+      headers: { "db-name": dbName },
+    });
     return response.data;
   } catch (error) {
     console.error(error);
