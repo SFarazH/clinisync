@@ -9,11 +9,12 @@ import {
   updatePrescription,
 } from "@/lib";
 import { useAuth } from "./context/authcontext";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Loader from "./loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import AppointmentDetailsModal from "./modal/appointment.modal";
 import { Circle } from "lucide-react";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function DoctorDashboard() {
   const { authUser } = useAuth();
@@ -37,9 +38,10 @@ export default function DoctorDashboard() {
     setSelectedAppointment(null);
   };
 
-  const { data: doctorData, isLoading: loadingDoctor } = useQuery({
+  const { data: doctorData, isLoading: loadingDoctor } = useQueryWrapper({
     queryKey: ["procedures", authUser?.id],
-    queryFn: () => fetchDoctorById(authUser.id),
+    queryFn: fetchDoctorById,
+    params: { id: authUser.id },
     enabled: !!authUser?.id,
   });
 
@@ -52,22 +54,24 @@ export default function DoctorDashboard() {
     return {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
-      doctorId: doctorData?._id,
+      doctorId: doctorData?.data?._id,
       isPaginate: false,
     };
   }, [doctorData]);
 
   const { data: appointmentsData = [], isLoading: loadingAppointments } =
-    useQuery({
+    useQueryWrapper({
       queryKey: ["appointments", queryParams],
-      queryFn: () => {
-        return fetchAppointments(queryParams);
-      },
+      queryFn: fetchAppointments,
+      params: queryParams,
       enabled:
-        !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
+        !!queryParams &&
+        !!queryParams.startDate &&
+        !!queryParams.endDate &&
+        !!doctorData,
     });
 
-  const addPrescriptionMutation = useMutation({
+  const addPrescriptionMutation = useMutationWrapper({
     mutationFn: addPrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
@@ -75,7 +79,7 @@ export default function DoctorDashboard() {
     },
   });
 
-  const updatePrescriptionMutation = useMutation({
+  const updatePrescriptionMutation = useMutationWrapper({
     mutationFn: updatePrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
