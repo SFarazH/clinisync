@@ -1,6 +1,6 @@
 import Doctor from "@/models/Doctor";
+import Users from "@/models/Users";
 import { getMongooseModel } from "@/utils/dbConnect";
-import mongoose from "mongoose";
 
 // create doctor
 export async function addDoctor(data, dbName) {
@@ -71,10 +71,15 @@ export async function getAllDoctors(getUnassigned, dbName) {
 
 // get doctor by ID
 export async function getDoctorById(doctorId, dbName) {
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
   const doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
   try {
-    const doctor = await doctorsModel.findById(doctorId);
+    const userDoc = await usersModel.findById(doctorId);
+    if (!userDoc) {
+      return { success: false, error: "User not found" };
+    }
+    const doctor = await doctorsModel.findById(userDoc.doctorId);
     if (!doctor) {
       return { success: false, error: "Doctor not found" };
     }

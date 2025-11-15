@@ -8,7 +8,7 @@ export const roles = {
 
 export const rolePermissions = {
   appSettings: {
-    getSettings: [roles.ADMIN],
+    getSettings: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
     createOrUpdateSettings: [roles.ADMIN],
   },
   appointments: {
