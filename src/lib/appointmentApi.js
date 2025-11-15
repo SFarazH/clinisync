@@ -10,21 +10,18 @@ export const fetchAppointments = async ({
   limit,
   status,
 } = {}) => {
-  const response = await axios.get(
-    "/api/appointments",
-    { headers: { "db-name": dbName } },
-    {
-      params: {
-        doctorId,
-        startDate,
-        endDate,
-        isPaginate,
-        page: isPaginate ? page : null,
-        limit: isPaginate ? limit : null,
-        status,
-      },
-    }
-  );
+  const response = await axios.get("/api/appointments", {
+    headers: { "db-name": dbName },
+    params: {
+      doctorId,
+      startDate,
+      endDate,
+      isPaginate,
+      page: isPaginate ? page : null,
+      limit: isPaginate ? limit : null,
+      status,
+    },
+  });
   if (isPaginate) {
     return response.data;
   } else {
