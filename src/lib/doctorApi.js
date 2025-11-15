@@ -1,32 +1,25 @@
 import axios from "axios";
 
 export const fetchDoctors = async ({ dbName, getUnassigned }) => {
-  const response = await axios.get(
-    "/api/doctors",
-    { headers: { "db-name": dbName } },
-    {
-      params: getUnassigned === true ? { getUnassigned: true } : {},
-    }
-  );
+  const response = await axios.get("/api/doctors", {
+    headers: { "db-name": dbName },
+    params: getUnassigned === true ? { getUnassigned: true } : {},
+  });
 
   return response.data.data;
 };
 
-export const addNewDoctor = async ({ dbName, doctorData }) => {
-  const response = await axios.post(
-    "/api/doctors",
-    { headers: { "db-name": dbName } },
-    doctorData
-  );
+export const addNewDoctor = async ({ doctorData, dbName }) => {
+  const response = await axios.post("/api/doctors", doctorData, {
+    headers: { "db-name": dbName },
+  });
   return response.data.data;
 };
 
 export const updateDoctor = async ({ id, doctorData, dbName }) => {
-  const response = await axios.put(
-    `/api/doctors/${id}`,
-    { headers: { "db-name": dbName } },
-    doctorData
-  );
+  const response = await axios.put(`/api/doctors/${id}`, doctorData, {
+    headers: { "db-name": dbName },
+  });
   return response.data.data;
 };
 
