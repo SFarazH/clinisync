@@ -7,7 +7,7 @@ export const getClinicConfig = async ({ dbName }) => {
   return response.data.data;
 };
 
-export const updateClinicConfig = async (configData, dbName) => {
+export const updateClinicConfig = async ({ configData, dbName }) => {
   const response = await axios.post("/api/app-settings", configData, {
     headers: { "db-name": dbName },
   });

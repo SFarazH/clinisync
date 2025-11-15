@@ -12,10 +12,14 @@ export async function createOrUpdateAppSettings(data, dbName) {
     let settings = await appSettingsModel.findOne();
 
     if (settings) {
-      settings = await appSettingsModel.findOneAndUpdate({}, data, {
-        new: true,
-        runValidators: true,
-      });
+      settings = await appSettingsModel.findOneAndUpdate(
+        {},
+        { openingHours: data },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
       return {
         success: true,
         data: settings,
