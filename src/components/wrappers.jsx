@@ -6,6 +6,7 @@ export function useQueryWrapper({
   queryFn,
   params = {},
   enabled = true,
+  ...extraParams
 }) {
   const { authClinic } = useAuth();
   const dbName = authClinic?.databaseName;
@@ -14,6 +15,7 @@ export function useQueryWrapper({
     queryKey: [...queryKey, params, dbName],
     enabled: enabled && !!dbName,
     queryFn: () => queryFn({ ...params, dbName }),
+    ...extraParams,
   });
 }
 

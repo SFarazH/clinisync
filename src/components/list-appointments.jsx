@@ -29,6 +29,7 @@ import {
 } from "./ui/select";
 import PrescriptionModal from "./modal/prescription.modal";
 import { Pagination } from "./pagination";
+import { useQueryWrapper } from "./wrappers";
 
 export default function ListAllAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -45,15 +46,15 @@ export default function ListAllAppointments() {
     setLimit(10);
   };
 
-  const { data: appointmentsData, isLoading } = useQuery({
+  const { data: appointmentsData, isLoading } = useQueryWrapper({
     queryKey: ["appointments", currentPage, limit, status],
-    queryFn: () =>
-      fetchAppointments({
-        page: currentPage,
-        limit,
-        isPaginate: true,
-        status: status === "all" ? undefined : status,
-      }),
+    queryFn: fetchAppointments,
+    params: {
+      page: currentPage,
+      limit,
+      isPaginate: true,
+      status: status === "all" ? undefined : status,
+    },
     keepPreviousData: true,
   });
 
