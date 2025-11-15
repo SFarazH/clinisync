@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   addAppointment,
   deleteAppointment,
@@ -48,6 +48,7 @@ import CalendarView from "./forms/calendar-view";
 import Loader from "./loader";
 import { useAuth } from "@/components/context/authcontext";
 import { format } from "date-fns";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function AppointmentCalendar() {
   const queryClient = useQueryClient();
@@ -92,40 +93,62 @@ export default function AppointmentCalendar() {
     [weekStart, weekEnd, selectedDoctorId]
   );
 
-  const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
-    queryKey: ["patients"],
-    queryFn: listPatients,
-  });
+  const { data: patientsData = [], isLoading: loadingPatients } =
+    useQueryWrapper({
+      queryKey: ["patients"],
+      queryFn: listPatients,
+    });
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
-    queryKey: ["doctors"],
-    queryFn: fetchDoctors,
-  });
+  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
+    {
+      queryKey: ["doctors"],
+      queryFn: fetchDoctors,
+    }
+  );
 
-  const { data: proceduresData = [], isLoading: loadingProcedures } = useQuery({
-    queryKey: ["procedures"],
-    queryFn: fetchProceudres,
-  });
+  const { data: proceduresData = [], isLoading: loadingProcedures } =
+    useQueryWrapper({
+      queryKey: ["procedures"],
+      queryFn: fetchProceudres,
+    });
 
   const { data: rawAppointmentsData = [], isLoading: loadingAppointments } =
-    useQuery({
-      queryKey: ["appointments", queryParams],
-      queryFn: () => {
-        return fetchAppointments(queryParams);
-      },
+    useQueryWrapper({
+      queryKey: ["appointments"],
+      queryFn: fetchAppointments,
+      params: queryParams,
       enabled:
         !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
     });
 
-  const { data: clinicSettings = {}, isLoading: loadingSettings } = useQuery({
-    queryKey: ["clinicSettings"],
-    queryFn: () => getClinicConfig(),
-  });
+  const { data: clinicSettings = {}, isLoading: loadingSettings } =
+    useQueryWrapper({
+      queryKey: ["clinicSettings"],
+      queryFn: getClinicConfig,
+    });
 
-  const addAppointmentMutation = useMutation({
+  const addAppointmentMutation = useMutationWrapper({
     mutationFn: addAppointment,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
+    },
+  });
+
+  const updateAppointmentMutation = useMutationWrapper({
+    mutationFn: updateAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+      setEditingAppointment(null);
+      setIsDialogOpen(false);
+    },
+  });
+
+  const deleteAppointmentMutation = useMutationWrapper({
+    mutationFn: deleteAppointment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["appointments"]);
+      setIsDialogOpen(false);
+      setEditingAppointment(null);
     },
   });
 
@@ -136,24 +159,6 @@ export default function AppointmentCalendar() {
       );
     }
   }, [authUser, doctorsData]);
-
-  const updateAppointmentMutation = useMutation({
-    mutationFn: updateAppointment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
-      setEditingAppointment(null);
-      setIsDialogOpen(false);
-    },
-  });
-
-  const deleteAppointmentMutation = useMutation({
-    mutationFn: deleteAppointment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
-      setIsDialogOpen(false);
-      setEditingAppointment(null);
-    },
-  });
 
   const appointmentsData = useMemo(
     () => transformAppointmentData(rawAppointmentsData),
@@ -233,7 +238,6 @@ export default function AppointmentCalendar() {
       return;
     }
 
-    // Check for overlaps with the same doctor (exclude the current appointment being moved)
     if (
       checkAppointmentOverlap(
         appointmentsData,
@@ -283,8 +287,8 @@ export default function AppointmentCalendar() {
       status: appointment.status || "scheduled",
     });
     setAttachments(appointment.attachments);
-    setErrorMessage(""); // Clear error message
-    setIsFromCalendarSlot(false); // Mark as NOT coming from calendar slot
+    setErrorMessage("");
+    setIsFromCalendarSlot(false);
     setIsDialogOpen(true);
   };
 
@@ -318,7 +322,7 @@ export default function AppointmentCalendar() {
 
   const handleDelete = () => {
     if (editingAppointment) {
-      deleteAppointmentMutation.mutateAsync(editingAppointment.id);
+      deleteAppointmentMutation.mutateAsync({ id: editingAppointment.id });
     }
   };
 
@@ -367,10 +371,12 @@ export default function AppointmentCalendar() {
       });
     } else {
       addAppointmentMutation.mutateAsync({
-        ...formData,
-        date: new Date(selectedDate),
-        startTime,
-        endTime,
+        appointmentData: {
+          ...formData,
+          date: new Date(selectedDate),
+          startTime,
+          endTime,
+        },
       });
     }
 

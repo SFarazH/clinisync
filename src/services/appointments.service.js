@@ -303,7 +303,7 @@ export async function deleteAppointment(id, dbName) {
     }
 
     if (appointment.invoice) {
-      await invociesModel.findByIdAndDelete(appointment.invoice, { session });
+      await invoicesModel.findByIdAndDelete(appointment.invoice, { session });
     }
 
     if (appointment.prescription) {
