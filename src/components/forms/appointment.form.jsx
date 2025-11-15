@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, Loader2, Upload,  Image } from "lucide-react";
+import { ChevronsUpDown, Loader2, Upload, Image } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -32,8 +32,10 @@ import { Textarea } from "../ui/textarea";
 import { appointmentStatusConfig } from "../data";
 import { formatDOB } from "@/utils/helper";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { s3GetImage, s3UploadApi } from "@/lib/s3Api";
+import { useMutationWrapper } from "../wrappers";
+import { useAuth } from "../context/authcontext";
 
 export default function AppointmentForm({
   dialogOptions,
@@ -44,6 +46,7 @@ export default function AppointmentForm({
   loaders,
   data,
 }) {
+  const { authClinic } = useAuth();
   const { isDialogOpen, setIsDialogOpen } = dialogOptions;
   const { open, setOpen } = popoverOptions;
   const {
@@ -70,7 +73,7 @@ export default function AppointmentForm({
 
   const [attachmentToAdd, setAttachmentToAdd] = useState(null);
 
-  const uploadImageMutation = useMutation({
+  const uploadImageMutation = useMutationWrapper({
     mutationFn: s3UploadApi,
     onSuccess: () => {
       queryClient.invalidateQueries(["appointments"]);
@@ -81,7 +84,10 @@ export default function AppointmentForm({
 
   const handleImageClick = async (key) => {
     try {
-      const { bufferResponse, contentType } = await s3GetImage(key);
+      const { bufferResponse, contentType } = await s3GetImage({
+        key: key,
+        dbName: authClinic.databaseName,
+      });
       const blob = new Blob([bufferResponse], { type: contentType });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
@@ -339,7 +345,7 @@ export default function AppointmentForm({
               </div>
             )}
 
-            {editingAppointment && (
+            {authClinic?.features?.attachments && editingAppointment && (
               <div className="grid gap-3">
                 <Label htmlFor="attachment">Attachments</Label>
 
@@ -396,7 +402,9 @@ export default function AppointmentForm({
                                 "appointmentId",
                                 editingAppointment.id
                               );
-                              uploadImageMutation.mutateAsync(formDataToSend);
+                              uploadImageMutation.mutateAsync({
+                                formData: formDataToSend,
+                              });
                             }
                           }}
                           disabled={uploadImageMutation.isPending}
@@ -448,8 +456,6 @@ export default function AppointmentForm({
                 </div>
               </div>
             )}
-
-            
 
             <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
