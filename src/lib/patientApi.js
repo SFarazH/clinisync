@@ -6,13 +6,10 @@ export const fetchPaginatedPatients = async ({
   search = "",
   dbName,
 } = {}) => {
-  const response = await axios.get(
-    "/api/patients",
-    { headers: { "db-name": dbName } },
-    {
-      params: { page, limit, search },
-    }
-  );
+  const response = await axios.get("/api/patients", {
+    headers: { "db-name": dbName },
+    params: { page, limit, search },
+  });
   return response.data; // returns { success, data, pagination }
 };
 
@@ -26,8 +23,8 @@ export const listPatients = async ({ dbName }) => {
 export const createNewPatient = async ({ patientData, dbName }) => {
   const response = await axios.post(
     "/api/patients",
-    { headers: { "db-name": dbName } },
     patientData,
+    { headers: { "db-name": dbName } },
     {
       withCredentials: true,
     }
@@ -35,16 +32,14 @@ export const createNewPatient = async ({ patientData, dbName }) => {
   return response.data.data;
 };
 
-export const updatePatient = async (id, patientData, dbName) => {
-  const response = await axios.put(
-    `/api/patients/${id}`,
-    { headers: { "db-name": dbName } },
-    patientData
-  );
+export const updatePatient = async ({ id, patientData, dbName }) => {
+  const response = await axios.put(`/api/patients/${id}`, patientData, {
+    headers: { "db-name": dbName },
+  });
   return response.data.data;
 };
 
-export const deletePatient = async (id, dbName) => {
+export const deletePatient = async ({ id, dbName }) => {
   const response = await axios.delete(`/api/patients/${id}`, {
     headers: { "db-name": dbName },
   });

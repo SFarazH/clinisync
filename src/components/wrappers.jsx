@@ -23,7 +23,6 @@ export function useMutationWrapper({ mutationFn, onSuccess, onError }) {
 
   return useMutation({
     mutationFn: async (payload) => {
-      console.log("WRAPPER RECEIVED PAYLOAD --->", payload);
       return mutationFn({
         ...payload,
         dbName,
