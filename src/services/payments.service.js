@@ -1,4 +1,5 @@
 import Invoice from "@/models/Invoice";
+import Patient from "@/models/Patient";
 import { getMongooseModel } from "@/utils/dbConnect";
 
 export async function addPaymentForInvoice(
@@ -57,6 +58,8 @@ export async function getInvoices({
     "Invoice",
     Invoice.schema
   );
+
+  await getMongooseModel(dbName, "Patient", Patient.schema);
 
   try {
     paginate = paginate === "true" || paginate === true;
