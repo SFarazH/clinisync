@@ -114,7 +114,12 @@ export async function listAppointments({
     "Appointment",
     Appointment.schema
   );
+
   await getMongooseModel(dbName, "Prescription", Prescription.schema);
+  await getMongooseModel(dbName, "Patient", Patient.schema);
+  await getMongooseModel(dbName, "Doctor", Doctor.schema);
+  await getMongooseModel(dbName, "Procedure", Procedure.schema);
+
   try {
     const query = {};
 
