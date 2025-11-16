@@ -2,7 +2,6 @@
 import React, { useEffect } from "react";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,16 +17,17 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
 import Loader from "./loader";
-import { getPaginatedPrescriptions, updatePrescription } from "@/lib";
+import { getPaginatedPrescriptions } from "@/lib";
 import { FileText } from "lucide-react";
 import PrescriptionModal from "./modal/prescription.modal";
 import { Pagination } from "./pagination";
+import { useQueryWrapper } from "./wrappers";
 
 export default function PrescriptionManagement() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -42,21 +42,17 @@ export default function PrescriptionManagement() {
   const {
     data: prescriptionsDataObject = {},
     isLoading: loadingPrescriptions,
-  } = useQuery({
+  } = useQueryWrapper({
     queryKey: ["prescriptions", currentPage, limit, search, startDate, endDate],
-    queryFn: () =>
-      getPaginatedPrescriptions({
-        page: currentPage,
-        limit,
-        search,
-        startDate,
-        endDate,
-      }),
+    queryFn: getPaginatedPrescriptions,
+    params: {
+      page: currentPage,
+      limit,
+      search,
+      startDate,
+      endDate,
+    },
   });
-
-  // const updateAppointmentMutation = useMutation({
-  //   mutationFn: updatePrescription,
-  // });
 
   useEffect(() => {
     if (

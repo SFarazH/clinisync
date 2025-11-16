@@ -5,9 +5,12 @@ import {
   deleteDoctor,
 } from "@/services/doctors.service";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
+import { FeatureMapping } from "@/utils/feature.mapping";
+import { checkAccess } from "@/utils";
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.getDoctorById);
     if (!auth.ok) {
@@ -16,8 +19,12 @@ export async function GET(_, { params }) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.DOCTORS);
+    if (accessError) return accessError;
+
     const { id } = await params;
-    const result = await getDoctorById(id);
+    const result = await getDoctorById(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -37,6 +44,7 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.updateDoctor);
     if (!auth.ok) {
@@ -45,9 +53,13 @@ export async function PUT(req, { params }) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.DOCTORS);
+    if (accessError) return accessError;
+
     const { id } = await params;
     const body = await req.json();
-    const result = await updateDoctor(id, body);
+    const result = await updateDoctor(id, body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -66,7 +78,8 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.doctors.deleteDoctor);
     if (!auth.ok) {
@@ -75,8 +88,12 @@ export async function DELETE(_, { params }) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.DOCTORSs);
+    if (accessError) return accessError;
+
     const { id } = await params;
-    const result = await deleteDoctor(id);
+    const result = await deleteDoctor(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(

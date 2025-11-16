@@ -1,9 +1,12 @@
 import { listPatients } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.listPatients);
     if (!auth.ok) {
@@ -12,7 +15,12 @@ export async function GET(req) {
         { status: auth.status }
       );
     }
-    const result = await listPatients();
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
+    const result = await listPatients(dbName);
 
     if (!result.success) {
       return NextResponse.json(

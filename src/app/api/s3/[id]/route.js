@@ -1,9 +1,12 @@
 import { getS3Image } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
+  const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.s3.getS3Image);
   if (!auth.ok) {
     return NextResponse.json(
@@ -11,6 +14,10 @@ export async function GET(_, { params }) {
       { status: auth.status }
     );
   }
+  const { clinic } = auth;
+  const accessError = checkAccess(clinic, dbName, FeatureMapping.ATTACHMENTS);
+  if (accessError) return accessError;
+
   const { id: key } = await params;
 
   if (!key) {

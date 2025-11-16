@@ -3,11 +3,12 @@ export const roles = {
   RECEPTIONIST: "receptionist",
   PHARMACIST: "pharmacist",
   DOCTOR: "doctor",
+  SUPER_ADMIN: "super-admin",
 };
 
 export const rolePermissions = {
   appSettings: {
-    getSettings: [roles.ADMIN],
+    getSettings: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
     createOrUpdateSettings: [roles.ADMIN],
   },
   appointments: {
@@ -36,7 +37,9 @@ export const rolePermissions = {
     markLabWorkComplete: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
     deleteLabWork: [roles.ADMIN, roles.DOCTOR],
   },
-  medicines: {},
+  medicines: {
+    getMedicines: [roles.ADMIN, roles.DOCTOR],
+  },
   patients: {
     searchPatients: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
     listPatients: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
@@ -66,5 +69,9 @@ export const rolePermissions = {
   s3: {
     s3Upload: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
     getS3Image: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
+  },
+  users: {
+    getUsersCount: [roles.ADMIN],
+    listUsers: [roles.ADMIN],
   },
 };

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PaymentModal from "./modal/payment.modal";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDOB } from "@/utils/helper";
 import Loader from "./loader";
 import { addPaymentToInvoiceApi, getInvocies } from "@/lib";
@@ -28,6 +34,7 @@ import {
 import { Label } from "./ui/label";
 import { useDateRange } from "./context/dateRangeContext";
 import { Pagination } from "./pagination";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
@@ -46,7 +53,7 @@ export default function InvoiceManagement() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const { data: invoicesDataObject = {}, isLoading: loadingInvoices } =
-    useQuery({
+    useQueryWrapper({
       queryKey: [
         "invoices",
         invoiceType,
@@ -56,23 +63,23 @@ export default function InvoiceManagement() {
         patientId,
         dateRange,
       ],
-      queryFn: async () =>
-        getInvocies({
-          page: currentPage,
-          limit: limit,
-          invoiceType: invoiceType,
-          isPaymentComplete:
-            isPaymentComplete === "All"
-              ? null
-              : isPaymentComplete === "Completed",
-          paginate: true,
-          patientId: patientId,
-          startDate: dateRange?.from,
-          endDate: dateRange?.to,
-        }),
+      queryFn: getInvocies,
+      params: {
+        page: currentPage,
+        limit: limit,
+        invoiceType: invoiceType,
+        isPaymentComplete:
+          isPaymentComplete === "All"
+            ? null
+            : isPaymentComplete === "Completed",
+        paginate: true,
+        patientId: patientId,
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+      },
     });
 
-  const addPaymentMutation = useMutation({
+  const addPaymentMutation = useMutationWrapper({
     mutationFn: addPaymentToInvoiceApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });

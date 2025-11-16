@@ -1,9 +1,12 @@
 import { deleteLabWork, markLabWorkComplete, updateLabWork } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.updateLabWork);
     if (!auth.ok) {
@@ -12,9 +15,14 @@ export async function PUT(req, { params }) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
+    if (accessError) return accessError;
+
     const { id } = await params;
     const body = await req.json();
-    const result = await updateLabWork(id, body);
+    const result = await updateLabWork(id, body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -33,7 +41,8 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function PATCH(_, { params }) {
+export async function PATCH(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.markLabWorkComplete);
     if (!auth.ok) {
@@ -42,8 +51,13 @@ export async function PATCH(_, { params }) {
         { status: auth.status }
       );
     }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
+    if (accessError) return accessError;
+
     const { id } = await params;
-    const result = await markLabWorkComplete(id);
+    const result = await markLabWorkComplete(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -62,7 +76,8 @@ export async function PATCH(_, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.deleteLabWork);
     if (!auth.ok) {
@@ -71,7 +86,12 @@ export async function DELETE(_, { params }) {
         { status: auth.status }
       );
     }
-    const result = await deleteLabWork(params.id);
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
+    if (accessError) return accessError;
+
+    const result = await deleteLabWork(params.id, dbName);
 
     if (!result.success) {
       return NextResponse.json(

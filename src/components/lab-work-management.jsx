@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "./ui/table";
 import { emptyLabWork } from "./data";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
 import {
   fetchPaginatedLabWorks,
@@ -42,6 +42,7 @@ import PatientSelect from "./patient-select";
 import Loader from "./loader";
 import { useDateRange } from "./context/dateRangeContext";
 import { Pagination } from "./pagination";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function LabWorkManagement() {
   const queryClient = useQueryClient();
@@ -56,17 +57,18 @@ export default function LabWorkManagement() {
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({});
 
-  const { data: labWorkDataObject = {}, isLoading: loadingLabWork } = useQuery({
-    queryKey: [
-      "labWork",
-      currentPage,
-      limit,
-      selectedPatient,
-      receivedBool,
-      dateRange,
-    ],
-    queryFn: async () =>
-      fetchPaginatedLabWorks({
+  const { data: labWorkDataObject = {}, isLoading: loadingLabWork } =
+    useQueryWrapper({
+      queryKey: [
+        "labWork",
+        currentPage,
+        limit,
+        selectedPatient,
+        receivedBool,
+        dateRange,
+      ],
+      queryFn: fetchPaginatedLabWorks,
+      params: {
         page: currentPage,
         limit,
         paginate: true,
@@ -74,8 +76,8 @@ export default function LabWorkManagement() {
         isReceived: receivedBool === "All" ? null : receivedBool === "Received",
         startDate: dateRange?.from,
         endDate: dateRange?.to,
-      }),
-  });
+      },
+    });
 
   useEffect(() => {
     if (!loadingLabWork && labWorkDataObject && labWorkDataObject.data) {
@@ -84,14 +86,14 @@ export default function LabWorkManagement() {
     }
   }, [loadingLabWork, labWorkDataObject]);
 
-  const addLabWorkMutation = useMutation({
+  const addLabWorkMutation = useMutationWrapper({
     mutationFn: addNewLabWork,
     onSuccess: () => {
       queryClient.invalidateQueries(["labWork"]);
     },
   });
 
-  const updateLabWorkMutation = useMutation({
+  const updateLabWorkMutation = useMutationWrapper({
     mutationFn: updateLabWork,
     onSuccess: () => {
       queryClient.invalidateQueries(["labWork"]);
@@ -102,14 +104,14 @@ export default function LabWorkManagement() {
     },
   });
 
-  const deleteLabWorkMutation = useMutation({
+  const deleteLabWorkMutation = useMutationWrapper({
     mutationFn: deleteLabWork,
     onSuccess: () => {
       queryClient.invalidateQueries(["labWork"]);
     },
   });
 
-  const markLabWorkAsReceivedMutation = useMutation({
+  const markLabWorkAsReceivedMutation = useMutationWrapper({
     mutationFn: markLabWorkComplete,
     onSuccess: () => {
       queryClient.invalidateQueries(["labWork"]);
@@ -131,11 +133,11 @@ export default function LabWorkManagement() {
   };
 
   const handleMarkLabWork = (labWorkId) => {
-    markLabWorkAsReceivedMutation.mutateAsync(labWorkId);
+    markLabWorkAsReceivedMutation.mutateAsync({ id: labWorkId });
   };
 
   const handleDeletePatient = (patientId) => {
-    deleteLabWorkMutation.mutateAsync(patientId);
+    deleteLabWorkMutation.mutateAsync({ id: patientId });
   };
 
   const handleSubmit = (e) => {
@@ -147,7 +149,7 @@ export default function LabWorkManagement() {
         labWorkData: formData,
       });
     } else {
-      addLabWorkMutation.mutateAsync(formData);
+      addLabWorkMutation.mutateAsync({ labWorkData: formData });
     }
 
     setFormData(emptyLabWork);

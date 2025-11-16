@@ -1,7 +1,14 @@
 import axios from "axios";
 
-export const addPaymentToInvoiceApi = async ({ invoiceId, data }) => {
-  const res = await axios.put(`/api/invoice/${invoiceId}`, data);
+export const addPaymentToInvoiceApi = async ({
+  invoiceId,
+  paymentData,
+  dbName,
+}) => {
+  const res = await axios.put(`/api/invoice/${invoiceId}`, paymentData, {
+    headers: { "db-name": dbName },
+  });
+  return res.data;
 };
 
 export const getInvocies = async ({
@@ -13,6 +20,7 @@ export const getInvocies = async ({
   limit = 10,
   startDate = null,
   endDate = null,
+  dbName,
 }) => {
   const res = await axios.get(`/api/invoice`, {
     params: {
@@ -25,12 +33,14 @@ export const getInvocies = async ({
       startDate: startDate,
       endDate: endDate,
     },
+    headers: { "db-name": dbName },
   });
   return res.data;
 };
 
-export const getInvoiceById = async (invoiceId) => {
-  // data-> amount, paymentMethod
-  const res = await axios.get(`/api/invoice/${invoiceId}`);
+export const getInvoiceById = async ({ invoiceId, dbName }) => {
+  const res = await axios.get(`/api/invoice/${invoiceId}`, {
+    headers: { "db-name": dbName },
+  });
   return res;
 };

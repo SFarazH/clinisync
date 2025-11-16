@@ -1,16 +1,25 @@
 import Procedure from "@/models/Procedure";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
 // create procedure
-export async function createProcedure(data) {
-  await dbConnect();
+export async function createProcedure(data, dbName) {
+  const proceduresModel = await getMongooseModel(
+    dbName,
+    "Procedure",
+    Procedure.schema
+  );
   try {
-    const existing = await Procedure.findOne({ abbr: data.abbr });
-    if (existing) {
-      return { success: false, error: "Procedure abbreviation already exists" };
+    if (data.abbr && data.abbr.trim() !== "") {
+      const existing = await proceduresModel.findOne({ abbr: data.abbr });
+      if (existing) {
+        return {
+          success: false,
+          error: "Procedure abbreviation already exists",
+        };
+      }
     }
 
-    const procedure = await Procedure.create(data);
+    const procedure = await proceduresModel.create(data);
     return { success: true, data: procedure };
   } catch (error) {
     console.error("Error creating procedure:", error);
@@ -19,11 +28,15 @@ export async function createProcedure(data) {
 }
 
 // update procedure
-export async function updateProcedure(id, data) {
-  await dbConnect();
+export async function updateProcedure(id, data, dbName) {
+  const proceduresModel = await getMongooseModel(
+    dbName,
+    "Procedure",
+    Procedure.schema
+  );
 
   try {
-    const updated = await Procedure.findByIdAndUpdate(id, data, {
+    const updated = await proceduresModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
@@ -40,10 +53,14 @@ export async function updateProcedure(id, data) {
 }
 
 //get procedures
-export async function getProcedures() {
+export async function getProcedures(dbName) {
   try {
-    await dbConnect();
-    const procedures = await Procedure.find();
+    const proceduresModel = await getMongooseModel(
+      dbName,
+      "Procedure",
+      Procedure.schema
+    );
+    const procedures = await proceduresModel.find();
     return { success: true, data: procedures };
   } catch (error) {
     console.error("Error getting procedures:", error);
@@ -52,11 +69,15 @@ export async function getProcedures() {
 }
 
 // get procedure by id
-export async function getProcedureById(id) {
-  await dbConnect();
+export async function getProcedureById(id, dbName) {
+  const proceduresModel = await getMongooseModel(
+    dbName,
+    "Procedure",
+    Procedure.schema
+  );
 
   try {
-    const procedure = await Procedure.findById(id);
+    const procedure = await proceduresModel.findById(id);
     if (!procedure) {
       return { success: false, error: "Procedure not found" };
     }
@@ -69,11 +90,15 @@ export async function getProcedureById(id) {
 }
 
 // delete procedure
-export async function deleteProcedure(id) {
-  await dbConnect();
+export async function deleteProcedure(id, dbName) {
+  const proceduresModel = await getMongooseModel(
+    dbName,
+    "Procedure",
+    Procedure.schema
+  );
 
   try {
-    const deleted = await Procedure.findByIdAndDelete(id);
+    const deleted = await proceduresModel.findByIdAndDelete(id);
     if (!deleted) {
       return { success: false, error: "Procedure not found" };
     }

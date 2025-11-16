@@ -10,28 +10,37 @@ import {
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Delete, Edit, Plus, Trash2 } from "lucide-react";
-import { getUsers, getUsersByRole } from "@/lib";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "./loader";
 import UserForm from "./forms/user.form";
 import { getRoleIcon, getRoleStyle } from "@/utils/helper";
+import { getUsers, getUsersByRole } from "@/lib/usersApi";
+import { useAuth } from "./context/authcontext";
+import { useQueryWrapper } from "./wrappers";
 
 export default function UserManagement() {
+  const { authClinic } = useAuth();
   const [role, setRole] = useState(null);
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const { data: usersData = [], isLoading: loadingUsers } = useQuery({
+  // const { data: usersData = [], isLoading: loadingUsers } = useQuery({
+  //   queryKey: ["users", role],
+  //   queryFn: () => getUsers({ dbName: authClinic.databaseName, role: role }),
+  // });
+
+  const { data: usersData = [], isLoading: loadingUsers } = useQueryWrapper({
     queryKey: ["users", role],
-    queryFn: () => getUsers(role),
+    queryFn: getUsers,
+    params: { role },
   });
 
   const { data: usersCount = [], isLoading: loadingCount } = useQuery({
     queryKey: ["usersCount"],
-    queryFn: getUsersByRole,
+    queryFn: () => getUsersByRole({ dbName: authClinic.databaseName }),
   });
 
   const roleCount = useMemo(() => {

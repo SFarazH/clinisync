@@ -1,9 +1,12 @@
 import { addLabWork, getAllLabWorks } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
-import { rolePermissions } from "@/utils/role-permissions";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.addLabWork);
     if (!auth.ok) {
@@ -12,9 +15,12 @@ export async function POST(req) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
+    if (accessError) return accessError;
 
     const body = await req.json();
-    const result = await addLabWork(body);
+    const result = await addLabWork(body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -37,6 +43,7 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.getAllLabWorks);
     if (!auth.ok) {
@@ -45,6 +52,10 @@ export async function GET(req) {
         { status: auth.status }
       );
     }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
+    if (accessError) return accessError;
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
@@ -62,6 +73,7 @@ export async function GET(req) {
       isReceived,
       startDate,
       endDate,
+      dbName,
     });
 
     if (!result.success) {

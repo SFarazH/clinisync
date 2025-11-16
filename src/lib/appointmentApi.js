@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const fetchAppointments = async ({
+  dbName,
   startDate,
   endDate,
   isPaginate,
@@ -10,6 +11,7 @@ export const fetchAppointments = async ({
   status,
 } = {}) => {
   const response = await axios.get("/api/appointments", {
+    headers: { "db-name": dbName },
     params: {
       doctorId,
       startDate,
@@ -27,17 +29,25 @@ export const fetchAppointments = async ({
   }
 };
 
-export const addAppointment = async (appointmentData) => {
-  const response = await axios.post("/api/appointments", appointmentData);
+export const addAppointment = async ({ appointmentData, dbName }) => {
+  const response = await axios.post("/api/appointments", appointmentData, {
+    headers: { "db-name": dbName },
+  });
   return response.data.data;
 };
 
-export const updateAppointment = async ({ id, appointmentData }) => {
-  const response = await axios.put(`/api/appointments/${id}`, appointmentData);
+export const updateAppointment = async ({ id, appointmentData, dbName }) => {
+  console.log(id, "id from api");
+  console.log(appointmentData, "payload from api");
+  const response = await axios.put(`/api/appointments/${id}`, appointmentData, {
+    headers: { "db-name": dbName },
+  });
   return response.data.data;
 };
 
-export const deleteAppointment = async (id) => {
-  const response = await axios.delete(`/api/appointments/${id}`);
+export const deleteAppointment = async ({ id, dbName }) => {
+  const response = await axios.delete(`/api/appointments/${id}`, {
+    headers: { "db-name": dbName },
+  });
   return response.data;
 };

@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listPatients } from "@/lib";
 import { formatDOB } from "@/utils/helper";
 import { useState } from "react";
+import { useQueryWrapper } from "./wrappers";
 
 export default function PatientSelect({
   patientId,
@@ -39,10 +40,11 @@ export default function PatientSelect({
     setOpen(false);
   };
 
-  const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
-    queryKey: ["patients"],
-    queryFn: listPatients,
-  });
+  const { data: patientsData = [], isLoading: loadingPatients } =
+    useQueryWrapper({
+      queryKey: ["patients"],
+      queryFn: listPatients,
+    });
   return (
     <div className={`grid gap-2 ${addedStyle}`}>
       <Label htmlFor="patient">Patient</Label>

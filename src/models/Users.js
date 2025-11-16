@@ -3,11 +3,16 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: false },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: false, unique: true, sparse: true },
     password: { type: String, required: true },
+    clinic: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Clinic",
+      required: false,
+    },
     role: {
       type: String,
-      enum: ["admin", "doctor", "receptionist", "pharmacist"],
+      enum: ["super-admin", "admin", "doctor", "receptionist", "pharmacist"],
       required: true,
     },
     phoneNumber: { type: String, required: false },

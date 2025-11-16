@@ -14,9 +14,10 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { emptyDoctor } from "./data";
 import DoctorForm from "./forms/doctor.form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { addNewDoctor, deleteDoctor, fetchDoctors, updateDoctor } from "@/lib";
 import Loader from "./loader";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function DoctorManagement() {
   const queryClient = useQueryClient();
@@ -24,26 +25,28 @@ export default function DoctorManagement() {
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState(emptyDoctor);
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQuery({
-    queryKey: ["doctors"],
-    queryFn: fetchDoctors,
-  });
+  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
+    {
+      queryKey: ["doctors"],
+      queryFn: fetchDoctors,
+    }
+  );
 
-  const addDoctorMutation = useMutation({
+  const addDoctorMutation = useMutationWrapper({
     mutationFn: addNewDoctor,
     onSuccess: () => {
       queryClient.invalidateQueries(["doctors"]);
     },
   });
 
-  const updateDoctorMutation = useMutation({
+  const updateDoctorMutation = useMutationWrapper({
     mutationFn: updateDoctor,
     onSuccess: () => {
       queryClient.invalidateQueries(["doctors"]);
     },
   });
 
-  const deleteDoctorMutation = useMutation({
+  const deleteDoctorMutation = useMutationWrapper({
     mutationFn: deleteDoctor,
     onSuccess: () => {
       queryClient.invalidateQueries(["doctors"]);
@@ -63,7 +66,7 @@ export default function DoctorManagement() {
   };
 
   const handleDeleteDoctor = (doctorId) => {
-    deleteDoctorMutation.mutateAsync(doctorId);
+    deleteDoctorMutation.mutateAsync({ id: doctorId });
   };
 
   const handleAddNew = () => {
@@ -80,7 +83,7 @@ export default function DoctorManagement() {
         doctorData: formData,
       });
     } else {
-      addDoctorMutation.mutateAsync(formData);
+      addDoctorMutation.mutateAsync({ doctorData: formData });
       toast({
         title: "Doctor Added",
         description: "The new doctor has been successfully added.",

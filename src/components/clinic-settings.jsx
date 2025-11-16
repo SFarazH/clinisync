@@ -8,13 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
 import ClinicDayConfiguration from "./forms/clinic-day-configuration.form";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { daysOfWeek } from "./data";
 import { updateClinicConfig, getClinicConfig } from "@/lib";
 import Loader from "./loader";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function ClinicSettings() {
   const queryClient = useQueryClient();
@@ -23,21 +23,22 @@ export default function ClinicSettings() {
   const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: clinicSettings = {}, isLoading: loadingSettings } = useQuery({
-    queryKey: ["clinicSettings"],
-    queryFn: getClinicConfig,
-  });
+  const { data: clinicSettings = {}, isLoading: loadingSettings } =
+    useQueryWrapper({
+      queryKey: ["clinicSettings"],
+      queryFn: getClinicConfig,
+    });
 
-  const updateClinicConfigMutation = useMutation({
+  const updateClinicConfigMutation = useMutationWrapper({
     mutationFn: updateClinicConfig,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clinicSettings"] });
-      toast({ title: "Clinic hours updated successfully" });
+      // toast({ title: "Clinic hours updated successfully" });
       setIsEditing(false);
     },
-    onError: (error) => {
-      console.error("Update failed:", error);
-    },
+    // onError: (error) => {
+    //   console.error("Update failed:", error);
+    // },
   });
 
   useEffect(() => {
@@ -174,7 +175,7 @@ export default function ClinicSettings() {
   const handleSave = useCallback(async () => {
     try {
       await updateClinicConfigMutation.mutateAsync({
-        openingHours: clinicHours,
+        configData: clinicHours,
       });
       setOriginalClinicHours({ ...clinicHours });
     } catch (error) {}
