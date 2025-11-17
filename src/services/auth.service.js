@@ -93,13 +93,11 @@ export async function addClinicAdmin(data) {
   session.startTransaction();
   try {
     const dbName = data.dbName;
-    console.log(data);
 
     const clinicDoc = await clinicsModel
       .findOne({ databaseName: dbName })
       .session(session);
 
-    console.log(clinicDoc);
 
     const existingEmailUsers = await usersModel.findOne({ email: data.email });
     if (existingEmailUsers) {

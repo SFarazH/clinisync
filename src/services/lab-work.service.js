@@ -148,16 +148,22 @@ export async function getAllLabWorks({
       query.isReceived = isReceived;
     }
 
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
+    if (startDate || endDate) {
+      const queryRange = {};
 
-      query.createdAt = { $gte: start, $lte: end };
-    } else if (startDate) {
-      query.createdAt = { $gte: new Date(startDate) };
-    } else if (endDate) {
-      query.createdAt = { $lte: new Date(endDate) };
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+        queryRange.$lte = end;
+      }
+
+      query.createdAt = queryRange;
     }
 
     let labWorkQuery = labWorkModel.find(query).populate("patientId", "name");

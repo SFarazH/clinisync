@@ -37,8 +37,6 @@ export const addAppointment = async ({ appointmentData, dbName }) => {
 };
 
 export const updateAppointment = async ({ id, appointmentData, dbName }) => {
-  console.log(id, "id from api");
-  console.log(appointmentData, "payload from api");
   const response = await axios.put(`/api/appointments/${id}`, appointmentData, {
     headers: { "db-name": dbName },
   });

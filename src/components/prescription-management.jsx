@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
 import Loader from "./loader";
 import { getPaginatedPrescriptions } from "@/lib";
@@ -25,17 +24,15 @@ import { FileText } from "lucide-react";
 import PrescriptionModal from "./modal/prescription.modal";
 import { Pagination } from "./pagination";
 import { useQueryWrapper } from "./wrappers";
+import { useDateRange } from "./context/dateRangeContext";
 
 export default function PrescriptionManagement() {
   // const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-
+  const { dateRange } = useDateRange();
   const [prescriptionsData, setPrescriptionsData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [pagination, setPagination] = useState({});
   const [currentPrescription, setCurrentPrescripton] = useState(null);
 
@@ -43,14 +40,13 @@ export default function PrescriptionManagement() {
     data: prescriptionsDataObject = {},
     isLoading: loadingPrescriptions,
   } = useQueryWrapper({
-    queryKey: ["prescriptions", currentPage, limit, search, startDate, endDate],
+    queryKey: ["prescriptions", currentPage, limit, dateRange],
     queryFn: getPaginatedPrescriptions,
     params: {
       page: currentPage,
       limit,
-      search,
-      startDate,
-      endDate,
+      startDate: dateRange?.from,
+      endDate: dateRange?.to,
     },
   });
 
