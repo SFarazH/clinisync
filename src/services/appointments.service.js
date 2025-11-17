@@ -131,15 +131,23 @@ export async function listAppointments({
       query.status = status;
     }
 
-    if (startDate && endDate) {
-      query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
-    } else if (startDate) {
-      query.date = { $gte: new Date(startDate) };
-    } else if (endDate) {
-      query.date = { $lte: new Date(endDate) };
+    if (startDate || endDate) {
+      const queryRange = {};
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+
+        queryRange.$lte = end;
+      }
+
+      query.date = queryRange;
     }
 
     let appointmentsQuery = appointmentsModel

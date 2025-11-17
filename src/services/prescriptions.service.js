@@ -59,7 +59,7 @@ export async function updatePrescription(id, data, dbName) {
         delete data[field];
       }
     });
-    
+
     const updatedPrescription = await prescriptionsModel.findByIdAndUpdate(
       id,
       data,
@@ -106,13 +106,21 @@ export async function getPrescriptions({
     }
 
     if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate);
+      const queryRange = {};
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
       if (endDate) {
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        query.createdAt.$lte = end;
+        end.setUTCHours(23, 59, 59, 999);
+        queryRange.$lte = end;
       }
+
+      query.createdAt = queryRange;
     }
 
     const prescriptions = await prescriptionsModel
