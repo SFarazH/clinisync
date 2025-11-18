@@ -10,3 +10,4 @@ export * from "./s3.service";
 export * from "./lab-work.service";
 export * from "./payments.service";
 export * from "./users.service";
+export * from "./clinic.service";
