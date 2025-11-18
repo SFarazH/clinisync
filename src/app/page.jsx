@@ -16,7 +16,9 @@ export default function HomePage() {
   return (
     <>
       <h1>Welcome to CliniSync</h1>
-      <button onClick={() => redirect("/login")}>login</button>
+      <button className="cursor-pointer" onClick={() => redirect("/login")}>
+        login
+      </button>
     </>
   );
 }
