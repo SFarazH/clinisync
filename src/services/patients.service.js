@@ -20,6 +20,8 @@ export async function createPatient(data, dbName) {
       }
     }
 
+    if (data.email === "") data.email = null;
+
     const existingPatientByPhone = await patientsModel.findOne({
       phone: data.phone,
     });

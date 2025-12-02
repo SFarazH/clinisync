@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const patientSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, unique: true },
+    email: { type: String, unique: true, sparse: true },
     phone: String,
     age: { type: Number, required: true },
     gender: String,
