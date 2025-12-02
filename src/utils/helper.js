@@ -136,7 +136,7 @@ export const getAppointmentHeight = (appointment) => {
 
 export const getAppointmentColor = (appointment, proceduresData) => {
   return proceduresData.filter(
-    (proc) => proc._id === appointment.procedureId
+    (proc) => proc?._id === appointment.procedureId
   )[0]?.color;
 };
 
@@ -144,11 +144,11 @@ export const transformAppointmentData = (rawAppointments) => {
   return rawAppointments
     .filter((appt) => appt.status !== "cancelled")
     .map((appointment) => ({
-      id: appointment._id,
+      id: appointment?._id,
       date: appointment.date.split("T")[0],
-      patientId: appointment.patientId._id,
-      doctorId: appointment.doctorId._id,
-      procedureId: appointment.procedureId._id,
+      patientId: appointment.patientId?._id,
+      doctorId: appointment.doctorId?._id,
+      procedureId: appointment.procedureId?._id,
       startTime: appointment.startTime,
       endTime: appointment.endTime,
       notes: appointment.notes,
@@ -172,7 +172,7 @@ export const checkAppointmentOverlap = (
     .filter((appt) => appt.status !== "cancelled")
     .some((apt) => {
       // Handle both _id and id fields
-      const appointmentId = apt._id || apt.id;
+      const appointmentId = apt?._id || apt.id;
       if (excludeId && appointmentId === excludeId) {
         return false;
       }
