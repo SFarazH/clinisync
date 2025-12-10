@@ -13,6 +13,8 @@ import {
   UserCog,
   FlaskConical,
   ReceiptIndianRupee,
+  ShieldUser,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/context/authcontext";
@@ -44,7 +46,7 @@ export default function ClinicDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState(
     authUser?.role === "super-admin"
-      ? "super-dashboard"
+      ? "super-admin-dashboard"
       : authUser?.role === "doctor"
       ? "doctor-dashboard"
       : authUser?.role === "pharmacist"
@@ -62,18 +64,22 @@ export default function ClinicDashboard() {
 
   const allTabs = [
     {
-      value: "super-dashboard",
+      value: "super-admin-dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
       roles: ["super-admin"],
-      // featureKey: "doctors",
+    },
+    {
+      value: "admin-users",
+      label: "Admins",
+      icon: ShieldUser,
+      roles: ["super-admin"],
     },
     {
       value: "clinics",
       label: "Clinics",
-      icon: LayoutDashboard,
+      icon: Building2,
       roles: ["super-admin"],
-      // featureKey: "clinics",
     },
 
     {
@@ -164,7 +170,7 @@ export default function ClinicDashboard() {
 
   const renderActiveContent = () => {
     switch (activeTab) {
-      case "super-dashboard":
+      case "super-admin-dashboard":
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
             <h1>Super Admin</h1>
@@ -175,6 +181,13 @@ export default function ClinicDashboard() {
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
             <h1>CLinics babyy</h1>
+          </RoleBasedWrapper>
+        );
+
+      case "admin-users":
+        return (
+          <RoleBasedWrapper allowedRoles={["super-admin"]}>
+            <h1>mommy</h1>
           </RoleBasedWrapper>
         );
 
@@ -326,7 +339,7 @@ export default function ClinicDashboard() {
                         activeTab === tab.value
                           ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      } ${sidebarCollapsed ? "justify-center" : ""}`}
+                      } ${sidebarCollapsed ? "" : ""}`}
                       title={sidebarCollapsed ? tab.label : ""}
                     >
                       <tab.icon

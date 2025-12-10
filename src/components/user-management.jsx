@@ -15,7 +15,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "./loader";
 import UserForm from "./forms/user.form";
-import { getRoleIcon, getRoleStyle } from "@/utils/helper";
+import { getRoleIcon, getRoleStyle, getRoleText } from "@/utils/helper";
 import { getUsers, getUsersByRole } from "@/lib/usersApi";
 import { useAuth } from "./context/authcontext";
 import { useQueryWrapper } from "./wrappers";
@@ -126,7 +126,7 @@ export default function UserManagement() {
             <CardTitle className="text-md flex items-center justify-between font-medium w-full">
               <p className="flex items-center gap-1.5">
                 {getRoleIcon("pharmacist")}
-                Pharmacists
+                Pharma
               </p>
               <p className="text-xl">{roleCount?.pharmacist ?? 0}</p>
             </CardTitle>
@@ -136,7 +136,7 @@ export default function UserManagement() {
           <CardHeader className="flex items-center">
             <CardTitle className="text-md flex items-center justify-between font-medium w-full">
               <p className="flex items-center gap-1.5">
-                {getRoleIcon("receptionist")} Receptionists
+                {getRoleIcon("receptionist")} Rept.
               </p>
               <p className="text-xl">{roleCount?.receptionist ?? 0}</p>
             </CardTitle>
@@ -196,8 +196,7 @@ export default function UserManagement() {
                           )}`}
                         >
                           {getRoleIcon(user.role)}
-                          {user.role.charAt(0).toUpperCase() +
-                            user.role.slice(1)}
+                          {getRoleText(user.role)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -212,6 +211,7 @@ export default function UserManagement() {
                       </TableCell>
                       <TableCell>
                         <Button
+                          disabled
                           className="cursor-pointer"
                           variant="destructive"
                           size="icon"

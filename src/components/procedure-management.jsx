@@ -74,6 +74,7 @@ export default function ProcedureManagement() {
       duration: procedure.duration,
       color: procedure.color,
       abbr: procedure.abbr,
+      cost: procedure.cost,
     });
     setIsDialogOpen(true);
   };
@@ -133,6 +134,7 @@ export default function ProcedureManagement() {
                   <TableHead className="w-4/14">Name</TableHead>
                   <TableHead className="w-2/14">Abbr</TableHead>
                   <TableHead className="w-2/14">Duration</TableHead>
+                  <TableHead className="w-2/14">Cost</TableHead>
                   <TableHead className="w-2/14">Color</TableHead>
                   <TableHead className="w-1/14"></TableHead>
                   <TableHead className="w-1/14"></TableHead>
@@ -146,6 +148,7 @@ export default function ProcedureManagement() {
                       <TableCell>{procedure.name}</TableCell>
                       <TableCell>{procedure?.abbr}</TableCell>
                       <TableCell>{procedure.duration} m</TableCell>
+                      <TableCell>{procedure.cost}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-4">
                           <div
