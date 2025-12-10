@@ -30,13 +30,13 @@ export default function LoginPage() {
     mutationFn: logIn,
     onSuccess: () => {
       checkUser();
-      router.push("/");
+      router.push("/app");
     },
   });
 
   useEffect(() => {
     if (authUser) {
-      router.push("/");
+      router.push("/app");
     }
   }, [authUser, router]);
 
