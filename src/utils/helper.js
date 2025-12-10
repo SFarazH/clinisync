@@ -317,6 +317,25 @@ export const getRoleIcon = (role) => {
   }
 };
 
+export const getRoleText = (role) => {
+  let displayRole;
+
+  switch (role) {
+    case "receptionist":
+      displayRole = "rept.";
+      break;
+    case "pharmacist":
+      displayRole = "pharma";
+      break;
+    default:
+      displayRole = role;
+  }
+
+  console.log(displayRole, "roleee");
+
+  return displayRole.charAt(0).toUpperCase() + displayRole.slice(1);
+};
+
 export function formatCurrency(cents, currency = "INR") {
   const amount = (cents || 0) / 100;
   return new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(
