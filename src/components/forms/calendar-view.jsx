@@ -97,7 +97,7 @@ export default function CalendarView({
                       key={`${dayIndex}-${timeIndex}`}
                       className={`group ${
                         isAvailable ? "border-r" : ""
-                      } last:border-r-0 relative h-[30px] ${
+                      } last:border-r-0 relative h-[30px] transition-all duration-300 ease-out ${
                         isOpen && isAvailable
                           ? "hover:bg-blue-100 cursor-pointer"
                           : "bg-gray-100"
@@ -295,8 +295,8 @@ export default function CalendarView({
                               time
                             )
                           : false) && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <Plus className="w-3 h-3 text-blue-600" />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+                            <Plus className="w-4 h-4 text-blue-600 transform scale-50 group-hover:scale-100 transition-transform duration-300 ease-out" />
                           </div>
                         )}
                     </div>
