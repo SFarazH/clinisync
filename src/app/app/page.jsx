@@ -15,6 +15,8 @@ import {
   ReceiptIndianRupee,
   ShieldUser,
   Building2,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/context/authcontext";
@@ -44,6 +46,7 @@ import Loader from "@/components/loader";
 export default function ClinicDashboard() {
   const { authUser, setAuthUser, authClinic, setAuthClinic } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(
     authUser?.role === "super-admin"
       ? "super-admin-dashboard"
@@ -301,10 +304,23 @@ export default function ClinicDashboard() {
     <ProtectedRoute>
       <DateRangeProvider>
         <div className="min-h-screen bg-gray-50 flex">
+          {/* Mobile backdrop overlay */}
+          {mobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+          )}
+
+          {/* Sidebar - hidden on mobile, shown as overlay when mobileMenuOpen */}
           <div
-            className={`bg-white border-r transition-all duration-300 ease-in-out flex flex-col ${
-              sidebarCollapsed ? "w-16" : "w-64"
-            }`}
+            className={`
+              bg-white border-r transition-all duration-300 ease-in-out flex flex-col
+              fixed md:relative inset-y-0 left-0 z-50
+              ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"} 
+              md:translate-x-0
+              ${sidebarCollapsed ? "w-16" : "w-64"}
+            `}
           >
             <div className="px-4 py-4 border-b flex items-center justify-between h-18">
               <div
@@ -314,27 +330,41 @@ export default function ClinicDashboard() {
               >
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="cursor-pointer w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-gray-100 transition-colors duration-200"
+                  className="cursor-pointer w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-gray-100 transition-colors duration-200 hidden md:flex"
                   title={
                     sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
                   }
                 >
                   <Image src={logo} alt="logo" />
                 </button>
+                {/* Mobile: show logo without collapse behavior */}
+                <div className="w-8 h-8 md:hidden">
+                  <Image src={logo} alt="logo" />
+                </div>
                 {!sidebarCollapsed && (
                   <h2 className="ml-3 text-lg font-bold text-gray-900">
                     ClinicSync
                   </h2>
                 )}
               </div>
+              {/* Mobile close button */}
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
 
-            <nav className="flex-1 p-2">
+            <nav className="flex-1 p-2 overflow-y-auto">
               <ul className="space-y-1">
                 {filteredTabs.map((tab) => (
                   <li key={tab.value}>
                     <button
-                      onClick={() => setActiveTab(tab.value)}
+                      onClick={() => {
+                        setActiveTab(tab.value);
+                        setMobileMenuOpen(false); // Auto-close on mobile
+                      }}
                       className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                         activeTab === tab.value
                           ? "bg-blue-100 text-blue-700 border-r-2 border-blue-700"
@@ -354,41 +384,61 @@ export default function ClinicDashboard() {
               </ul>
             </nav>
           </div>
-          <div className="flex-1 flex flex-col">
-            <header className="bg-white  border-b h-18">
-              <div className="px-6 py-4 h-full">
-                <div className="flex justify-between items-center h-full">
-                  {/* LEFT SIDE: Date picker + clinic name */}
-                  <div className="flex items-center gap-8">
-                    {activeTab !== "calendar" ? (
-                      <DateRangePicker />
-                    ) : (
-                      <div></div>
-                    )}
-                    <p className="text-xl font-semibold text-gray-800">
+
+          {/* Main content area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <header className="bg-white border-b h-18">
+              <div className="px-4 md:px-6 py-4 h-full">
+                <div className="flex justify-between items-center h-full gap-2 md:gap-4">
+                  {/* LEFT SIDE: Hamburger + Date picker + clinic name */}
+                  <div className="flex items-center gap-2 md:gap-8 min-w-0">
+                    {/* Hamburger menu - mobile only */}
+                    <button
+                      onClick={() => setMobileMenuOpen(true)}
+                      className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+                    >
+                      <Menu className="w-6 h-6 text-gray-700" />
+                    </button>
+                    
+                    {/* Date picker - hidden on mobile when on calendar */}
+                    <div className="hidden md:block">
+                      {activeTab !== "calendar" ? (
+                        <DateRangePicker />
+                      ) : (
+                        <div></div>
+                      )}
+                    </div>
+                    
+                    {/* Clinic name - truncate on mobile */}
+                    <p className="text-sm md:text-xl font-semibold text-gray-800 truncate">
                       {authUser?.role === "super-admin"
                         ? "Super Admin"
                         : authClinic?.name}
                     </p>
                   </div>
-                  <p className="text-lg font-bold uppercase text-gray-800">
+                  
+                  {/* User name - hidden on mobile */}
+                  <p className="hidden md:block text-lg font-bold uppercase text-gray-800 truncate">
                     {displayName(authUser)}
                   </p>
-                  {/* RIGHT SIDE: user name + logout */}
-                  <div className="flex items-center gap-4">
+                  
+                  {/* RIGHT SIDE: logout */}
+                  <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
                     <Button
                       variant="destructive"
+                      size="sm"
                       className="cursor-pointer"
                       onClick={logoutMutation.mutateAsync}
                     >
-                      Logout
+                      <span className="hidden md:inline">Logout</span>
+                      <span className="md:hidden">Exit</span>
                     </Button>
                   </div>
                 </div>
               </div>
             </header>
 
-            <main className="flex-1 p-6 overflow-auto">
+            <main className="flex-1 p-4 md:p-6 overflow-auto">
               <div className="h-full">{renderActiveContent()}</div>
             </main>
           </div>

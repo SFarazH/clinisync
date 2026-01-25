@@ -157,7 +157,7 @@ export default function CalendarView({
                             return (
                               appointmentsInThisSlot.length > 0 && (
                                 <div
-                                  className={`absolute inset-x-1 rounded-md p-1 text-sm overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center ${
+                                  className={`absolute inset-x-1 rounded-md p-1 text-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center overflow-hidden max-w-full ${
                                     appointmentsInThisSlot.length === 1
                                       ? "text-white"
                                       : "text-black"
@@ -211,7 +211,7 @@ export default function CalendarView({
                                       }
                                     </div>
                                   ) : (
-                                    <div className="font-medium">
+                                    <div className="font-medium truncate flex-shrink-0">
                                       {appointmentsInThisSlot.length}{" "}
                                     </div>
                                   )}

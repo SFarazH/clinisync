@@ -114,26 +114,31 @@ export default function DoctorManagement() {
         <CardContent>
           <div className="grid gap-4">
             {doctorsData.map((doctor) => (
-              <Card key={doctor._id}>
+              <Card key={doctor._id} className="overflow-hidden">
                 <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: doctor.color }}
-                    >
-                      <Stethoscope className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-medium">{doctor.name}</h3>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p className="font-medium text-blue-600">
-                          {doctor?.specialization}
-                        </p>
-                        <p>{doctor?.email}</p>
-                        <p>{doctor?.phoneNumber}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: doctor.color }}
+                      >
+                        <Stethoscope className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="sm:hidden flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{doctor.name}</h3>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h3 className="font-medium truncate hidden sm:block">{doctor.name}</h3>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p className="font-medium text-blue-600 truncate">
+                          {doctor?.specialization}
+                        </p>
+                        <p className="truncate">{doctor?.email}</p>
+                        <p className="truncate">{doctor?.phoneNumber}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0 self-end sm:self-center">
                       <Button
                         variant="outline"
                         size="sm"

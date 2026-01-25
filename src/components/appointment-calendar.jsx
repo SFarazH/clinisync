@@ -547,90 +547,100 @@ export default function AppointmentCalendar() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
+            {/* Header row - stacks on mobile */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <h2 className="text-xl md:text-2xl font-bold">
                 {weekStart.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
-                })}{" "}
-                -{" "}
+                })}
+                {" "}
+                -
+                {" "}
                 {weekEnd.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "2-digit",
                 })}
               </h2>
-              <div className="flex gap-2 items-center">
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedDoctorId}
-                    onValueChange={(value) => setSelectedDoctorId(value)}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Select doctor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Doctors</SelectItem>
-                      {loadingDoctors ? (
-                        <SelectItem disabled>
-                          <div className="flex items-center space-x-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            <span>Loading...</span>
-                          </div>
+              
+              {/* Controls - wrap on mobile */}
+              <div className="flex flex-wrap gap-2 items-center">
+                {/* Doctor select */}
+                <Select
+                  value={selectedDoctorId}
+                  onValueChange={(value) => setSelectedDoctorId(value)}
+                >
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Select doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Doctors</SelectItem>
+                    {loadingDoctors ? (
+                      <SelectItem disabled>
+                        <div className="flex items-center space-x-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          <span>Loading...</span>
+                        </div>
+                      </SelectItem>
+                    ) : (
+                      doctorsData.map((doctor) => (
+                        <SelectItem key={doctor._id} value={doctor._id}>
+                          {doctor.name}
                         </SelectItem>
-                      ) : (
-                        doctorsData.map((doctor) => (
-                          <SelectItem key={doctor._id} value={doctor._id}>
-                            {doctor.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
 
-                <Button onClick={() => handleAddAppointmentClick()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Appointment
+                {/* Add button */}
+                <Button onClick={() => handleAddAppointmentClick()} className="flex-shrink-0">
+                  <Plus className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Add Appointment</span>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateWeek("prev")}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentWeek(new Date())}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateWeek("next")}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                
+                {/* Navigation buttons */}
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigateWeek("prev")}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentWeek(new Date())}
+                  >
+                    Today
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigateWeek("next")}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
+            {/* Calendar grid - scrollable on mobile */}
             <Card className="p-0 border-black overflow-hidden">
-              <CardContent className="p-0">
-                <div className="grid grid-cols-8 border-b">
-                  <div className="p-4 border-r bg-gray-50"></div>
+              <CardContent className="p-0 overflow-x-auto">
+                <div className="grid grid-cols-8 border-b min-w-[640px]">
+                  <div className="p-2 md:p-4 border-r bg-gray-50"></div>
                   {weekDays.map((day, index) => (
                     <div
                       key={index}
-                      className="p-4 text-center border-r last:border-r-0"
+                      className="p-2 md:p-4 text-center border-r last:border-r-0"
                     >
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs md:text-sm text-muted-foreground">
                         {day.toLocaleDateString("en-US", { weekday: "short" })}
                       </div>
                       <div
-                        className={`text-lg font-semibold ${
+                        className={`text-base md:text-lg font-semibold ${
                           day.toDateString() === new Date().toDateString()
                             ? "text-blue-600"
                             : ""
