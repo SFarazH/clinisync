@@ -48,10 +48,10 @@ export default function ClinicDashboard() {
     authUser?.role === "super-admin"
       ? "super-admin-dashboard"
       : authUser?.role === "doctor"
-      ? "doctor-dashboard"
-      : authUser?.role === "pharmacist"
-      ? "prescriptions"
-      : "calendar"
+        ? "doctor-dashboard"
+        : authUser?.role === "pharmacist"
+          ? "prescriptions"
+          : "calendar",
   );
 
   const logoutMutation = useMutation({
@@ -187,7 +187,7 @@ export default function ClinicDashboard() {
       case "admin-users":
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
-            <h1>mommy</h1>
+            <h1></h1>
           </RoleBasedWrapper>
         );
 
