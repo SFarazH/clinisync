@@ -1,12 +1,29 @@
 import { searchPatients } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
+    const auth = await requireAuth(rolePermissions.patients.searchPatients);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.PATIENTS);
+    if (accessError) return accessError;
+
     const { searchParams } = new URL(req.url);
     const searchTerm = searchParams.get("q") || "";
 
-    const result = await searchPatients(searchTerm);
+    const result = await searchPatients(searchTerm, dbName);
 
     if (!result.success) {
       return NextResponse.json(

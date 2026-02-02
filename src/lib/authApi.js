@@ -1,7 +1,9 @@
 import axios from "axios";
 
-export const register = async (registerData) => {
-  const response = await axios.post("/api/auth/register", registerData);
+export const register = async ({ registerData, dbName }) => {
+  const response = await axios.post("/api/auth/register", registerData, {
+    headers: { "db-name": dbName },
+  });
   return response.data;
 };
 
@@ -34,10 +36,10 @@ export const verifyUser = async () => {
   }
 };
 
-export const getUsers = async (role) => {
+export const updateUserFunc = async ({ id, userData, dbName }) => {
   try {
-    const response = await axios.get("/api/auth/list", {
-      params: role ? { role } : {},
+    const response = await axios.put(`/api/auth/${id}`, userData, {
+      headers: { "db-name": dbName },
     });
     return response.data;
   } catch (error) {
@@ -46,19 +48,12 @@ export const getUsers = async (role) => {
   }
 };
 
-export const getUsersByRole = async () => {
+export const addClinicAdmin = async (clinicAdminData) => {
   try {
-    const response = await axios.get("/api/auth/count");
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return { success: false };
-  }
-};
-
-export const updateUserFunc = async ({ id, userData }) => {
-  try {
-    const response = await axios.put(`/api/auth/${id}`, userData);
+    const response = await axios.post(
+      `/api/auth/register/admin`,
+      clinicAdminData
+    );
     return response.data;
   } catch (error) {
     console.error(error);

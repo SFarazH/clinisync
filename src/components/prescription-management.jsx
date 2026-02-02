@@ -2,7 +2,6 @@
 import React, { useEffect } from "react";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,45 +17,38 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/utils/functions";
 import Loader from "./loader";
-import { getPaginatedPrescriptions, updatePrescription } from "@/lib";
+import { getPaginatedPrescriptions } from "@/lib";
 import { FileText } from "lucide-react";
 import PrescriptionModal from "./modal/prescription.modal";
 import { Pagination } from "./pagination";
+import { useQueryWrapper } from "./wrappers";
+import { useDateRange } from "./context/dateRangeContext";
 
 export default function PrescriptionManagement() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-
+  const { dateRange } = useDateRange();
   const [prescriptionsData, setPrescriptionsData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [pagination, setPagination] = useState({});
   const [currentPrescription, setCurrentPrescripton] = useState(null);
 
   const {
     data: prescriptionsDataObject = {},
     isLoading: loadingPrescriptions,
-  } = useQuery({
-    queryKey: ["prescriptions", currentPage, limit, search, startDate, endDate],
-    queryFn: () =>
-      getPaginatedPrescriptions({
-        page: currentPage,
-        limit,
-        search,
-        startDate,
-        endDate,
-      }),
+  } = useQueryWrapper({
+    queryKey: ["prescriptions", currentPage, limit, dateRange],
+    queryFn: getPaginatedPrescriptions,
+    params: {
+      page: currentPage,
+      limit,
+      startDate: dateRange?.from,
+      endDate: dateRange?.to,
+    },
   });
-
-  // const updateAppointmentMutation = useMutation({
-  //   mutationFn: updatePrescription,
-  // });
 
   useEffect(() => {
     if (

@@ -80,6 +80,17 @@ export default function ProcedureForm({ dialogState, formState }) {
                   setFormData({ ...formData, abbr: e.target.value })
                 }
                 placeholder="e.g., GC-01"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="abbr">Cost</Label>
+              <Input
+                id="cost"
+                value={formData.cost}
+                onChange={(e) =>
+                  setFormData({ ...formData, cost: parseInt(e.target.value) })
+                }
+                placeholder="500"
                 required
               />
             </div>

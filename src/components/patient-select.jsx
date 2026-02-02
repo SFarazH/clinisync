@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listPatients } from "@/lib";
 import { formatDOB } from "@/utils/helper";
 import { useState } from "react";
+import { useQueryWrapper } from "./wrappers";
 
 export default function PatientSelect({
   patientId,
@@ -39,14 +40,20 @@ export default function PatientSelect({
     setOpen(false);
   };
 
-  const { data: patientsData = [], isLoading: loadingPatients } = useQuery({
-    queryKey: ["patients"],
-    queryFn: listPatients,
-  });
+  const { data: patientsData = [], isLoading: loadingPatients } =
+    useQueryWrapper({
+      queryKey: ["patients"],
+      queryFn: listPatients,
+    });
   return (
     <div className={`grid gap-2 ${addedStyle}`}>
       <Label htmlFor="patient">Patient</Label>
-      <Popover open={open} onOpenChange={setOpen} className="w-full">
+      <Popover
+        open={open}
+        onOpenChange={setOpen}
+        className="w-full"
+        modal={true}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -60,7 +67,7 @@ export default function PatientSelect({
             <ChevronsUpDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)]">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] overflow-y-auto">
           <Command className="w-full">
             {loadingPatients ? (
               <CommandList>

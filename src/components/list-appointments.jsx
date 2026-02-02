@@ -29,6 +29,8 @@ import {
 } from "./ui/select";
 import PrescriptionModal from "./modal/prescription.modal";
 import { Pagination } from "./pagination";
+import { useQueryWrapper } from "./wrappers";
+import { useDateRange } from "./context/dateRangeContext";
 
 export default function ListAllAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -39,21 +41,24 @@ export default function ListAllAppointments() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentPrescription, setCurrentPrescription] = useState(null);
   const [appointmentDetails, setAppointmentDetails] = useState(null);
+  const { dateRange } = useDateRange();
 
   const resetPagination = () => {
     setCurrentPage(1);
     setLimit(10);
   };
 
-  const { data: appointmentsData, isLoading } = useQuery({
-    queryKey: ["appointments", currentPage, limit, status],
-    queryFn: () =>
-      fetchAppointments({
-        page: currentPage,
-        limit,
-        isPaginate: true,
-        status: status === "all" ? undefined : status,
-      }),
+  const { data: appointmentsData, isLoading } = useQueryWrapper({
+    queryKey: ["appointments", currentPage, limit, status, dateRange],
+    queryFn: fetchAppointments,
+    params: {
+      page: currentPage,
+      limit,
+      isPaginate: true,
+      status: status === "all" ? undefined : status,
+      startDate: dateRange?.from,
+      endDate: dateRange?.to,
+    },
     keepPreviousData: true,
   });
 

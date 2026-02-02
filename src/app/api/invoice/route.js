@@ -1,8 +1,24 @@
 import { getInvoices } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
+  const dbName = req.headers.get("db-name");
   try {
+    const auth = await requireAuth(rolePermissions.invocie.getInvocies);
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { clinic } = auth;
+    const accessError = checkAccess(clinic, dbName, FeatureMapping.INVOICES);
+    if (accessError) return accessError;
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
@@ -22,6 +38,7 @@ export async function GET(req) {
       limit,
       startDate,
       endDate,
+      dbName
     });
 
     if (!result.success) {

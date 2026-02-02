@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -12,14 +11,14 @@ import {
 import ProcedureForm from "./forms/procedure.form";
 import { emptyProcedure } from "./data";
 import { Button } from "./ui/button";
-import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import {
   addProcedure,
   deleteProcedure,
   fetchProceudres,
   updateProcedure,
 } from "@/lib";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -29,6 +28,7 @@ import {
   TableRow,
 } from "./ui/table";
 import Loader from "./loader";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function ProcedureManagement() {
   const queryClient = useQueryClient();
@@ -36,30 +36,31 @@ export default function ProcedureManagement() {
   const [editingProcedure, setEditingProcedure] = useState(null);
   const [formData, setFormData] = useState(emptyProcedure);
 
-  const { data: proceduresData = [], isLoading: loadingProcedures } = useQuery({
-    queryKey: ["procedures"],
-    queryFn: fetchProceudres,
-  });
+  const { data: proceduresData = [], isLoading: loadingProcedures } =
+    useQueryWrapper({
+      queryKey: ["procedures"],
+      queryFn: fetchProceudres,
+    });
 
-  const addProcedureMutation = useMutation({
+  const addProcedureMutation = useMutationWrapper({
     mutationFn: addProcedure,
     onSuccess: () => {
       queryClient.invalidateQueries(["procedures"]);
-      toast({
-        title: "Procedure Added",
-        description: "New procedure has been added.",
-      });
+      // toast({
+      //   title: "Procedure Added",
+      //   description: "New procedure has been added.",
+      // });
     },
   });
 
-  const updateProcedureMutation = useMutation({
+  const updateProcedureMutation = useMutationWrapper({
     mutationFn: updateProcedure,
     onSuccess: () => {
       queryClient.invalidateQueries(["procedures"]);
     },
   });
 
-  const deleteProcedureMutation = useMutation({
+  const deleteProcedureMutation = useMutationWrapper({
     mutationFn: deleteProcedure,
     onSuccess: () => {
       queryClient.invalidateQueries(["procedures"]);
@@ -73,16 +74,17 @@ export default function ProcedureManagement() {
       duration: procedure.duration,
       color: procedure.color,
       abbr: procedure.abbr,
+      cost: procedure.cost,
     });
     setIsDialogOpen(true);
   };
 
   const handleDeleteProcedure = (procedureId) => {
-    deleteProcedureMutation.mutateAsync(procedureId);
-    toast({
-      title: "Procedure Deleted",
-      description: "The procedure has been successfully deleted.",
-    });
+    deleteProcedureMutation.mutateAsync({ id: procedureId });
+    // toast({
+    //   title: "Procedure Deleted",
+    //   description: "The procedure has been successfully deleted.",
+    // });
   };
 
   const handleAddNew = () => {
@@ -99,7 +101,7 @@ export default function ProcedureManagement() {
         procedureData: formData,
       });
     } else {
-      addProcedureMutation.mutateAsync(formData);
+      addProcedureMutation.mutateAsync({ procedureData: formData });
     }
     setFormData(emptyProcedure);
     setEditingProcedure(null);
@@ -132,6 +134,7 @@ export default function ProcedureManagement() {
                   <TableHead className="w-4/14">Name</TableHead>
                   <TableHead className="w-2/14">Abbr</TableHead>
                   <TableHead className="w-2/14">Duration</TableHead>
+                  <TableHead className="w-2/14">Cost</TableHead>
                   <TableHead className="w-2/14">Color</TableHead>
                   <TableHead className="w-1/14"></TableHead>
                   <TableHead className="w-1/14"></TableHead>
@@ -145,6 +148,7 @@ export default function ProcedureManagement() {
                       <TableCell>{procedure.name}</TableCell>
                       <TableCell>{procedure?.abbr}</TableCell>
                       <TableCell>{procedure.duration} m</TableCell>
+                      <TableCell>{procedure.cost}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-4">
                           <div

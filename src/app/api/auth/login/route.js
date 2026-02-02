@@ -19,6 +19,7 @@ export async function POST(req) {
         id: result.data._id,
         role: result.data.role,
         email: result.data.email,
+        clinic: result.data?.clinic,
       },
       process.env.JWT_SECRET_KEY,
       {

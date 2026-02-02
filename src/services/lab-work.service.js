@@ -1,18 +1,28 @@
 import Invoice from "@/models/Invoice";
 import LabWork from "@/models/LabWork";
-import { dbConnect } from "@/utils/dbConnect";
-import mongoose from "mongoose";
+import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
 
-export async function addLabWork(data) {
-  await dbConnect();
+export async function addLabWork(data, dbName) {
+  const labWorkModel = await getMongooseModel(
+    dbName,
+    "LabWork",
+    LabWork.schema
+  );
 
-  const session = await mongoose.startSession();
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
-    const labWork = await LabWork.create([data], { session });
+    const labWork = await labWorkModel.create([data], { session });
 
-    const invoice = await Invoice.create(
+    const invoice = await invoicesModel.create(
       [
         {
           invoiceType: "labWork",
@@ -47,14 +57,26 @@ export async function addLabWork(data) {
   }
 }
 
-export async function updateLabWork(id, data) {
-  await dbConnect();
-  const session = await mongoose.startSession();
+export async function updateLabWork(id, data, dbName) {
+  const labWorkModel = await getMongooseModel(
+    dbName,
+    "LabWork",
+    LabWork.schema
+  );
+
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
     // 1️⃣ Update the LabWork
-    const updatedLabWork = await LabWork.findByIdAndUpdate(id, data, {
+    const updatedLabWork = await labWorkModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
       session,
@@ -66,19 +88,23 @@ export async function updateLabWork(id, data) {
       return { success: false, error: "Lab work not found" };
     }
 
-    if (parseInt(data.amount) !== undefined && updatedLabWork.invoice) {
-      const invoiceToUpdate = await Invoice.findById(updatedLabWork.invoice);
-      const isPending = parseInt(data.amount) > invoiceToUpdate.amountPaid;
-      const updatedInvoice = await Invoice.findByIdAndUpdate(
-        updatedLabWork.invoice,
-        { totalAmount: parseInt(data.amount), isPaymentComplete: !isPending },
-        { new: true, session }
-      );
+    if (data.amount) {
+      if (parseInt(data.amount) !== undefined && updatedLabWork.invoice) {
+        const invoiceToUpdate = await invoicesModel.findById(
+          updatedLabWork.invoice
+        );
+        const isPending = parseInt(data.amount) > invoiceToUpdate.amountPaid;
+        const updatedInvoice = await invoicesModel.findByIdAndUpdate(
+          updatedLabWork.invoice,
+          { totalAmount: parseInt(data.amount), isPaymentComplete: !isPending },
+          { new: true, session }
+        );
 
-      if (!updatedInvoice) {
-        await session.abortTransaction();
-        session.endSession();
-        return { success: false, error: "Invoice not found" };
+        if (!updatedInvoice) {
+          await session.abortTransaction();
+          session.endSession();
+          return { success: false, error: "Invoice not found" };
+        }
       }
     }
 
@@ -104,8 +130,14 @@ export async function getAllLabWorks({
   isReceived,
   startDate = null,
   endDate = null,
+  dbName,
 }) {
-  await dbConnect();
+  const labWorkModel = await getMongooseModel(
+    dbName,
+    "LabWork",
+    LabWork.schema
+  );
+
   try {
     const query = {};
 
@@ -116,23 +148,29 @@ export async function getAllLabWorks({
       query.isReceived = isReceived;
     }
 
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
+    if (startDate || endDate) {
+      const queryRange = {};
 
-      query.createdAt = { $gte: start, $lte: end };
-    } else if (startDate) {
-      query.createdAt = { $gte: new Date(startDate) };
-    } else if (endDate) {
-      query.createdAt = { $lte: new Date(endDate) };
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+        queryRange.$lte = end;
+      }
+
+      query.createdAt = queryRange;
     }
 
-    let labWorkQuery = LabWork.find(query).populate("patientId", "name");
+    let labWorkQuery = labWorkModel.find(query).populate("patientId", "name");
     let total;
     if (paginate) {
       labWorkQuery = labWorkQuery.skip((page - 1) * limit).limit(limit);
-      total = await LabWork.countDocuments(query);
+      total = await labWorkModel.countDocuments(query);
     }
 
     const labWorkData = await labWorkQuery;
@@ -152,11 +190,15 @@ export async function getAllLabWorks({
   }
 }
 
-export async function markLabWorkComplete(id) {
-  await dbConnect();
+export async function markLabWorkComplete(id, dbName) {
+  const labWorkModel = await getMongooseModel(
+    dbName,
+    "LabWork",
+    LabWork.schema
+  );
 
   try {
-    const updated = await LabWork.findByIdAndUpdate(
+    const updated = await labWorkModel.findByIdAndUpdate(
       id,
       { isReceived: true },
       { new: true }
@@ -173,29 +215,37 @@ export async function markLabWorkComplete(id) {
   }
 }
 
-export async function deleteLabWork(id) {
-  await dbConnect();
-  const session = await mongoose.startSession();
+export async function deleteLabWork(id, dbName) {
+  const labWorkModel = await getMongooseModel(
+    dbName,
+    "LabWork",
+    LabWork.schema
+  );
+
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
-    // 1️⃣ Find the lab work
-    const labWork = await LabWork.findById(id).session(session);
+    const labWork = await labWorkModel.findById(id).session(session);
     if (!labWork) {
       await session.abortTransaction();
       session.endSession();
       return { success: false, error: "Lab work not found" };
     }
 
-    // 2️⃣ Delete the related invoice if it exists
     if (labWork.invoice) {
-      await Invoice.findByIdAndDelete(labWork.invoice, { session });
+      await invoicesModel.findByIdAndDelete(labWork.invoice, { session });
     }
 
-    // 3️⃣ Delete the lab work itself
-    await LabWork.findByIdAndDelete(id, { session });
+    await labWorkModel.findByIdAndDelete(id, { session });
 
-    // 4️⃣ Commit the transaction
     await session.commitTransaction();
     session.endSession();
 

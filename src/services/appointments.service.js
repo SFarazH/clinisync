@@ -1,36 +1,70 @@
 import Appointment from "@/models/Appointment";
+import Doctor from "@/models/Doctor";
 import Invoice from "@/models/Invoice";
+import Patient from "@/models/Patient";
 import Prescription from "@/models/Prescription";
 import Procedure from "@/models/Procedure";
-import { dbConnect } from "@/utils/dbConnect";
-import mongoose from "mongoose";
+import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
+
+function calculateEndTime(startTime, durationMinutes) {
+  const [hours, minutes] = startTime.split(":").map(Number);
+
+  const startDate = new Date();
+  startDate.setHours(hours);
+  startDate.setMinutes(minutes);
+
+  const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+
+  const endHours = String(endDate.getHours()).padStart(2, "0");
+  const endMinutes = String(endDate.getMinutes()).padStart(2, "0");
+
+  return `${endHours}:${endMinutes}`;
+}
 
 // add appointment
-export async function createAppointment(data) {
-  await dbConnect();
-  const session = await Appointment.startSession();
+export async function createAppointment(data, dbName) {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
+
+  const proceduresModel = await getMongooseModel(
+    dbName,
+    "Procedure",
+    Procedure.schema
+  );
+
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
-    const procedure = await Procedure.findById(data.procedureId).session(
-      session
-    );
+    const procedure = await proceduresModel
+      .findById(data.procedureId)
+      .session(session);
     if (!procedure) {
       return { success: false, message: "Procedure not found" };
     }
 
     const totalAmount = procedure.cost;
 
-    const appointment = await Appointment.create(
+    const appointment = await appointmentsModel.create(
       [
         {
           ...data,
+          endTime: calculateEndTime(data.startTime, procedure.duration),
         },
       ],
       { session }
     );
 
-    const invoice = await Invoice.create(
+    const invoice = await invoicesModel.create(
       [
         {
           invoiceType: "appointment",
@@ -73,8 +107,19 @@ export async function listAppointments({
   endDate = null,
   paginate,
   status = null,
-} = {}) {
-  await dbConnect();
+  dbName,
+}) {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
+
+  await getMongooseModel(dbName, "Prescription", Prescription.schema);
+  await getMongooseModel(dbName, "Patient", Patient.schema);
+  await getMongooseModel(dbName, "Doctor", Doctor.schema);
+  await getMongooseModel(dbName, "Procedure", Procedure.schema);
+
   try {
     const query = {};
 
@@ -86,25 +131,34 @@ export async function listAppointments({
       query.status = status;
     }
 
-    if (startDate && endDate) {
-      query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
-    } else if (startDate) {
-      query.date = { $gte: new Date(startDate) };
-    } else if (endDate) {
-      query.date = { $lte: new Date(endDate) };
+    if (startDate || endDate) {
+      const queryRange = {};
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+
+        queryRange.$lte = end;
+      }
+
+      query.date = queryRange;
     }
 
-    let appointmentsQuery = Appointment.find(query)
+    let appointmentsQuery = appointmentsModel
+      .find(query)
       .populate("patientId", "name")
       .populate("doctorId", "name color")
       .populate("procedureId", "name duration color abbr")
       .populate("prescription")
       .sort(paginate ? { date: -1 } : { date: 1, startTime: 1 });
 
-    let total = await Appointment.countDocuments(query);
+    let total = await appointmentsModel.countDocuments(query);
 
     if (paginate) {
       appointmentsQuery = appointmentsQuery
@@ -133,12 +187,17 @@ export async function listAppointments({
 }
 
 // get appointment by id
-export async function getAppointmentById(id) {
-  await dbConnect();
+export async function getAppointmentById(id, dbName) {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
+
   try {
-    const appointment = await Appointment.findById(id).populate(
-      "patient doctorId procedureId"
-    );
+    const appointment = await appointmentsModel
+      .findById(id)
+      .populate("patient doctorId procedureId");
     if (!appointment) {
       return { success: false, error: "Appointment not found" };
     }
@@ -150,16 +209,33 @@ export async function getAppointmentById(id) {
 }
 
 // update appointment
-export async function updateAppointment(id, data) {
-  await dbConnect();
-  const session = await mongoose.startSession();
+export async function updateAppointment(id, data, dbName) {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
+
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  await getMongooseModel(dbName, "Patient", Patient.schema);
+  await getMongooseModel(dbName, "Doctor", Doctor.schema);
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
+
   try {
-    const appointment = await Appointment.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-      session,
-    })
+    const appointment = await appointmentsModel
+      .findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+        session,
+      })
       .populate("patientId", "name")
       .populate("doctorId", "name")
       .populate("procedureId", "name duration color abbr cost");
@@ -171,14 +247,14 @@ export async function updateAppointment(id, data) {
     }
 
     const procedureCost = appointment.procedureId?.cost;
-    const existingInvoice = await Invoice.findById(appointment.invoice).session(
-      session
-    );
+    const existingInvoice = await invoicesModel
+      .findById(appointment.invoice)
+      .session(session);
 
     if (existingInvoice) {
       const isPending = procedureCost > existingInvoice.amountPaid;
 
-      const updatedInvoice = await Invoice.findByIdAndUpdate(
+      const updatedInvoice = await invoicesModel.findByIdAndUpdate(
         appointment.invoice,
         {
           totalAmount: procedureCost,
@@ -187,7 +263,6 @@ export async function updateAppointment(id, data) {
         },
         { new: true, session }
       );
-      console.log(updatedInvoice.totalAmount, "updated");
 
       if (!updatedInvoice) {
         await session.abortTransaction();
@@ -208,13 +283,31 @@ export async function updateAppointment(id, data) {
 }
 
 // delete appointment
-export async function deleteAppointment(id) {
-  await dbConnect();
-  const session = await mongoose.startSession();
+export async function deleteAppointment(id, dbName) {
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
+
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  const prescriptionsModel = await getMongooseModel(
+    dbName,
+    "Prescription",
+    Prescription.schema
+  );
+
+  const conn = await getDatabaseConnection(dbName);
+  const session = await conn.startSession();
   session.startTransaction();
 
   try {
-    const appointment = await Appointment.findById(id).session(session);
+    const appointment = await appointmentsModel.findById(id).session(session);
 
     if (!appointment) {
       await session.abortTransaction();
@@ -223,14 +316,17 @@ export async function deleteAppointment(id) {
     }
 
     if (appointment.invoice) {
-      await Invoice.findByIdAndDelete(appointment.invoice, { session });
+      await invoicesModel.findByIdAndDelete(appointment.invoice, { session });
     }
 
     if (appointment.prescription) {
-      await Prescription.findOneAndDelete({ appointment: id }, { session });
+      await prescriptionsModel.findOneAndDelete(
+        { appointment: id },
+        { session }
+      );
     }
 
-    await Appointment.findByIdAndDelete(id, { session });
+    await appointmentsModel.findByIdAndDelete(id, { session });
     await session.commitTransaction();
     session.endSession();
 

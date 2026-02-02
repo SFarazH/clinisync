@@ -29,10 +29,10 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",
     "mongoose": "^8.16.3",
-    "next": "15.3.5",
-    "react": "^19.0.0",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
     "react-day-picker": "^9.11.1",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.2.4",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

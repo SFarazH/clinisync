@@ -211,7 +211,9 @@ export default function AppointmentDetailsModal({
         prescriptionData: currentPrescription,
       });
     } else {
-      addPrescriptionMutation.mutateAsync(currentPrescription);
+      addPrescriptionMutation.mutateAsync({
+        prescriptionData: currentPrescription,
+      });
     }
     setIsEditing(false);
   };

@@ -27,10 +27,10 @@ import {
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
 import Loader from "../loader";
 import { getInvoiceById } from "@/lib";
 import { formatDOB } from "@/utils/helper";
+import { useMutationWrapper } from "../wrappers";
 
 export default function PaymentModal({
   isOpen,
@@ -43,7 +43,7 @@ export default function PaymentModal({
   const [open, setOpen] = useState(false);
   const [invoice, setInvoice] = useState(initialInvoice);
 
-  const getInvoiceMutation = useMutation({
+  const getInvoiceMutation = useMutationWrapper({
     mutationFn: (id) => getInvoiceById(id),
     onSuccess: (res) => {
       if (res.data.success) {
@@ -74,9 +74,9 @@ export default function PaymentModal({
     try {
       await addPaymentMutation.mutateAsync({
         invoiceId: invoice?._id,
-        data: { amount: paymentAmount, method: paymentMethod },
+        paymentData: { amount: paymentAmount, method: paymentMethod },
       });
-      await getInvoiceMutation?.mutateAsync(invoice?._id);
+      await getInvoiceMutation?.mutateAsync({ invoiceId: invoice?._id });
       setPaymentAmount("");
       setPaymentMethod("cash");
     } catch (error) {

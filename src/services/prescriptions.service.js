@@ -1,12 +1,22 @@
 import Appointment from "@/models/Appointment";
 import Prescription from "@/models/Prescription";
-import { dbConnect } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
-export async function addPrescription(data) {
-  await dbConnect();
+export async function addPrescription(data, dbName) {
+  const prescriptionsModel = await getMongooseModel(
+    dbName,
+    "Prescription",
+    Prescription.schema
+  );
+
+  const appointmentsModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema
+  );
 
   try {
-    const existingPrescription = await Prescription.findOne({
+    const existingPrescription = await prescriptionsModel.findOne({
       appointment: data.appointment,
     });
     if (existingPrescription) {
@@ -16,9 +26,14 @@ export async function addPrescription(data) {
       };
     }
 
-    const prescription = await Prescription.create(data);
+    const appointmentDoc = await appointmentsModel.findById(data.appointment);
 
-    const updated = await Appointment.findByIdAndUpdate(
+    const prescription = await prescriptionsModel.create({
+      ...data,
+      patient: appointmentDoc.patientId,
+    });
+
+    await appointmentsModel.findByIdAndUpdate(
       data.appointment,
       { prescription: prescription._id, status: "completed" },
       { new: true }
@@ -30,14 +45,29 @@ export async function addPrescription(data) {
   }
 }
 
-export async function updatePrescription(id, data) {
-  await dbConnect();
+export async function updatePrescription(id, data, dbName) {
+  const prescriptionsModel = await getMongooseModel(
+    dbName,
+    "Prescription",
+    Prescription.schema
+  );
 
   try {
-    const updatedPrescription = await Prescription.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
+    const forbiddenFields = ["patient", "appointment"];
+    forbiddenFields.forEach((field) => {
+      if (field in data) {
+        delete data[field];
+      }
     });
+
+    const updatedPrescription = await prescriptionsModel.findByIdAndUpdate(
+      id,
+      data,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!updatedPrescription) {
       return { success: false, error: "Prescription not found" };
@@ -56,8 +86,13 @@ export async function getPrescriptions({
   search = "",
   startDate = "",
   endDate = "",
+  dbName,
 }) {
-  await dbConnect();
+  const prescriptionsModel = await getMongooseModel(
+    dbName,
+    "Prescription",
+    Prescription.schema
+  );
 
   try {
     const query = {};
@@ -71,16 +106,25 @@ export async function getPrescriptions({
     }
 
     if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate);
+      const queryRange = {};
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
       if (endDate) {
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        query.createdAt.$lte = end;
+        end.setUTCHours(23, 59, 59, 999);
+        queryRange.$lte = end;
       }
+
+      query.createdAt = queryRange;
     }
 
-    const prescriptions = await Prescription.find(query)
+    const prescriptions = await prescriptionsModel
+      .find(query)
       .populate("patient", "name")
       .populate({
         path: "appointment",
@@ -94,7 +138,7 @@ export async function getPrescriptions({
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const total = await Prescription.countDocuments(query);
+    const total = await prescriptionsModel.countDocuments(query);
 
     return {
       success: true,
@@ -112,10 +156,15 @@ export async function getPrescriptions({
   }
 }
 
-export async function deletePrescription(id) {
-  await dbConnect();
+// TODO: check if appt needs to be removed
+export async function deletePrescription(id, dbName) {
+  const prescriptionsModel = await getMongooseModel(
+    dbName,
+    "Prescription",
+    Prescription.schema
+  );
 
-  const prescription = await Prescription.findByIdAndDelete(id);
+  const prescription = await prescriptionsModel.findByIdAndDelete(id);
   if (!prescription) {
     return { success: false, error: "Prescription not found" };
   }

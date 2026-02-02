@@ -1,12 +1,22 @@
 import Invoice from "@/models/Invoice";
-import { dbConnect } from "@/utils/dbConnect";
+import Patient from "@/models/Patient";
+import { getMongooseModel } from "@/utils/dbConnect";
+import { startOfDay } from "date-fns";
 
-export async function addPaymentForInvoice(invoiceId, amount, paymentMethod) {
-  // data -> invoiceId, amount
-  await dbConnect();
+export async function addPaymentForInvoice(
+  invoiceId,
+  amount,
+  paymentMethod,
+  dbName
+) {
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
 
   try {
-    const invoice = await Invoice.findById(invoiceId);
+    const invoice = await invoicesModel.findById(invoiceId);
     if (!invoice) {
       return { success: false, error: "Invoice not found" };
     }
@@ -42,8 +52,16 @@ export async function getInvoices({
   limit = 10,
   startDate = null,
   endDate = null,
+  dbName,
 }) {
-  await dbConnect();
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
+  await getMongooseModel(dbName, "Patient", Patient.schema);
+
   try {
     paginate = paginate === "true" || paginate === true;
     const query = {};
@@ -53,30 +71,36 @@ export async function getInvoices({
       query.patientId = patientId;
     }
 
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
+    if (startDate || endDate) {
+      const queryRange = {};
 
-      query.createdAt = { $gte: start, $lte: end };
-    } else if (startDate) {
-      query.createdAt = { $gte: new Date(startDate) };
-    } else if (endDate) {
-      query.createdAt = { $lte: new Date(endDate) };
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0);
+        queryRange.$gte = start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+        queryRange.$lte = end;
+      }
+
+      query.createdAt = queryRange;
     }
 
     if (isPaymentComplete) {
       query.isPaymentComplete = isPaymentComplete;
     }
 
-    let invoiceQuery = Invoice.find(query).populate("patientId", "name");
+    let invoiceQuery = invoicesModel.find(query).populate("patientId", "name");
     if (invoiceType === "labWork") {
       invoiceQuery.populate("labWork", "nameOfLab work  ");
     }
     let total;
     if (paginate) {
       invoiceQuery = invoiceQuery.skip((page - 1) * limit).limit(limit);
-      total = await Invoice.countDocuments(query);
+      total = await invoicesModel.countDocuments(query);
     }
 
     const invoiceData = await invoiceQuery;
@@ -97,10 +121,15 @@ export async function getInvoices({
   }
 }
 
-export async function getInvoiceById(invoiceId) {
-  dbConnect();
+export async function getInvoiceById(invoiceId, dbName) {
+  const invoicesModel = await getMongooseModel(
+    dbName,
+    "Invoice",
+    Invoice.schema
+  );
+
   try {
-    const invoice = await Invoice.findById(invoiceId);
+    const invoice = await invoicesModel.findById(invoiceId);
     if (!invoice) {
       return { success: false, error: "Invoice not found" };
     }
@@ -115,18 +144,22 @@ export async function getInvoiceById(invoiceId) {
   }
 }
 
-export async function deleteInvocie(id) {
-  await dbConnect();
+// export async function deleteInvocie(id, dbName) {
+//     const invoicesModel = await getMongooseModel(
+//       dbName,
+//       "Invoice",
+//       Invoice.schema
+//     );
 
-  try {
-    const deleted = await Invoice.findByIdAndDelete(id);
-    if (!deleted) {
-      return { success: false, error: "Invoice not found" };
-    }
+//   try {
+//     const deleted = await Invoice.findByIdAndDelete(id);
+//     if (!deleted) {
+//       return { success: false, error: "Invoice not found" };
+//     }
 
-    return { success: true, data: deleted };
-  } catch (error) {
-    console.error("Error deleting lab work:", error);
-    return { success: false, error: error.message };
-  }
-}
+//     return { success: true, data: deleted };
+//   } catch (error) {
+//     console.error("Error deleting lab work:", error);
+//     return { success: false, error: error.message };
+//   }
+// }

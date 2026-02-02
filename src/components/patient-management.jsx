@@ -23,7 +23,7 @@ import {
 } from "./ui/table";
 import PatientForm from "./forms/patient.form";
 import { emptyPatient } from "./data";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createNewPatient,
   deletePatient,
@@ -33,6 +33,7 @@ import {
 import { formatDate } from "@/utils/functions";
 import Loader from "./loader";
 import { Pagination } from "./pagination";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function PatientManagement() {
   const queryClient = useQueryClient();
@@ -48,10 +49,10 @@ export default function PatientManagement() {
   const [pagination, setPagination] = useState({});
 
   const { data: patientsDataObject = {}, isLoading: loadingPatients } =
-    useQuery({
+    useQueryWrapper({
       queryKey: ["patients", currentPage, limit, search],
-      queryFn: () =>
-        fetchPaginatedPatients({ page: currentPage, limit, search }),
+      queryFn: fetchPaginatedPatients,
+      params: { page: currentPage, limit, search },
     });
 
   useEffect(() => {
@@ -61,36 +62,36 @@ export default function PatientManagement() {
     }
   }, [loadingPatients, patientsDataObject]);
 
-  const addPatientMutation = useMutation({
+  const addPatientMutation = useMutationWrapper({
     mutationFn: createNewPatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      toast({
-        title: "Patient Added",
-        description: "New patient has been added.",
-      });
+      // toast({
+      //   title: "Patient Added",
+      //   description: "New patient has been added.",
+      // });
     },
   });
 
-  const updatePatientMutation = useMutation({
+  const updatePatientMutation = useMutationWrapper({
     mutationFn: updatePatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      toast({
-        title: "Patient Updated",
-        description: "Patient details updated.",
-      });
+      // toast({
+      //   title: "Patient Updated",
+      //   description: "Patient details updated.",
+      // });
     },
   });
 
-  const deletePatientMutation = useMutation({
+  const deletePatientMutation = useMutationWrapper({
     mutationFn: deletePatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      toast({
-        title: "Patient Deleted",
-        description: "Patient has been deleted.",
-      });
+      // toast({
+      //   title: "Patient Deleted",
+      //   description: "Patient has been deleted.",
+      // });
     },
   });
 
@@ -115,7 +116,7 @@ export default function PatientManagement() {
   };
 
   const handleDeletePatient = (patientId) => {
-    deletePatientMutation.mutateAsync(patientId);
+    deletePatientMutation.mutateAsync({ id: patientId });
   };
 
   const handleAddNew = () => {
@@ -136,7 +137,7 @@ export default function PatientManagement() {
         description: "The patient information has been successfully updated.",
       });
     } else {
-      addPatientMutation.mutateAsync(formData);
+      addPatientMutation.mutateAsync({ patientData: formData });
       toast({
         title: "Patient Added",
         description: "The new patient has been successfully added.",

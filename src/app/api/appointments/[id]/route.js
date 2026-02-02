@@ -3,12 +3,34 @@ import {
   updateAppointment,
   deleteAppointment,
 } from "@/services";
+import { checkAccess } from "@/utils";
+import { FeatureMapping } from "@/utils/feature.mapping";
+import { requireAuth } from "@/utils/require-auth";
+import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
 
-export async function GET(_, { params }) {
+export async function GET(req, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
-    const result = await getAppointmentById(id);
+    const auth = await requireAuth(
+      rolePermissions.appointments.getAppointmentById
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { clinic } = auth;
+    const accessError = checkAccess(
+      clinic,
+      dbName,
+      FeatureMapping.APPOINTMENTS
+    );
+    if (accessError) return accessError;
+
+    const result = await getAppointmentById(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -28,10 +50,28 @@ export async function GET(_, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
+    const auth = await requireAuth(
+      rolePermissions.appointments.updateAppointment
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { clinic } = auth;
+    const accessError = checkAccess(
+      clinic,
+      dbName,
+      FeatureMapping.APPOINTMENTS
+    );
+    if (accessError) return accessError;
+
     const body = await req.json();
-    const result = await updateAppointment(id, body);
+    const result = await updateAppointment(id, body, dbName);
 
     if (!result.success) {
       return NextResponse.json(
@@ -50,10 +90,28 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
+  const dbName = req.headers.get("db-name");
   const { id } = await params;
   try {
-    const result = await deleteAppointment(id);
+    const auth = await requireAuth(
+      rolePermissions.appointments.deleteAppointment
+    );
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.message },
+        { status: auth.status }
+      );
+    }
+    const { clinic } = auth;
+    const accessError = checkAccess(
+      clinic,
+      dbName,
+      FeatureMapping.APPOINTMENTS
+    );
+    if (accessError) return accessError;
+
+    const result = await deleteAppointment(id, dbName);
 
     if (!result.success) {
       return NextResponse.json(

@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
+    const dbName = req.headers.get("db-name");
     const body = await req.json();
-    const result = await registerUser(body);
+    const result = await registerUser(body, dbName);
 
     const status = result.success ? 201 : 400;
     return NextResponse.json(result, { status });

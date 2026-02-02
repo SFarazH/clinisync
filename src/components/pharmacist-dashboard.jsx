@@ -6,6 +6,7 @@ import { getPaginatedPrescriptions, updatePrescription } from "@/lib";
 import { addDays, startOfDay } from "date-fns";
 import { Stethoscope } from "lucide-react";
 import PrescriptionModal from "./modal/prescription.modal";
+import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function PharmacistDashboard() {
   const queryClient = useQueryClient();
@@ -36,9 +37,10 @@ export default function PharmacistDashboard() {
   const {
     data: prescriptionsDataObject = {},
     isLoading: loadingPrescriptions,
-  } = useQuery({
+  } = useQueryWrapper({
     queryKey: ["prescriptions", currentPage, limit],
-    queryFn: () => getPaginatedPrescriptions(queryParams),
+    queryFn: getPaginatedPrescriptions,
+    params: queryParams,
   });
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function PharmacistDashboard() {
     }
   }, [prescriptionsDataObject]);
 
-  const updateAppointmentMutation = useMutation({
+  const updateAppointmentMutation = useMutationWrapper({
     mutationFn: updatePrescription,
     onSuccess: () => {
       queryClient.invalidateQueries(["prescriptions"]);
