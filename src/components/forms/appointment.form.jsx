@@ -76,7 +76,11 @@ export default function AppointmentForm({
   const uploadImageMutation = useMutationWrapper({
     mutationFn: s3UploadApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey?.[0] === "appointments" &&
+          query.queryKey?.[2] === authClinic?.databaseName,
+      });
       setAttachmentToAdd(null);
       setIsDialogOpen(false);
     },

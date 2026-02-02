@@ -52,7 +52,7 @@ import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function AppointmentCalendar() {
   const queryClient = useQueryClient();
-  const { authUser } = useAuth();
+  const { authUser, authClinic } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -129,15 +129,21 @@ export default function AppointmentCalendar() {
 
   const addAppointmentMutation = useMutationWrapper({
     mutationFn: addAppointment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", queryParams, authClinic?.databaseName],
+        exact: true,
+      });
     },
   });
 
   const updateAppointmentMutation = useMutationWrapper({
     mutationFn: updateAppointment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", queryParams, authClinic?.databaseName],
+        exact: true,
+      });
       setEditingAppointment(null);
       setIsDialogOpen(false);
     },
@@ -145,8 +151,11 @@ export default function AppointmentCalendar() {
 
   const deleteAppointmentMutation = useMutationWrapper({
     mutationFn: deleteAppointment,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", queryParams, authClinic?.databaseName],
+        exact: true,
+      });
       setIsDialogOpen(false);
       setEditingAppointment(null);
     },

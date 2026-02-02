@@ -17,7 +17,7 @@ import { Circle } from "lucide-react";
 import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 
 export default function DoctorDashboard() {
-  const { authUser } = useAuth();
+  const { authUser, authClinic } = useAuth();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -74,7 +74,10 @@ export default function DoctorDashboard() {
   const addPrescriptionMutation = useMutationWrapper({
     mutationFn: addPrescription,
     onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", queryParams, authClinic?.databaseName],
+        exact: true,
+      });
       handleCloseModal();
     },
   });
@@ -82,7 +85,10 @@ export default function DoctorDashboard() {
   const updatePrescriptionMutation = useMutationWrapper({
     mutationFn: updatePrescription,
     onSuccess: () => {
-      queryClient.invalidateQueries(["appointments"]);
+      queryClient.invalidateQueries({
+        queryKey: ["appointments", queryParams, authClinic?.databaseName],
+        exact: true,
+      });
       handleCloseModal();
     },
   });
