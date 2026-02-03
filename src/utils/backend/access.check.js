@@ -7,7 +7,6 @@ export const checkAccess = (clinic, dbName, featureKey) => {
       { status: 400 },
     );
   }
-  console.log(clinic.databaseName, dbName);
 
   if (dbName !== "clinisync") {
     if (clinic.databaseName !== dbName) {
