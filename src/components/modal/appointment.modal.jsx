@@ -39,6 +39,7 @@ export default function AppointmentDetailsModal({
   const [isEditing, setIsEditing] = useState(false);
   const [openPopover, setOpenPopover] = useState({});
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -46,6 +47,7 @@ export default function AppointmentDetailsModal({
 
   const resetQuery = () => {
     setQuery("");
+    setDebouncedQuery("");
     setPage(1);
     setShowOtherFields(false);
     setResults([]);
@@ -76,12 +78,13 @@ export default function AppointmentDetailsModal({
 
   const { data: medicinesData = {}, isLoading: loadingMedicines } =
     useQueryWrapper({
-      queryKey: ["medicines", page, query],
+      queryKey: ["medicines", page, debouncedQuery],
       queryFn: fetchPaginatedMedicines,
       params: {
-        page: page,
-        search: query,
+        page,
+        search: debouncedQuery,
       },
+      enabled: debouncedQuery.length >= 3,
     });
 
   useEffect(() => {
@@ -101,17 +104,19 @@ export default function AppointmentDetailsModal({
 
   useEffect(() => {
     if (query.length < 3) {
+      setDebouncedQuery("");
       setResults([]);
       setPage(1);
       setHasMore(false);
       return;
     }
 
-    const delay = setTimeout(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
       setPage(1);
     }, 400);
 
-    return () => clearTimeout(delay);
+    return () => clearTimeout(handler);
   }, [query]);
 
   if (!appointment) return null;

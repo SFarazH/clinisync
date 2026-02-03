@@ -14,7 +14,7 @@ export async function getPaginatedMedicines({
   );
 
   try {
-    if (search.length < 4) {
+    if (search.length < 3) {
       return {
         success: true,
         data: [],
@@ -24,7 +24,7 @@ export async function getPaginatedMedicines({
           pages: 0,
           limit,
         },
-        message: "Search term must be at least 4 characters.",
+        message: "Search term must be at least 3 characters.",
       };
     }
     const query = search
