@@ -10,4 +10,5 @@ export const FeatureMapping = {
   USERS: "users",
   INVOICES: "invoices",
   ATTACHMENTS: "attachments",
+  WHATSAPP_REMINDERS: 'whatsapp-reminders'
 };
