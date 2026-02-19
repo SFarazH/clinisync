@@ -14,7 +14,7 @@ export async function addClinic(clinicData) {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
 
     const existingClinic = await clinicsModel.findOne({ databaseName });
@@ -42,7 +42,7 @@ export async function getClinics() {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
 
     const clinics = await clinicsModel.find({});
@@ -58,7 +58,7 @@ export async function updateClinic(id, data) {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
 
     const forbidden = ["databaseName"];
@@ -84,4 +84,25 @@ export async function updateClinic(id, data) {
     console.error("Error updating clinic:", error);
     return { success: false, error: error.message };
   }
+}
+
+export async function getClinicById(id) {
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinic",
+    Clinic.schema,
+  );
+
+  const clinic = await clinicsModel.findOne({ _id: id });
+
+  if (!clinic)
+    return {
+      success: false,
+      error: "Clinic not found",
+    };
+
+  return {
+    success: true,
+    data: clinic,
+  };
 }
