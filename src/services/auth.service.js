@@ -1,4 +1,4 @@
-import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 import Users from "@/models/Users";
 import bcrypt from "bcryptjs";
 import Doctor from "@/models/Doctor";
@@ -10,19 +10,19 @@ export async function registerUser(data, dbName) {
     const usersModel = await getMongooseModel(
       "clinisync",
       "Users",
-      Users.schema
+      Users.schema,
     );
 
     const doctorsModel = await getMongooseModel(
       dbName,
       "Doctor",
-      Doctor.schema
+      Doctor.schema,
     );
 
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
     const clinicDoc = await clinicsModel.findOne({ databaseName: dbName });
 
@@ -62,7 +62,7 @@ export async function registerUser(data, dbName) {
 
     const hashedPassword = await bcrypt.hash(
       data.password ?? process.env.TEST_PASSWORD,
-      10
+      10,
     );
     const user = await usersModel.create({
       ...data,
@@ -80,25 +80,10 @@ export async function registerUser(data, dbName) {
   }
 }
 
-export async function addClinicAdmin(data) {
+export async function addAdmin(data) {
   const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
-  const clinicsModel = await getMongooseModel(
-    "clinisync",
-    "Clinic",
-    Clinic.schema
-  );
 
-  const conn = await getDatabaseConnection("clinisync");
-  const session = await conn.startSession();
-  session.startTransaction();
   try {
-    const dbName = data.dbName;
-
-    const clinicDoc = await clinicsModel
-      .findOne({ databaseName: dbName })
-      .session(session);
-
-
     const existingEmailUsers = await usersModel.findOne({ email: data.email });
     if (existingEmailUsers) {
       return { success: false, error: "Email already registered" };
@@ -114,52 +99,25 @@ export async function addClinicAdmin(data) {
       }
     }
 
-    if (!clinicDoc) {
-      await session.abortTransaction();
-      session.endSession();
-      return { success: false, error: "Clinic does not exist" };
-    }
-
-    if (clinicDoc.admin) {
-      await session.abortTransaction();
-      session.endSession();
-      return { success: false, error: "Admin already exists for this clinic" };
-    }
     const hashedPassword = await bcrypt.hash(
       data.password ?? process.env.TEST_PASSWORD,
-      10
+      10,
     );
 
-    const newUser = await usersModel.create(
-      [
-        {
-          ...data,
-          password: hashedPassword,
-          role: roles.ADMIN,
-          clinic: clinicDoc._id,
-        },
-      ],
-      { session }
-    );
-
-    clinicDoc.admin = newUser[0]._id;
-    await clinicDoc.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
+    const newUser = await usersModel.create({
+      ...data,
+      password: hashedPassword,
+      role: roles.ADMIN,
+    });
 
     return {
       success: true,
       message: "Clinic admin created successfully",
-      clinic: clinicDoc,
-      user: newUser[0],
+      user: newUser,
     };
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Transaction failed:", err);
-
-    return { success: false, error: err.message };
+  } catch (error) {
+    console.error("Error registering user:", error);
+    return { success: false, error: error.message };
   }
 }
 
@@ -212,5 +170,96 @@ export async function updateUser(id, data) {
   } catch (error) {
     console.error("Error updating doctor:", error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function listUnallottedAdmins() {
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+
+  try {
+    const pipeline = [
+      {
+        $match: {
+          role: "admin",
+          $or: [{ clinic: null }, { clinic: { $exists: false } }],
+        },
+      },
+    ];
+
+    const usersList = await usersModel.aggregate(pipeline);
+    return { success: true, data: usersList };
+  } catch (error) {
+    console.error("Error fetching user list:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function allotAdminToClinic(clinicId, userId) {
+  const session = await mongoose.startSession();
+
+  const usersModel = await getMongooseModel("clinisync", "Users", Users.schema);
+
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinics",
+    Clinic.schema,
+  );
+
+  try {
+    session.startTransaction();
+
+    // Check if clinic exists
+    const clinic = await clinicsModel.findById(clinicId).session(session);
+
+    if (!clinic) {
+      return { success: false, error: "Clinic not found" };
+    }
+
+    // Check if user exists
+    const user = await usersModel.findById(userId).session(session);
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Update clinic → assign admin
+    await clinicsModel.updateOne(
+      { _id: clinicId },
+      {
+        $set: {
+          admin: userId, // assuming field name is admin
+        },
+      },
+      { session },
+    );
+
+    // Update user → assign clinic
+    await usersModel.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          clinic: clinicId,
+        },
+      },
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      success: true,
+      message: "Admin allotted to clinic successfully",
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Transaction error:", error);
+
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 }
