@@ -48,11 +48,11 @@ export const updateUserFunc = async ({ id, userData, dbName }) => {
   }
 };
 
-export const addClinicAdmin = async (clinicAdminData) => {
+export const addAdmin = async (clinicAdminData) => {
   try {
     const response = await axios.post(
       `/api/auth/register/admin`,
-      clinicAdminData
+      clinicAdminData,
     );
     return response.data;
   } catch (error) {

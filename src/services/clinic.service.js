@@ -1,4 +1,5 @@
 import Clinic from "@/models/Clinic";
+import User from "@/models/Users";
 import { getMongooseModel } from "@/utils/dbConnect";
 
 export async function addClinic(clinicData) {
@@ -14,7 +15,7 @@ export async function addClinic(clinicData) {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
 
     const existingClinic = await clinicsModel.findOne({ databaseName });
@@ -42,14 +43,19 @@ export async function getClinics() {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
 
-    const clinics = await clinicsModel.find({});
+    await getMongooseModel("clinisync", "User", User.schema);
+
+    const clinics = await clinicsModel.find({}).populate({
+      path: "admin",
+      select: "name",
+    });
     return { success: true, data: clinics };
   } catch (error) {
-    console.error("Error creating clinic:", err);
-    return { success: false, message: err };
+    console.error("Error fetching clinic:", error);
+    return { success: false, message: error };
   }
 }
 
@@ -58,18 +64,52 @@ export async function updateClinic(id, data) {
     const clinicsModel = await getMongooseModel(
       "clinisync",
       "Clinic",
-      Clinic.schema
+      Clinic.schema,
     );
+
+    const usersModel = await getMongooseModel("clinisync", "User", User.schema);
 
     const forbidden = ["databaseName"];
     forbidden.forEach((field) => delete data[field]);
 
-    const updated = await clinicsModel.findByIdAndUpdate(id, data, {
+    const existingClinic = await clinicsModel.findById(id);
+    if (!existingClinic) {
+      return { success: false, error: "Clinic not found" };
+    }
+
+    let adminChanged = false;
+    let oldAdmin;
+    let newAdmin;
+
+    if ("admin" in data) {
+      oldAdmin = existingClinic.admin?.toString();
+      newAdmin = data.admin?.toString();
+
+      if (oldAdmin !== newAdmin) {
+        adminChanged = true;
+      }
+    }
+
+    if (adminChanged) {
+      // Remove clinic from old admin
+      if (oldAdmin) {
+        await usersModel.findByIdAndUpdate(oldAdmin, {
+          $unset: { clinic: "" },
+        });
+      }
+
+      // Assign clinic to new admin
+      await usersModel.findByIdAndUpdate(newAdmin, {
+        clinic: id,
+      });
+    }
+
+    const updatedClinic = await clinicsModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
 
-    if (!updated) {
+    if (!updatedClinic) {
       return {
         success: false,
         error: "Clinic not found",
@@ -78,10 +118,31 @@ export async function updateClinic(id, data) {
 
     return {
       success: true,
-      data: updated,
+      data: updatedClinic,
     };
   } catch (error) {
     console.error("Error updating clinic:", error);
     return { success: false, error: error.message };
   }
+}
+
+export async function getClinicById(id) {
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinic",
+    Clinic.schema,
+  );
+
+  const clinic = await clinicsModel.findOne({ _id: id });
+
+  if (!clinic)
+    return {
+      success: false,
+      error: "Clinic not found",
+    };
+
+  return {
+    success: true,
+    data: clinic,
+  };
 }

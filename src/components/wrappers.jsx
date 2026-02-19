@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "./context/authcontext";
 
 export function useQueryWrapper({
@@ -8,8 +8,16 @@ export function useQueryWrapper({
   enabled = true,
   ...extraParams
 }) {
-  const { authClinic } = useAuth();
-  const dbName = authClinic?.databaseName;
+  const { authClinic, authUser } = useAuth();
+  let dbName;
+
+  if (!authUser) {
+    dbName = undefined;
+  } else if (authUser.role === "super-admin") {
+    dbName = "clinisync";
+  } else {
+    dbName = authClinic?.databaseName;
+  }
 
   return useQuery({
     queryKey: [...queryKey, params, dbName],
