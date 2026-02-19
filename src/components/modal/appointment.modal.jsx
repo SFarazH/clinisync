@@ -24,6 +24,8 @@ import {
   CommandList,
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { fetchPaginatedMedicines } from "@/lib";
+import { useQueryWrapper } from "../wrappers";
 
 export default function AppointmentDetailsModal({
   isOpen,
@@ -37,16 +39,19 @@ export default function AppointmentDetailsModal({
   const [isEditing, setIsEditing] = useState(false);
   const [openPopover, setOpenPopover] = useState({});
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [showOtherFields, setShowOtherFields] = useState(false);
 
   const resetQuery = () => {
     setQuery("");
+    setDebouncedQuery("");
     setPage(1);
     setShowOtherFields(false);
+    setResults([]);
+    setHasMore(false);
   };
 
   const togglePopover = (index, value) => {
@@ -71,39 +76,47 @@ export default function AppointmentDetailsModal({
     }
   }, [appointment]);
 
-  const fetchMedicines = async (q, newPage = 1) => {
-    if (q.length < 3) {
+  const { data: medicinesData = {}, isLoading: loadingMedicines } =
+    useQueryWrapper({
+      queryKey: ["medicines", page, debouncedQuery],
+      queryFn: fetchPaginatedMedicines,
+      params: {
+        page,
+        search: debouncedQuery,
+      },
+      enabled: debouncedQuery.length >= 3,
+    });
+
+  useEffect(() => {
+    if (!medicinesData?.data) return;
+
+    setResults((prev) => {
+      // page 1 -> replace
+      if (page === 1) return medicinesData.data;
+
+      // next pages -> append
+      return [...prev, ...medicinesData.data];
+    });
+
+    const { page: currentPage, pages } = medicinesData.pagination || {};
+    setHasMore(currentPage < pages);
+  }, [medicinesData]);
+
+  useEffect(() => {
+    if (query.length < 3) {
+      setDebouncedQuery("");
       setResults([]);
+      setPage(1);
       setHasMore(false);
       return;
     }
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `https://begv3q4egbx6trux2xmibfbmle0effyz.lambda-url.ap-south-1.on.aws/search?q=${q}&limit=20&page=${newPage}`
-      );
-      const data = await res.json();
 
-      if (newPage === 1) {
-        setResults(data.results);
-      } else {
-        setResults((prev) => [...prev, ...data.results]);
-      }
-
-      setHasMore(newPage < data.totalPages);
-    } catch (err) {
-      console.error("Error fetching medicines:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const delay = setTimeout(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
       setPage(1);
-      fetchMedicines(query, 1);
     }, 400);
-    return () => clearTimeout(delay);
+
+    return () => clearTimeout(handler);
   }, [query]);
 
   if (!appointment) return null;
@@ -115,6 +128,7 @@ export default function AppointmentDetailsModal({
       ...prev,
       medications: [...prev.medications, emptyMedicationItem],
     }));
+    resetQuery();
   };
 
   const handleSelect = (index, value) => {
@@ -133,13 +147,13 @@ export default function AppointmentDetailsModal({
         index,
         "shortComposition1",
         value.shortComposition1,
-        true
+        true,
       );
       handleMedicationChange(
         index,
         "shortComposition2",
         value.shortComposition2,
-        true
+        true,
       );
     }
     setOpenPopover((prev) => ({ ...prev, [index]: false }));
@@ -156,22 +170,11 @@ export default function AppointmentDetailsModal({
     });
   };
 
-  // const handleMedicationChange = (field, value) => {
-  //   // setCurrentPrescription((prev) => {
-  //   //   const newMeds = [...prev.medications];
-  //   //   newMeds[index] = { ...newMeds[index], [field]: value };
-  //   //   return {
-  //   //     ...prev,
-  //   //     medications: newMeds,
-  //   //   };
-  //   // });
-  // };
-
   const handleMedicationChange = (
     index,
     field,
     value,
-    isMedicineField = false
+    isMedicineField = false,
   ) => {
     setCurrentPrescription((prev) => {
       const newMeds = [...prev.medications];
@@ -321,11 +324,12 @@ export default function AppointmentDetailsModal({
                                     const isNearBottom =
                                       scrollHeight - scrollTop - clientHeight <
                                       50;
-                                    if (isNearBottom && hasMore && !loading) {
-                                      const nextPage = page + 1;
-                                      setPage(nextPage);
-                                      fetchMedicines(query, nextPage);
-                                    }
+                                    if (
+                                      isNearBottom &&
+                                      hasMore &&
+                                      !loadingMedicines
+                                    )
+                                      setPage((prev) => prev + 1);
                                   }}
                                 >
                                   <CommandEmpty>
@@ -350,7 +354,7 @@ export default function AppointmentDetailsModal({
                                           {med.medicine.medicineName}
                                         </CommandItem>
                                       )}
-                                    {results.map((medicine) => (
+                                    {results?.map((medicine) => (
                                       <CommandItem
                                         className="w-full"
                                         key={medicine._id}
@@ -362,7 +366,7 @@ export default function AppointmentDetailsModal({
                                         {medicine.name}
                                       </CommandItem>
                                     ))}
-                                    {loading && (
+                                    {loadingMedicines && (
                                       <div className="p-2 text-sm text-muted-foreground">
                                         Loading...
                                       </div>
@@ -386,7 +390,7 @@ export default function AppointmentDetailsModal({
                             handleMedicationChange(
                               index,
                               "frequency",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           disabled={isCompleted && !isEditing}
@@ -404,7 +408,7 @@ export default function AppointmentDetailsModal({
                             handleMedicationChange(
                               index,
                               "duration",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           disabled={isCompleted && !isEditing}
@@ -433,7 +437,7 @@ export default function AppointmentDetailsModal({
                                 index,
                                 "medicineName",
                                 e.target.value,
-                                true
+                                true,
                               )
                             }
                             disabled={isCompleted && !isEditing}
@@ -453,7 +457,7 @@ export default function AppointmentDetailsModal({
                               index,
                               "shortComposition1",
                               e.target.value,
-                              true
+                              true,
                             )
                           }
                           disabled={
@@ -474,7 +478,7 @@ export default function AppointmentDetailsModal({
                               index,
                               "shortComposition2",
                               e.target.value,
-                              true
+                              true,
                             )
                           }
                           disabled={
@@ -498,7 +502,7 @@ export default function AppointmentDetailsModal({
                               handleMedicationChange(
                                 index,
                                 "instructions",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             disabled={isCompleted && !isEditing}

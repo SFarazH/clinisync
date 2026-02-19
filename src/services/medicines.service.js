@@ -1,5 +1,5 @@
 import Medicine from "@/models/Medicine";
-import { dbConnect, getMongooseModel } from "@/utils/dbConnect";
+import { getMongooseModel } from "@/utils/dbConnect";
 
 export async function getPaginatedMedicines({
   page = 1,
@@ -7,15 +7,14 @@ export async function getPaginatedMedicines({
   search = "",
   dbName,
 }) {
-  // await dbConnect();
   const medicinesModel = await getMongooseModel(
     dbName,
     "Medicine",
-    Medicine.schema
+    Medicine.schema,
   );
 
   try {
-    if (search.length < 4) {
+    if (search.length < 3) {
       return {
         success: true,
         data: [],
@@ -25,7 +24,7 @@ export async function getPaginatedMedicines({
           pages: 0,
           limit,
         },
-        message: "Search term must be at least 4 characters.",
+        message: "Search term must be at least 3 characters.",
       };
     }
     const query = search
@@ -40,9 +39,9 @@ export async function getPaginatedMedicines({
 
     const medicines = await medicinesModel
       .find(query)
-      .select("id name shortComposition1 shortComposition2");
-    // .skip((page - 1) * limit)
-    // .limit(limit);
+      .select("id name shortComposition1 shortComposition2")
+      .skip((page - 1) * limit)
+      .limit(limit);
     //   .sort({ price: 1 }); // ascending price
 
     const total = await medicinesModel.countDocuments(query);

@@ -188,7 +188,7 @@ export default function ClinicDashboard() {
       case "admin-users":
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
-            <>a</>
+            <h1></h1>
           </RoleBasedWrapper>
         );
 

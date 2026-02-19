@@ -12,14 +12,14 @@ export async function GET(req) {
     if (!auth.ok) {
       return NextResponse.json(
         { success: false, error: auth.message },
-        { status: auth.status }
+        { status: auth.status },
       );
     }
     const { clinic } = auth;
     const accessError = checkAccess(
       clinic,
       dbName,
-      FeatureMapping.PRESCRIPTIONS
+      FeatureMapping.PRESCRIPTIONS,
     );
     if (accessError) return accessError;
 
@@ -28,12 +28,12 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
 
-    const result = await getPaginatedMedicines({ page, limit, search });
+    const result = await getPaginatedMedicines({ page, limit, search, dbName });
 
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function GET(req) {
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

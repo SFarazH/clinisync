@@ -4,15 +4,17 @@ export const checkAccess = (clinic, dbName, featureKey) => {
   if (!clinic) {
     return NextResponse.json(
       { success: false, error: "Clinic information missing" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  if (clinic.databaseName !== dbName) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized access" },
-      { status: 403 }
-    );
+  if (dbName !== "clinisync") {
+    if (clinic.databaseName !== dbName) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access" },
+        { status: 403 },
+      );
+    }
   }
 
   if (featureKey && !clinic.features[featureKey]) {
@@ -21,7 +23,7 @@ export const checkAccess = (clinic, dbName, featureKey) => {
         success: false,
         error: `Feature not enabled for this clinic`,
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
   return null;

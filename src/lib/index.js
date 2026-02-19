@@ -9,3 +9,4 @@ export * from "./labWorkApi";
 export * from "./invoiceApi";
 export * from "./clinicApi";
 export * from "./adminApi";
+export * from "./medicineApi";
