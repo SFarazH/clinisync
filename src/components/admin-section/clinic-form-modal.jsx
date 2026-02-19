@@ -93,7 +93,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
         });
       } else {
         updateClinicMutation.mutateAsync({
-          clinicData: formData,
+          clinicData: { ...formData, admin: formData.admin._id },
           id: clinic._id,
         });
       }
