@@ -40,6 +40,7 @@ import Image from "next/image";
 import { displayName } from "@/utils/helper";
 import logo from "../../../public/clinisync-t.png";
 import Loader from "@/components/loader";
+import { ClinicsTable } from "@/components/admin-section/clinic-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser, authClinic, setAuthClinic } = useAuth();
@@ -48,10 +49,10 @@ export default function ClinicDashboard() {
     authUser?.role === "super-admin"
       ? "super-admin-dashboard"
       : authUser?.role === "doctor"
-      ? "doctor-dashboard"
-      : authUser?.role === "pharmacist"
-      ? "prescriptions"
-      : "calendar"
+        ? "doctor-dashboard"
+        : authUser?.role === "pharmacist"
+          ? "prescriptions"
+          : "calendar",
   );
 
   const logoutMutation = useMutation({
@@ -180,7 +181,7 @@ export default function ClinicDashboard() {
       case "clinics":
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
-            <h1>CLinics babyy</h1>
+            <ClinicsTable />
           </RoleBasedWrapper>
         );
 
@@ -287,7 +288,7 @@ export default function ClinicDashboard() {
   };
 
   const filteredTabs = allTabs.filter((tab) => {
-    const hasRole = tab.roles.includes(authUser?.role);
+    const hasRole = tab?.roles?.includes(authUser?.role);
 
     const featureEnabled = (() => {
       if (!tab.featureKey) return true; // tab not tied to a feature
@@ -396,6 +397,5 @@ export default function ClinicDashboard() {
         {logoutMutation.isPending && <Loader />}
       </DateRangeProvider>
     </ProtectedRoute>
-    // <>hi</>
   );
 }
