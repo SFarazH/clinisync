@@ -49,8 +49,21 @@ import Loader from "./loader";
 import { useAuth } from "@/components/context/authcontext";
 import { format } from "date-fns";
 import { useMutationWrapper, useQueryWrapper } from "./wrappers";
+import {
+  dummyClinicHours,
+  dummyDoctors,
+  dummyPatients,
+  dummyProcedures,
+} from "./demo-data";
 
-export default function AppointmentCalendar() {
+export default function AppointmentCalendar({ mode = "live" }) {
+  //demo data
+  const [localAppointments, setLocalAppointments] = useState([]);
+  const [localDoctors] = useState(dummyDoctors);
+  const [localPatients] = useState(dummyPatients);
+  const [localProcedures] = useState(dummyProcedures);
+  const [localClinicHours] = useState(dummyClinicHours);
+
   const queryClient = useQueryClient();
   const { authUser, authClinic } = useAuth();
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -80,7 +93,7 @@ export default function AppointmentCalendar() {
 
   const { weekStart, weekEnd } = useMemo(
     () => getWeekStartAndEnd(currentWeek),
-    [currentWeek]
+    [currentWeek],
   );
 
   const queryParams = useMemo(
@@ -89,27 +102,31 @@ export default function AppointmentCalendar() {
       endDate: format(weekEnd, "yyyy-MM-dd"),
       doctorId: selectedDoctorId === "all" ? undefined : selectedDoctorId,
       isPaginate: false,
+      enabled: mode === "live",
     }),
-    [weekStart, weekEnd, selectedDoctorId]
+    [weekStart, weekEnd, selectedDoctorId],
   );
 
   const { data: patientsData = [], isLoading: loadingPatients } =
     useQueryWrapper({
       queryKey: ["patients"],
       queryFn: listPatients,
+      enabled: mode === "live",
     });
 
   const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
     {
       queryKey: ["doctors"],
       queryFn: fetchDoctors,
-    }
+      enabled: mode === "live",
+    },
   );
 
   const { data: proceduresData = [], isLoading: loadingProcedures } =
     useQueryWrapper({
       queryKey: ["procedures"],
       queryFn: fetchProceudres,
+      enabled: mode === "live",
     });
 
   const { data: rawAppointmentsData = [], isLoading: loadingAppointments } =
@@ -118,13 +135,17 @@ export default function AppointmentCalendar() {
       queryFn: fetchAppointments,
       params: queryParams,
       enabled:
-        !!queryParams && !!queryParams.startDate && !!queryParams.endDate,
+        !!queryParams &&
+        !!queryParams.startDate &&
+        !!queryParams.endDate &&
+        mode === "live",
     });
 
   const { data: clinicSettings = {}, isLoading: loadingSettings } =
     useQueryWrapper({
       queryKey: ["clinicSettings"],
       queryFn: getClinicConfig,
+      enabled: mode === "live",
     });
 
   const addAppointmentMutation = useMutationWrapper({
@@ -135,6 +156,7 @@ export default function AppointmentCalendar() {
         exact: true,
       });
     },
+    enabled: mode === "live",
   });
 
   const updateAppointmentMutation = useMutationWrapper({
@@ -147,6 +169,7 @@ export default function AppointmentCalendar() {
       setEditingAppointment(null);
       setIsDialogOpen(false);
     },
+    enabled: mode === "live",
   });
 
   const deleteAppointmentMutation = useMutationWrapper({
@@ -159,26 +182,32 @@ export default function AppointmentCalendar() {
       setIsDialogOpen(false);
       setEditingAppointment(null);
     },
+    enabled: mode === "live",
   });
 
   useEffect(() => {
-    if (authUser.role === "doctor") {
-      setSelectedDoctorId(
-        doctorsData?.filter((doc) => doc.email === authUser.email)[0]?._id
-      );
+    if (mode === "live") {
+      if (authUser.role === "doctor") {
+        setSelectedDoctorId(
+          doctorsData?.filter((doc) => doc.email === authUser.email)[0]?._id,
+        );
+      }
     }
-  }, [authUser, doctorsData]);
+  }, [authUser, doctorsData, mode]);
 
-  const appointmentsData = useMemo(
-    () => transformAppointmentData(rawAppointmentsData),
-    [rawAppointmentsData]
-  );
+  const appointmentsData = useMemo(() => {
+    const source = mode === "demo" ? localAppointments : rawAppointmentsData;
+
+    return transformAppointmentData(source);
+  }, [mode, rawAppointmentsData, localAppointments]);
 
   useEffect(() => {
-    if (clinicSettings) {
+    if (mode === "demo") {
+      setClinicHours(localClinicHours);
+    } else if (clinicSettings?.openingHours) {
       setClinicHours(clinicSettings.openingHours);
     }
-  }, [clinicSettings, loadingSettings]);
+  }, [mode, clinicSettings]);
 
   const handleDragStart = (e, appointment) => {
     setDraggedAppointment(appointment);
@@ -223,25 +252,25 @@ export default function AppointmentCalendar() {
     if (!draggedAppointment) return;
 
     const dateString = format(date, "yyyy-MM-dd");
-    const procedure = proceduresData.find(
-      (t) => t._id === draggedAppointment.procedureId
+
+    const procedureSource = mode === "demo" ? localProcedures : proceduresData;
+
+    const procedure = procedureSource.find(
+      (t) => t._id === draggedAppointment.procedureId,
     );
 
     if (!procedure) return;
 
-    // Calculate new end time
     const startDateTime = new Date(`${dateString}T${time}:00`);
     const endDateTime = new Date(
-      startDateTime.getTime() + procedure.duration * 60000
+      startDateTime.getTime() + procedure.duration * 60000,
     );
     const newEndTime = endDateTime.toTimeString().slice(0, 5);
 
-    // Check if the new slot is available and within clinic hours
     if (!isTimeSlotAvailable(date, time, clinicHours)) {
       toast({
         title: "Invalid Drop Location",
-        description:
-          "Cannot schedule appointment outside of clinic hours or during breaks.",
+        description: "Cannot schedule appointment outside of clinic hours.",
         variant: "destructive",
       });
       return;
@@ -254,31 +283,47 @@ export default function AppointmentCalendar() {
         time,
         newEndTime,
         draggedAppointment.doctorId,
-        draggedAppointment.id
+        draggedAppointment.id,
       )
     ) {
       toast({
         title: "Scheduling Conflict",
-        description:
-          "This time slot conflicts with an existing appointment for this doctor.",
+        description: "This time slot conflicts with an existing appointment.",
         variant: "destructive",
       });
       return;
     }
 
-    updateAppointmentMutation.mutateAsync({
-      id: draggedAppointment.id,
-      appointmentData: {
-        ...draggedAppointment,
-        date: dateString,
-        startTime: time,
-        endTime: newEndTime,
-      },
-    });
+    if (mode === "demo") {
+      // 🔥 UPDATE LOCAL STATE
+      setLocalAppointments((prev) =>
+        prev.map((appt) =>
+          appt.id === draggedAppointment.id
+            ? {
+                ...appt,
+                date: dateString,
+                startTime: time,
+                endTime: newEndTime,
+              }
+            : appt,
+        ),
+      );
+    } else {
+      // LIVE MODE
+      updateAppointmentMutation.mutateAsync({
+        id: draggedAppointment.id,
+        appointmentData: {
+          ...draggedAppointment,
+          date: dateString,
+          startTime: time,
+          endTime: newEndTime,
+        },
+      });
+    }
 
     toast({
       title: "Appointment Rescheduled",
-      description: `Appointment moved to ${date.toLocaleDateString()} at ${time}`,
+      description: `Moved to ${date.toLocaleDateString()} at ${time}`,
     });
 
     setDraggedAppointment(null);
@@ -312,7 +357,7 @@ export default function AppointmentCalendar() {
         appointmentsData,
         selectedDoctorId,
         date,
-        time
+        time,
       );
       if (existingAppointment) return;
     }
@@ -331,7 +376,11 @@ export default function AppointmentCalendar() {
 
   const handleDelete = () => {
     if (editingAppointment) {
-      deleteAppointmentMutation.mutateAsync({ id: editingAppointment.id });
+      if (mode === "demo") {
+        setLocalAppointments((prev) => prev.filter((appt) => appt.id !== id));
+      } else {
+        deleteAppointmentMutation.mutateAsync({ id: editingAppointment.id });
+      }
     }
   };
 
@@ -339,19 +388,21 @@ export default function AppointmentCalendar() {
     e.preventDefault();
     setErrorMessage("");
 
-    const procedure = proceduresData.find(
-      (procedure) => procedure._id === formData.procedureId
+    const procedureSource = mode === "demo" ? localProcedures : proceduresData;
+
+    const procedure = procedureSource.find(
+      (p) => p._id === formData.procedureId,
     );
+
     if (!procedure) return;
 
     const startTime = selectedTime;
     const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
     const endDateTime = new Date(
-      startDateTime.getTime() + procedure.duration * 60000
+      startDateTime.getTime() + procedure.duration * 60000,
     );
     const endTime = endDateTime.toTimeString().slice(0, 5);
 
-    // Check for overlaps with the same doctor (exclude current appointment if editing)
     if (
       checkAppointmentOverlap(
         appointmentsData,
@@ -359,34 +410,66 @@ export default function AppointmentCalendar() {
         startTime,
         endTime,
         formData.doctorId,
-        editingAppointment?._id || editingAppointment?.id
+        editingAppointment?.id,
       )
     ) {
       setErrorMessage(
-        "This time slot conflicts with an existing appointment for this doctor. Please select a different time."
+        "This time slot conflicts with an existing appointment for this doctor.",
       );
       return;
     }
 
-    if (editingAppointment) {
-      updateAppointmentMutation.mutateAsync({
-        id: editingAppointment.id,
-        appointmentData: {
-          ...formData,
-          date: new Date(selectedDate),
-          startTime,
-          endTime,
-        },
-      });
+    if (mode === "demo") {
+      if (editingAppointment) {
+        // EDIT
+        setLocalAppointments((prev) =>
+          prev.map((appt) =>
+            appt.id === editingAppointment.id
+              ? {
+                  ...appt,
+                  ...formData,
+                  date: selectedDate,
+                  startTime,
+                  endTime,
+                }
+              : appt,
+          ),
+        );
+      } else {
+        // CREATE
+        setLocalAppointments((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            ...formData,
+            date: selectedDate,
+            startTime,
+            endTime,
+            attachments: [],
+          },
+        ]);
+      }
     } else {
-      addAppointmentMutation.mutateAsync({
-        appointmentData: {
-          ...formData,
-          date: new Date(selectedDate),
-          startTime,
-          endTime,
-        },
-      });
+      if (editingAppointment) {
+        updateAppointmentMutation.mutateAsync({
+          id: editingAppointment.id,
+          appointmentData: {
+            ...formData,
+            date: new Date(selectedDate),
+            startTime,
+            endTime,
+          },
+        });
+      } else {
+        addAppointmentMutation.mutateAsync({
+          appointmentData: {
+            ...formData,
+            date: new Date(selectedDate),
+            startTime,
+            endTime,
+          },
+        });
+      }
     }
 
     setFormData(emptyAppointment);
@@ -408,7 +491,7 @@ export default function AppointmentCalendar() {
   const timeSlots = generateTimeSlots(
     slotsEndHour,
     slotsStartHour,
-    !!clinicHours
+    !!clinicHours,
   );
 
   const generateTimeOptions = (date) => {
@@ -481,7 +564,7 @@ export default function AppointmentCalendar() {
         const slotWise = getAppointmentsForCombinedSlot(
           appointmentsData,
           day,
-          time
+          time,
         );
 
         // Only process slots with exactly one appointment
@@ -580,7 +663,13 @@ export default function AppointmentCalendar() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Doctors</SelectItem>
-                      {loadingDoctors ? (
+                      {mode === "demo" ? (
+                        localDoctors.map((doctor) => (
+                          <SelectItem key={doctor._id} value={doctor._id}>
+                            {doctor.name}
+                          </SelectItem>
+                        ))
+                      ) : loadingDoctors ? (
                         <SelectItem disabled>
                           <div className="flex items-center space-x-2">
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -602,27 +691,31 @@ export default function AppointmentCalendar() {
                   <Plus className="w-4 h-4 mr-2" />
                   Add Appointment
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateWeek("prev")}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentWeek(new Date())}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateWeek("next")}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                {mode === "live" && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateWeek("prev")}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentWeek(new Date())}
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateWeek("next")}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -653,10 +746,12 @@ export default function AppointmentCalendar() {
 
                 <CalendarView
                   data={{
-                    patientsData,
-                    doctorsData,
+                    patientsData:
+                      mode === "demo" ? localPatients : patientsData,
+                    doctorsData: mode === "demo" ? localDoctors : doctorsData,
+                    proceduresData:
+                      mode === "demo" ? localProcedures : proceduresData,
                     appointmentsData,
-                    proceduresData,
                     loadingPatients,
                   }}
                   timeSlotOptions={{
@@ -697,9 +792,10 @@ export default function AppointmentCalendar() {
               dialogOptions={{ isDialogOpen, setIsDialogOpen }}
               popoverOptions={{ open, setOpen }}
               data={{
-                patientsData,
-                doctorsData,
-                proceduresData,
+                patientsData: mode === "demo" ? localPatients : patientsData,
+                doctorsData: mode === "demo" ? localDoctors : doctorsData,
+                proceduresData:
+                  mode === "demo" ? localProcedures : proceduresData,
                 formData,
                 timeOptions,
                 setFormData,
@@ -732,7 +828,12 @@ export default function AppointmentCalendar() {
                 setOverlappingAppointmentsDialog,
               }}
               handleAppointmentClick={handleAppointmentClick}
-              data={{ patientsData, proceduresData, doctorsData }}
+              data={{
+                patientsData: mode === "demo" ? localPatients : patientsData,
+                doctorsData: mode === "demo" ? localDoctors : doctorsData,
+                proceduresData:
+                  mode === "demo" ? localProcedures : proceduresData,
+              }}
             />
           </div>
         </CardContent>

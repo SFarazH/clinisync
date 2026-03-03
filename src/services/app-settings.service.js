@@ -5,7 +5,7 @@ export async function createOrUpdateAppSettings(data, dbName) {
   const appSettingsModel = await getMongooseModel(
     dbName,
     "AppSettings",
-    AppSettings.schema
+    AppSettings.schema,
   );
 
   try {
@@ -18,7 +18,7 @@ export async function createOrUpdateAppSettings(data, dbName) {
         {
           new: true,
           runValidators: true,
-        }
+        },
       );
       return {
         success: true,
@@ -43,13 +43,13 @@ export async function getAppSettings(dbName) {
   const appSettingsModel = await getMongooseModel(
     dbName,
     "AppSettings",
-    AppSettings.schema
+    AppSettings.schema,
   );
 
   try {
     const settings = await appSettingsModel.findOne();
     if (!settings) {
-      return { success: false, error: "App settings not found" };
+      return { success: false, error: "App settings not found or enabled" };
     }
 
     return { success: true, data: settings };

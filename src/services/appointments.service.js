@@ -26,19 +26,19 @@ export async function createAppointment(data, dbName) {
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
-    Appointment.schema
+    Appointment.schema,
   );
 
   const proceduresModel = await getMongooseModel(
     dbName,
     "Procedure",
-    Procedure.schema
+    Procedure.schema,
   );
 
   const invoicesModel = await getMongooseModel(
     dbName,
     "Invoice",
-    Invoice.schema
+    Invoice.schema,
   );
   const conn = await getDatabaseConnection(dbName);
   const session = await conn.startSession();
@@ -61,7 +61,7 @@ export async function createAppointment(data, dbName) {
           endTime: calculateEndTime(data.startTime, procedure.duration),
         },
       ],
-      { session }
+      { session },
     );
 
     const invoice = await invoicesModel.create(
@@ -77,7 +77,7 @@ export async function createAppointment(data, dbName) {
           appointmentDate: appointment[0].date,
         },
       ],
-      { session }
+      { session },
     );
 
     appointment[0].invoice = invoice[0]._id;
@@ -91,9 +91,9 @@ export async function createAppointment(data, dbName) {
       data: { appointment: appointment[0], invoice: invoice[0] },
     };
   } catch (err) {
+    console.error("Error creating appointment/invoice:", err);
     await session.abortTransaction();
     session.endSession();
-    console.error("Error creating appointment/invoice:", err);
     return { success: false, message: err };
   }
 }
@@ -112,7 +112,7 @@ export async function listAppointments({
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
-    Appointment.schema
+    Appointment.schema,
   );
 
   await getMongooseModel(dbName, "Prescription", Prescription.schema);
@@ -191,7 +191,7 @@ export async function getAppointmentById(id, dbName) {
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
-    Appointment.schema
+    Appointment.schema,
   );
 
   try {
@@ -213,13 +213,13 @@ export async function updateAppointment(id, data, dbName) {
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
-    Appointment.schema
+    Appointment.schema,
   );
 
   const invoicesModel = await getMongooseModel(
     dbName,
     "Invoice",
-    Invoice.schema
+    Invoice.schema,
   );
 
   await getMongooseModel(dbName, "Patient", Patient.schema);
@@ -261,7 +261,7 @@ export async function updateAppointment(id, data, dbName) {
           isPaymentComplete: !isPending,
           appointmentDate: appointment.date,
         },
-        { new: true, session }
+        { new: true, session },
       );
 
       if (!updatedInvoice) {
@@ -287,19 +287,19 @@ export async function deleteAppointment(id, dbName) {
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
-    Appointment.schema
+    Appointment.schema,
   );
 
   const invoicesModel = await getMongooseModel(
     dbName,
     "Invoice",
-    Invoice.schema
+    Invoice.schema,
   );
 
   const prescriptionsModel = await getMongooseModel(
     dbName,
     "Prescription",
-    Prescription.schema
+    Prescription.schema,
   );
 
   const conn = await getDatabaseConnection(dbName);
@@ -322,7 +322,7 @@ export async function deleteAppointment(id, dbName) {
     if (appointment.prescription) {
       await prescriptionsModel.findOneAndDelete(
         { appointment: id },
-        { session }
+        { session },
       );
     }
 
