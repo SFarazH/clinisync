@@ -288,7 +288,7 @@ export default function AppointmentForm({
                               </div>
                             </SelectItem>
                           );
-                        }
+                        },
                       )}
                     </SelectContent>
                   </Select>
@@ -404,7 +404,7 @@ export default function AppointmentForm({
                               formDataToSend.append("file", attachmentToAdd);
                               formDataToSend.append(
                                 "appointmentId",
-                                editingAppointment.id
+                                editingAppointment.id,
                               );
                               uploadImageMutation.mutateAsync({
                                 formData: formDataToSend,
