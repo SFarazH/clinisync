@@ -39,7 +39,7 @@ export const isDayOpen = (date, clinicHours) => {
 export const generateTimeSlots = (
   clinicEndHour,
   clinicStartHour,
-  clinicHours
+  clinicHours,
 ) => {
   const slots = [];
 
@@ -136,7 +136,7 @@ export const getAppointmentHeight = (appointment) => {
 
 export const getAppointmentColor = (appointment, proceduresData) => {
   return proceduresData.filter(
-    (proc) => proc?._id === appointment.procedureId
+    (proc) => proc?._id === appointment.procedureId,
   )[0]?.color;
 };
 
@@ -144,11 +144,11 @@ export const transformAppointmentData = (rawAppointments) => {
   return rawAppointments
     .filter((appt) => appt.status !== "cancelled")
     .map((appointment) => ({
-      id: appointment?._id,
+      id: appointment?._id || appointment.id,
       date: appointment.date.split("T")[0],
-      patientId: appointment.patientId?._id,
-      doctorId: appointment.doctorId?._id,
-      procedureId: appointment.procedureId?._id,
+      patientId: appointment.patientId?._id || appointment.patientId,
+      doctorId: appointment.doctorId?._id || appointment.doctorId,
+      procedureId: appointment.procedureId?._id || appointment.procedureId,
       startTime: appointment.startTime,
       endTime: appointment.endTime,
       notes: appointment.notes,
@@ -166,7 +166,7 @@ export const checkAppointmentOverlap = (
   startTime,
   endTime,
   doctorId,
-  excludeId
+  excludeId,
 ) => {
   return appointments
     .filter((appt) => appt.status !== "cancelled")
@@ -207,7 +207,7 @@ export const getSingleAppointmentForSlot = (
   appointmentsData,
   selectedDoctorId,
   date,
-  time
+  time,
 ) => {
   const dateString = format(date, "yyyy-MM-dd");
 
@@ -232,7 +232,7 @@ export const isAppointmentStart = (appointment, time) => {
 export const getAppointmentsForCombinedSlot = (
   appointmentsData,
   date,
-  slotTime
+  slotTime,
 ) => {
   const dateString = format(date, "yyyy-MM-dd");
   const currentSlotStart = new Date(`2000-01-01T${slotTime}:00`);
@@ -339,7 +339,7 @@ export const getRoleText = (role) => {
 export function formatCurrency(cents, currency = "INR") {
   const amount = (cents || 0) / 100;
   return new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(
-    amount
+    amount,
   );
 }
 

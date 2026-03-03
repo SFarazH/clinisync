@@ -11,7 +11,7 @@ export async function GET(req) {
   if (!auth.ok) {
     return NextResponse.json(
       { success: false, error: auth.message },
-      { status: auth.status }
+      { status: auth.status },
     );
   }
 
@@ -24,7 +24,7 @@ export async function GET(req) {
   if (!result.success) {
     return NextResponse.json(
       { success: false, error: result.error },
-      { status: 404 }
+      { status: 400 },
     );
   }
 
@@ -35,12 +35,12 @@ export async function POST(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
-      rolePermissions.appSettings.createOrUpdateSettings
+      rolePermissions.appSettings.createOrUpdateSettings,
     );
     if (!auth.ok) {
       return NextResponse.json(
         { success: false, error: auth.message },
-        { status: auth.status }
+        { status: auth.status },
       );
     }
 
@@ -54,19 +54,19 @@ export async function POST(req) {
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { success: true, data: result.data },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error in POST /api/appSettings:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

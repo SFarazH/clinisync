@@ -288,7 +288,8 @@ export default function ClinicDashboard() {
   };
 
   const filteredTabs = allTabs.filter((tab) => {
-    const hasRole = tab?.roles?.includes(authUser?.role);
+    if (!authUser) return false;
+    const hasRole = tab.roles.includes(authUser.role);
 
     const featureEnabled = (() => {
       if (!tab.featureKey) return true; // tab not tied to a feature
@@ -297,7 +298,6 @@ export default function ClinicDashboard() {
 
     return hasRole && featureEnabled;
   });
-
   return (
     <ProtectedRoute>
       <DateRangeProvider>
