@@ -1,50 +1,29 @@
-import axios from "axios";
+import { apiClient } from "@/utils";
 
 export const getClinicsApi = async ({ dbName }) => {
-  try {
-    const response = await axios.get("/api/clinic", {
-      headers: { "db-name": dbName },
-    });
-    return response.data.data;
-  } catch (e) {
-    return e;
-  }
+  return apiClient.get("/api/clinic", {
+    headers: { "db-name": dbName },
+  });
 };
 
 export const getClinicById = async ({ id, dbName }) => {
-  try {
-    const response = await axios.get(`/api/clinic/${id}`, {
-      headers: { "db-name": dbName },
-    });
-    return response.data.data;
-  } catch (e) {
-    return e;
-  }
+  return apiClient.get(`/api/clinic/${id}`, {
+    headers: { "db-name": dbName },
+  });
 };
 
 export const addClinicApi = async ({ clinicData }) => {
-  try {
-    const response = await axios.post("/api/clinic", clinicData, {
-      headers: {
-        dbName: "clinisync",
-      },
-    });
-    return response.data.data;
-  } catch (error) {
-    console.log(error, "in api");
-    return error;
-  }
+  return apiClient.post("/api/clinic", clinicData, {
+    headers: {
+      dbName: "clinisync",
+    },
+  });
 };
 
 export const updateClinicApi = async ({ id, clinicData }) => {
-  try {
-    const response = await axios.patch(`/api/clinic/${id}`, clinicData, {
-      headers: {
-        dbName: "clinisync",
-      },
-    });
-    return response.data.data;
-  } catch (error) {
-    return e;
-  }
+  return apiClient.patch(`/api/clinic/${id}`, clinicData, {
+    headers: {
+      dbName: "clinisync",
+    },
+  });
 };

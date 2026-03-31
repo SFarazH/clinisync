@@ -112,7 +112,13 @@ export default function AppointmentCalendar({ mode = "live" }) {
       queryKey: ["patients"],
       queryFn: listPatients,
       enabled: mode === "live",
+
+      staleTime: 1000 * 60 * 5, // 5 mins (IMPORTANT 🔥)
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
     });
+
+  console.log(patientsData);
 
   const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
     {

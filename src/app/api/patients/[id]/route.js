@@ -4,16 +4,14 @@ import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function GET(req, { params }) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.patients.getPatientById);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -24,19 +22,13 @@ export async function GET(req, { params }) {
     const result = await getPatientById(id, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 404 }
-      );
+      return responseHandler.error(result.error, 404);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Patient fetched successfully");
   } catch (error) {
     console.error("Error in GET /api/patients/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }
 
@@ -45,10 +37,7 @@ export async function PUT(req, { params }) {
   try {
     const auth = await requireAuth(rolePermissions.patients.updatePatient);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -59,19 +48,13 @@ export async function PUT(req, { params }) {
     const result = await updatePatient(params.id, body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Patient updated successfully");
   } catch (error) {
     console.error("Error in PUT /api/patients/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }
 
@@ -80,10 +63,7 @@ export async function DELETE(req, { params }) {
   try {
     const auth = await requireAuth(rolePermissions.patients.deletePatient);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -93,18 +73,12 @@ export async function DELETE(req, { params }) {
     const result = await deletePatient(params.id, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 404 }
-      );
+      return responseHandler.error(result.error, 404);
     }
 
-    return NextResponse.json({ success: true, message: result.message });
+    return responseHandler.success(null, result.message || "Patient deleted successfully");
   } catch (error) {
     console.error("Error in DELETE /api/patients/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

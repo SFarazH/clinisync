@@ -14,14 +14,16 @@ export function AuthProvider({ children }) {
   const [authClinic, setAuthClinic] = useState(null);
 
   const checkUser = async () => {
-    const res = await verifyUser();
-    if (res.success) {
-      setAuthUser(res.user);
-      setAuthClinic(res.user.clinic);
-    } else {
+    try {
+      const user = await verifyUser();
+
+      setAuthUser(user);
+      setAuthClinic(user?.clinic);
+    } catch (error) {
       setAuthUser(null);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const value = {

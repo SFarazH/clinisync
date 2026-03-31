@@ -3,7 +3,7 @@ import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
-import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function PUT(req, { params }) {
   const dbName = req.headers.get("db-name");
@@ -13,10 +13,7 @@ export async function PUT(req, { params }) {
       rolePermissions.prescriptions.addPrescription
     );
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -31,18 +28,12 @@ export async function PUT(req, { params }) {
     const result = await updatePrescription(id, body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Prescription updated successfully");
   } catch (error) {
     console.error("Error in PUT /api/prescriptions/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }

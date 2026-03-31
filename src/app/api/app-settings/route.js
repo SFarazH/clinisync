@@ -4,15 +4,13 @@ import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function GET(req) {
   const dbName = req.headers.get("db-name");
   const auth = await requireAuth(rolePermissions.appSettings.getSettings);
   if (!auth.ok) {
-    return NextResponse.json(
-      { success: false, error: auth.message },
-      { status: auth.status },
-    );
+    return responseHandler.error(auth.message, auth.status);
   }
 
   const { clinic } = auth;
@@ -22,13 +20,10 @@ export async function GET(req) {
   const result = await getAppSettings(dbName);
 
   if (!result.success) {
-    return NextResponse.json(
-      { success: false, error: result.error },
-      { status: 400 },
-    );
+    return responseHandler.error(result.error, 400);
   }
 
-  return NextResponse.json({ success: true, data: result.data });
+  return responseHandler.success(result.data, "App settings fetched successfully");
 }
 
 export async function POST(req) {
@@ -38,10 +33,7 @@ export async function POST(req) {
       rolePermissions.appSettings.createOrUpdateSettings,
     );
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -52,21 +44,17 @@ export async function POST(req) {
     const result = await createOrUpdateAppSettings(body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 },
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 201 },
+    return responseHandler.success(
+      result.data,
+      "App settings updated successfully",
+      {},
+      201,
     );
   } catch (error) {
     console.error("Error in POST /api/appSettings:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

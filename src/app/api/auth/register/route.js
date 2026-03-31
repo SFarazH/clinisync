@@ -1,5 +1,6 @@
 import { registerUser } from "@/services";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST(req) {
   try {
@@ -7,13 +8,18 @@ export async function POST(req) {
     const body = await req.json();
     const result = await registerUser(body, dbName);
 
-    const status = result.success ? 201 : 400;
-    return NextResponse.json(result, { status });
+    if (!result.success) {
+      return responseHandler.error(result.error, 400);
+    }
+
+    return responseHandler.success(
+      result.data,
+      "User registered successfully",
+      {},
+      201,
+    );
   } catch (error) {
     console.error("Error in POST /api/auth/register:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

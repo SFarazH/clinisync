@@ -1,5 +1,5 @@
 import { listPatients } from "@/services";
-import { checkAccess } from "@/utils";
+import { checkAccess, responseHandler } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
@@ -10,10 +10,7 @@ export async function GET(req) {
   try {
     const auth = await requireAuth(rolePermissions.patients.listPatients);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -22,22 +19,22 @@ export async function GET(req) {
 
     const result = await listPatients(dbName);
 
+    // if (!result.success) {
+    //   return NextResponse.json(
+    //     { success: false, error: result.error },
+    //     { status: 400 }
+    //   );
+    // }
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-    });
+    return responseHandler.success(
+      result.data,
+      "Patients fetched successfully",
+    );
   } catch (error) {
     console.error("Error in GET /api/patients:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }
