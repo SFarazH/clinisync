@@ -1,4 +1,4 @@
-import axios from "axios";
+import { apiClient } from "@/utils";
 
 export const fetchPaginatedLabWorks = async ({
   page = 1,
@@ -10,7 +10,7 @@ export const fetchPaginatedLabWorks = async ({
   endDate = null,
   dbName,
 } = {}) => {
-  const response = await axios.get("/api/lab-work", {
+  return apiClient.get("/api/lab-work", {
     headers: { "db-name": dbName },
     params: {
       paginate,
@@ -22,49 +22,39 @@ export const fetchPaginatedLabWorks = async ({
       endDate,
     },
   });
-  return response.data; // returns { success, data, pagination }
 };
 
 export const listAllLabWorks = async ({ dbName }) => {
-  const response = await axios.get("/api/lab-work", {
+  return apiClient.get("/api/lab-work", {
     headers: { "db-name": dbName },
     params: { paginate: false },
   });
-  return response.data.data;
 };
 
 // ✅ Create new lab work
 export const addNewLabWork = async ({ labWorkData, dbName }) => {
-  const response = await axios.post("/api/lab-work", labWorkData, {
+  return apiClient.post("/api/lab-work", labWorkData, {
     headers: { "db-name": dbName },
   });
-  return response.data.data;
 };
 
 // ✅ Update existing lab work
 export const updateLabWork = async ({ id, labWorkData, dbName }) => {
-  const response = await axios.put(`/api/lab-work/${id}`, labWorkData, {
+  return apiClient.put(`/api/lab-work/${id}`, labWorkData, {
     headers: { "db-name": dbName },
   });
-  return response.data.data;
 };
 
 // ✅ Mark lab work as complete (isReceived = true)
 export const markLabWorkComplete = async ({ id, dbName }) => {
-  const response = await axios.patch(
-    `/api/lab-work/${id}`,
-    {},
-    {
-      headers: { "db-name": dbName },
-    }
-  );
-  return response.data.data;
+  return apiClient.patch(`/api/lab-work/${id}`, {}, {
+    headers: { "db-name": dbName },
+  });
 };
 
 // ✅ Delete a lab work
 export const deleteLabWork = async ({ id, dbName }) => {
-  const response = await axios.delete(`/api/lab-work/${id}`, {
+  return apiClient.delete(`/api/lab-work/${id}`, {
     headers: { "db-name": dbName },
   });
-  return response.data;
 };

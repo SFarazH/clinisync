@@ -25,12 +25,12 @@ export default function DoctorManagement() {
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [formData, setFormData] = useState(emptyDoctor);
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
-    {
+  const { data: doctorsDataObject = {}, isLoading: loadingDoctors } =
+    useQueryWrapper({
       queryKey: ["doctors"],
       queryFn: fetchDoctors,
-    }
-  );
+    });
+  const doctorsData = doctorsDataObject?.data ?? [];
 
   const addDoctorMutation = useMutationWrapper({
     mutationFn: addNewDoctor,

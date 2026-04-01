@@ -89,7 +89,7 @@ export default function InvoiceManagement() {
   useEffect(() => {
     if (!loadingInvoices && invoicesDataObject.data) {
       setInvoicesData(invoicesDataObject.data);
-      setPagination(invoicesDataObject.pagination);
+      setPagination(invoicesDataObject?.meta?.pagination);
     }
   }, [loadingInvoices, invoicesDataObject]);
 

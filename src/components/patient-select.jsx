@@ -40,11 +40,13 @@ export default function PatientSelect({
     setOpen(false);
   };
 
-  const { data: patientsData = [], isLoading: loadingPatients } =
+  const { data: patientsDataObject = {}, isLoading: loadingPatients } =
     useQueryWrapper({
       queryKey: ["patients"],
       queryFn: listPatients,
     });
+
+  const patientsData = patientsDataObject?.data ?? [];
   return (
     <div className={`grid gap-2 ${addedStyle}`}>
       <Label htmlFor="patient">Patient</Label>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
@@ -9,20 +10,14 @@ export async function GET(req) {
     const token = req.cookies.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { success: false, message: "Token not found" },
-        { status: 401 }
-      );
+      return responseHandler.error("Token not found", 401);
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    return NextResponse.json({ success: true, user: decoded }, { status: 200 });
+    return responseHandler.success(decoded, "Token verified successfully");
   } catch (error) {
     console.error("Error in GET /api/auth/verify:", error);
-    return NextResponse.json(
-      { success: false, message: "Invalid or expired token" },
-      { status: 401 }
-    );
+    return responseHandler.error("Invalid or expired token", 401, error);
   }
 }

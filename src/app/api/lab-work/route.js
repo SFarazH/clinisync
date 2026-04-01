@@ -4,16 +4,14 @@ import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.labWork.addLabWork);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
@@ -23,22 +21,18 @@ export async function POST(req) {
     const result = await addLabWork(body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 201 }
+    return responseHandler.success(
+      result.data,
+      "Lab work created successfully",
+      {},
+      201,
     );
   } catch (error) {
     console.error("Error in POST /api/lab-work:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }
 
@@ -47,10 +41,7 @@ export async function GET(req) {
   try {
     const auth = await requireAuth(rolePermissions.labWork.getAllLabWorks);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.LAB_WORK);
@@ -77,22 +68,16 @@ export async function GET(req) {
     });
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      pagination: result.pagination ?? null,
-    });
+    return responseHandler.success(
+      result.data,
+      "Lab works fetched successfully",
+      { pagination: result.pagination },
+    );
   } catch (error) {
     console.error("Error in GET /api/lab-work:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

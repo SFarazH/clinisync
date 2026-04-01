@@ -1,14 +1,13 @@
-import axios from "axios";
+import { apiClient } from "@/utils";
 
 export const addPaymentToInvoiceApi = async ({
   invoiceId,
   paymentData,
   dbName,
 }) => {
-  const res = await axios.put(`/api/invoice/${invoiceId}`, paymentData, {
+  return apiClient.put(`/api/invoice/${invoiceId}`, paymentData, {
     headers: { "db-name": dbName },
   });
-  return res.data;
 };
 
 export const getInvocies = async ({
@@ -22,7 +21,7 @@ export const getInvocies = async ({
   endDate = null,
   dbName,
 }) => {
-  const res = await axios.get(`/api/invoice`, {
+  return apiClient.get(`/api/invoice`, {
     params: {
       invoiceType: invoiceType || "appointment",
       patientId: patientId,
@@ -35,12 +34,10 @@ export const getInvocies = async ({
     },
     headers: { "db-name": dbName },
   });
-  return res.data;
 };
 
 export const getInvoiceById = async ({ invoiceId, dbName }) => {
-  const res = await axios.get(`/api/invoice/${invoiceId}`, {
+  return apiClient.get(`/api/invoice/${invoiceId}`, {
     headers: { "db-name": dbName },
   });
-  return res;
 };

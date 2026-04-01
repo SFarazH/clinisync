@@ -331,8 +331,6 @@ export const getRoleText = (role) => {
       displayRole = role;
   }
 
-  console.log(displayRole, "roleee");
-
   return displayRole.charAt(0).toUpperCase() + displayRole.slice(1);
 };
 

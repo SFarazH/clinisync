@@ -107,46 +107,56 @@ export default function AppointmentCalendar({ mode = "live" }) {
     [weekStart, weekEnd, selectedDoctorId],
   );
 
-  const { data: patientsData = [], isLoading: loadingPatients } =
+  const { data: patientsDataObject = {}, isLoading: loadingPatients } =
     useQueryWrapper({
       queryKey: ["patients"],
       queryFn: listPatients,
       enabled: mode === "live",
-    });
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
-    {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    });
+  const patientsData = patientsDataObject?.data ?? [];
+
+  const { data: doctorsDataObject = {}, isLoading: loadingDoctors } =
+    useQueryWrapper({
       queryKey: ["doctors"],
       queryFn: fetchDoctors,
       enabled: mode === "live",
-    },
-  );
+    });
+  const doctorsData = doctorsDataObject?.data ?? [];
 
-  const { data: proceduresData = [], isLoading: loadingProcedures } =
+  const { data: proceduresDataObject = {}, isLoading: loadingProcedures } =
     useQueryWrapper({
       queryKey: ["procedures"],
       queryFn: fetchProceudres,
       enabled: mode === "live",
     });
+  const proceduresData = proceduresDataObject?.data ?? [];
 
-  const { data: rawAppointmentsData = [], isLoading: loadingAppointments } =
-    useQueryWrapper({
-      queryKey: ["appointments"],
-      queryFn: fetchAppointments,
-      params: queryParams,
-      enabled:
-        !!queryParams &&
-        !!queryParams.startDate &&
-        !!queryParams.endDate &&
-        mode === "live",
-    });
+  const {
+    data: rawAppointmentsDataObject = [],
+    isLoading: loadingAppointments,
+  } = useQueryWrapper({
+    queryKey: ["appointments"],
+    queryFn: fetchAppointments,
+    params: queryParams,
+    enabled:
+      !!queryParams &&
+      !!queryParams.startDate &&
+      !!queryParams.endDate &&
+      mode === "live",
+  });
+  const rawAppointmentsData = rawAppointmentsDataObject?.data ?? [];
 
-  const { data: clinicSettings = {}, isLoading: loadingSettings } =
+  const { data: clinicSettingsObject = {}, isLoading: loadingSettings } =
     useQueryWrapper({
       queryKey: ["clinicSettings"],
       queryFn: getClinicConfig,
       enabled: mode === "live",
     });
+  const clinicSettings = clinicSettingsObject?.data ?? {};
 
   const addAppointmentMutation = useMutationWrapper({
     mutationFn: addAppointment,

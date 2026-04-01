@@ -1,19 +1,15 @@
-import axios from "axios";
+import { apiClient } from "@/utils";
 
 export const addPrescription = async ({ prescriptionData, dbName }) => {
-  const response = await axios.post("/api/prescriptions", prescriptionData, {
+  return apiClient.post("/api/prescriptions", prescriptionData, {
     headers: { "db-name": dbName },
   });
-  return response.data.data;
 };
 
 export const updatePrescription = async ({ id, prescriptionData, dbName }) => {
-  const response = await axios.put(
-    `/api/prescriptions/${id}`,
-    prescriptionData,
-    { headers: { "db-name": dbName } }
-  );
-  return response.data.data;
+  return apiClient.put(`/api/prescriptions/${id}`, prescriptionData, {
+    headers: { "db-name": dbName },
+  });
 };
 
 export const getPaginatedPrescriptions = async ({
@@ -24,9 +20,8 @@ export const getPaginatedPrescriptions = async ({
   endDate = "",
   dbName,
 } = {}) => {
-  const response = await axios.get("/api/prescriptions", {
+  return apiClient.get("/api/prescriptions", {
     headers: { "db-name": dbName },
     params: { page, limit, search, startDate, endDate },
   });
-  return response.data; // returns { success, data, pagination }
 };

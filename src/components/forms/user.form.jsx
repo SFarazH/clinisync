@@ -48,13 +48,14 @@ export default function UserForm({ isOpen, onClose, user = null }) {
     onClose();
   }, [onClose]);
 
-  const { data: doctorsData = [], isLoading: loadingDoctors } = useQueryWrapper(
-    {
+  const { data: doctorsDataObject = {}, isLoading: loadingDoctors } =
+    useQueryWrapper({
       queryKey: ["doctors"],
       queryFn: fetchDoctors,
       params: { getUnassigned: true },
-    }
-  );
+    });
+
+  const doctorsData = doctorsDataObject?.data ?? [];
 
   const registerMutation = useMutationWrapper({
     mutationFn: register,
@@ -178,7 +179,7 @@ export default function UserForm({ isOpen, onClose, user = null }) {
                   onValueChange={(value) => {
                     setFormData({ ...formData, doctorId: value });
                     setSelectedDoctor(
-                      doctorsData.find((doc) => doc._id === value)
+                      doctorsData.find((doc) => doc._id === value),
                     );
                   }}
                 >

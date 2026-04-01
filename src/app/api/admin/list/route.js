@@ -2,34 +2,28 @@ import { listUnallottedAdmins } from "@/services";
 import { requireAuth } from "@/utils/require-auth";
 import { roles } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function GET() {
   try {
     const auth = await requireAuth([roles.SUPER_ADMIN]);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const result = await listUnallottedAdmins();
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 },
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 201 },
+    return responseHandler.success(
+      result.data,
+      "Admins fetched successfully",
+      {},
+      200,
     );
   } catch (error) {
     console.error("Error in GET /api/admin/list:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

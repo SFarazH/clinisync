@@ -3,17 +3,14 @@ import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
-import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.procedures.createProcedure);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.PROCEDURES);
@@ -23,22 +20,13 @@ export async function POST(req) {
     const result = await createProcedure(body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 201 }
-    );
+    return responseHandler.success(result.data, "Procedure created successfully", null, 201);
   } catch (error) {
     console.error("Error in POST /api/procedure:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }
 
@@ -47,10 +35,7 @@ export async function GET(req) {
   try {
     const auth = await requireAuth(rolePermissions.procedures.getProcedures);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
@@ -59,21 +44,12 @@ export async function GET(req) {
 
     const result = await getProcedures(dbName);
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 200 }
-    );
+    return responseHandler.success(result.data, "Procedures retrieved successfully");
   } catch (error) {
     console.error("Error in GET /api/procedure:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }

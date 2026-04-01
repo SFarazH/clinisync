@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST() {
   try {
     const response = NextResponse.json(
-      { success: true, message: "Logout successful" },
+      responseHandler.success(null, "Logout successful").body,
       { status: 200 }
     );
 
@@ -18,9 +19,6 @@ export async function POST() {
     return response;
   } catch (error) {
     console.error("Error in POST /api/auth/logout:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

@@ -2,26 +2,29 @@ import { addAdmin } from "@/services";
 import { requireAuth } from "@/utils/require-auth";
 import { roles } from "@/utils/role-permissions.mapping";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST(req) {
   try {
     const auth = await requireAuth([roles.SUPER_ADMIN]);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const body = await req.json();
     const result = await addAdmin(body);
 
-    const status = result.success ? 201 : 400;
-    return NextResponse.json(result, { status });
+    if (!result.success) {
+      return responseHandler.error(result.error, 400);
+    }
+
+    return responseHandler.success(
+      result.data,
+      "Admin registered successfully",
+      {},
+      201,
+    );
   } catch (error) {
     console.error("Error in POST /api/auth/register/admin:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

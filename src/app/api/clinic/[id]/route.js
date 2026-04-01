@@ -2,15 +2,13 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/utils/require-auth";
 import { roles } from "@/utils/role-permissions.mapping";
 import { getClinicById, updateClinic } from "@/services";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function PATCH(req, { params }) {
   try {
     const auth = await requireAuth([roles.SUPER_ADMIN]);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { id } = await params;
@@ -19,22 +17,13 @@ export async function PATCH(req, { params }) {
     const result = await updateClinic(id, body);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 },
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 200 },
-    );
+    return responseHandler.success(result.data, "Clinic updated successfully");
   } catch (error) {
     console.error("Error in PATCH /api/clinic/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }
 
@@ -42,10 +31,7 @@ export async function GET(_, { params }) {
   try {
     const auth = await requireAuth([roles.SUPER_ADMIN]);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { id } = await params;
@@ -53,21 +39,12 @@ export async function GET(_, { params }) {
     const result = await getClinicById(id);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 },
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result.data },
-      { status: 200 },
-    );
+    return responseHandler.success(result.data, "Clinic fetched successfully");
   } catch (error) {
     console.error("Error in GET /api/clinic/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message || "Internal Server Error", 500, error);
   }
 }

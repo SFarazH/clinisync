@@ -1,5 +1,6 @@
 import { loginUser } from "@/services";
 import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
@@ -11,7 +12,7 @@ export async function POST(req) {
     const result = await loginUser(body);
 
     if (!result.success) {
-      return NextResponse.json(result, { status: 400 });
+      return responseHandler.error(result.error, 400);
     }
 
     const jwtToken = jwt.sign(
@@ -24,12 +25,9 @@ export async function POST(req) {
       process.env.JWT_SECRET_KEY,
       {
         expiresIn: "1d",
-      }
+      },
     );
-    const response = NextResponse.json(
-      { success: true, message: "Login successful" },
-      { status: 200 }
-    );
+    const response = responseHandler.success(null, "Login successful");
 
     response.cookies.set("accessToken", jwtToken, {
       httpOnly: true,
@@ -42,9 +40,10 @@ export async function POST(req) {
     return response;
   } catch (error) {
     console.error("Error in POST /api/auth/login:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
+    return responseHandler.error(
+      error.message || "Internal Server Error",
+      500,
+      error,
     );
   }
 }

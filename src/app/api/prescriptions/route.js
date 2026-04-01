@@ -3,26 +3,23 @@ import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
-import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function POST(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
-      rolePermissions.prescriptions.addPrescription
+      rolePermissions.prescriptions.addPrescription,
     );
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
     const accessError = checkAccess(
       clinic,
       dbName,
-      FeatureMapping.PRESCRIPTIONS
+      FeatureMapping.PRESCRIPTIONS,
     );
     if (accessError) return accessError;
 
@@ -30,22 +27,18 @@ export async function POST(req) {
     const result = await addPrescription(body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json(
-      { success: true, data: result?.data },
-      { status: 201 }
+    return responseHandler.success(
+      result?.data,
+      "Prescription added successfully",
+      null,
+      201,
     );
   } catch (error) {
     console.error("Error in POST /api/prescription:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }
 
@@ -53,20 +46,17 @@ export async function GET(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
-      rolePermissions.prescriptions.addPrescription
+      rolePermissions.prescriptions.addPrescription,
     );
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
 
     const { clinic } = auth;
     const accessError = checkAccess(
       clinic,
       dbName,
-      FeatureMapping.PRESCRIPTIONS
+      FeatureMapping.PRESCRIPTIONS,
     );
     if (accessError) return accessError;
 
@@ -87,22 +77,16 @@ export async function GET(req) {
     });
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      pagination: result.pagination,
-    });
+    return responseHandler.success(
+      result.data,
+      "Prescriptions retrieved successfully",
+      { pagination: result.pagination },
+    );
   } catch (error) {
     console.error("Error in GET /api/prescriptions:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }

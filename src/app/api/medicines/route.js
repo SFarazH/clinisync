@@ -3,17 +3,14 @@ import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
-import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function GET(req) {
   try {
     const dbName = req.headers.get("db-name");
     const auth = await requireAuth(rolePermissions.medicines);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status },
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(
@@ -31,22 +28,11 @@ export async function GET(req) {
     const result = await getPaginatedMedicines({ page, limit, search, dbName });
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 },
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      pagination: result.pagination,
-      message: result.message,
-    });
+    return responseHandler.success(result.data, result.message, { pagination: result.pagination });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return responseHandler.error(error.message, 500);
   }
 }

@@ -3,7 +3,7 @@ import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
-import { NextResponse } from "next/server";
+import { responseHandler } from "@/lib/responseHandler";
 
 export async function GET(req, { params }) {
   const dbName = req.headers.get("db-name");
@@ -12,10 +12,7 @@ export async function GET(req, { params }) {
   try {
     const auth = await requireAuth(rolePermissions.procedures.getProcedureById);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.PROCEDURES);
@@ -24,19 +21,13 @@ export async function GET(req, { params }) {
     const result = await getProcedureById(id, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 404 }
-      );
+      return responseHandler.error(result.error, 404);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Procedure retrieved successfully");
   } catch (error) {
     console.error("Error in GET /api/procedure/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }
 
@@ -47,10 +38,7 @@ export async function PUT(req, { params }) {
   try {
     const auth = await requireAuth(rolePermissions.procedures.updateProcedure);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.PROCEDURES);
@@ -60,19 +48,13 @@ export async function PUT(req, { params }) {
     const result = await updateProcedure(id, body, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+      return responseHandler.error(result.error, 400);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Procedure updated successfully");
   } catch (error) {
     console.error("Error in PUT /api/procedure/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }
 
@@ -83,10 +65,7 @@ export async function DELETE(req, { params }) {
   try {
     const auth = await requireAuth(rolePermissions.procedures.deleteProcedure);
     if (!auth.ok) {
-      return NextResponse.json(
-        { success: false, error: auth.message },
-        { status: auth.status }
-      );
+      return responseHandler.error(auth.message, auth.status);
     }
     const { clinic } = auth;
     const accessError = checkAccess(clinic, dbName, FeatureMapping.PROCEDURES);
@@ -95,18 +74,12 @@ export async function DELETE(req, { params }) {
     const result = await deleteProcedure(id, dbName);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 404 }
-      );
+      return responseHandler.error(result.error, 404);
     }
 
-    return NextResponse.json({ success: true, data: result.data });
+    return responseHandler.success(result.data, "Procedure deleted successfully");
   } catch (error) {
     console.error("Error in DELETE /api/procedure/[id]:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return responseHandler.error(error.message, 500);
   }
 }

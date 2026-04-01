@@ -29,8 +29,6 @@ export function ClinicsTable() {
     setSelectedClinic(clinic);
   };
 
-  console.log(clinicsData);
-
   return (
     <>
       <div className="mb-8">

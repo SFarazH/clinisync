@@ -57,7 +57,7 @@ export default function PrescriptionManagement() {
       prescriptionsDataObject.data
     ) {
       setPrescriptionsData(prescriptionsDataObject.data);
-      setPagination(prescriptionsDataObject.pagination);
+      setPagination(prescriptionsDataObject?.meta.pagination);
     }
   }, [loadingPrescriptions, prescriptionsDataObject]);
 
