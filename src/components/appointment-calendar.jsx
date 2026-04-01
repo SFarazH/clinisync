@@ -119,8 +119,6 @@ export default function AppointmentCalendar({ mode = "live" }) {
     });
   const patientsData = patientsDataObject?.data ?? [];
 
-  console.log(patientsData.length)
-
   const { data: doctorsDataObject = {}, isLoading: loadingDoctors } =
     useQueryWrapper({
       queryKey: ["doctors"],
