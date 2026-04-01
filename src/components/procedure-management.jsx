@@ -36,11 +36,12 @@ export default function ProcedureManagement() {
   const [editingProcedure, setEditingProcedure] = useState(null);
   const [formData, setFormData] = useState(emptyProcedure);
 
-  const { data: proceduresData = [], isLoading: loadingProcedures } =
+  const { data: proceduresDataObject = {}, isLoading: loadingProcedures } =
     useQueryWrapper({
       queryKey: ["procedures"],
       queryFn: fetchProceudres,
     });
+  const proceduresData = proceduresDataObject?.data ?? [];
 
   const addProcedureMutation = useMutationWrapper({
     mutationFn: addProcedure,

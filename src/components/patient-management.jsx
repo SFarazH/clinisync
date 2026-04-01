@@ -58,7 +58,7 @@ export default function PatientManagement() {
   useEffect(() => {
     if (!loadingPatients && patientsDataObject && patientsDataObject.data) {
       setPatientsData(patientsDataObject.data);
-      setPagination(patientsDataObject.pagination);
+      setPagination(patientsDataObject.meta.pagination);
     }
   }, [loadingPatients, patientsDataObject]);
 
@@ -66,10 +66,6 @@ export default function PatientManagement() {
     mutationFn: createNewPatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      // toast({
-      //   title: "Patient Added",
-      //   description: "New patient has been added.",
-      // });
     },
   });
 
@@ -77,10 +73,6 @@ export default function PatientManagement() {
     mutationFn: updatePatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      // toast({
-      //   title: "Patient Updated",
-      //   description: "Patient details updated.",
-      // });
     },
   });
 
@@ -88,17 +80,13 @@ export default function PatientManagement() {
     mutationFn: deletePatient,
     onSuccess: () => {
       queryClient.invalidateQueries(["patients"]);
-      // toast({
-      //   title: "Patient Deleted",
-      //   description: "Patient has been deleted.",
-      // });
     },
   });
 
   const filteredPatients = patientsData.filter(
     (patient) =>
       patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient?.email?.toLowerCase()?.includes(searchTerm.toLowerCase())
+      patient?.email?.toLowerCase()?.includes(searchTerm.toLowerCase()),
   );
 
   const handleEditPatient = (patient) => {

@@ -65,7 +65,7 @@ export default function ListAllAppointments() {
   useEffect(() => {
     if (appointmentsData) {
       setAppointments(appointmentsData.data);
-      setPagination(appointmentsData.pagination);
+      setPagination(appointmentsData?.meta?.pagination);
     }
   }, [appointmentsData]);
 
@@ -124,7 +124,7 @@ export default function ListAllAppointments() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {appointments.length > 0 ? (
+                  {appointments?.length > 0 ? (
                     appointments.map((appointment, index) => (
                       <TableRow key={appointment._id}>
                         <TableCell className="py-3">
@@ -147,7 +147,7 @@ export default function ListAllAppointments() {
                               year: "2-digit",
                               month: "short",
                               day: "numeric",
-                            }
+                            },
                           )}
                         </TableCell>
                         <TableCell className="py-3 text-sm">
@@ -168,7 +168,7 @@ export default function ListAllAppointments() {
                               className="cursor-pointer"
                               onClick={() => {
                                 setCurrentPrescription(
-                                  appointment.prescription
+                                  appointment.prescription,
                                 );
                                 setAppointmentDetails({
                                   doctorName: appointment.doctorId?.name,

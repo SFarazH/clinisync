@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 
 export const Pagination = ({ pagination, limit, setCurrentPage, setLimit }) => {
-  if (pagination.pages === 0) return;
+  if (pagination?.pages === 0) return;
   return (
     <div className="flex flex-col text-sm md:flex-row justify-between items-center mt-4 gap-2">
       <div>

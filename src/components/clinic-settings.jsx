@@ -23,22 +23,19 @@ export default function ClinicSettings() {
   const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: clinicSettings = {}, isLoading: loadingSettings } =
+  const { data: clinicSettingsObject = {}, isLoading: loadingSettings } =
     useQueryWrapper({
       queryKey: ["clinicSettings"],
       queryFn: getClinicConfig,
     });
+  const clinicSettings = clinicSettingsObject?.data;
 
   const updateClinicConfigMutation = useMutationWrapper({
     mutationFn: updateClinicConfig,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clinicSettings"] });
-      // toast({ title: "Clinic hours updated successfully" });
       setIsEditing(false);
     },
-    // onError: (error) => {
-    //   console.error("Update failed:", error);
-    // },
   });
 
   useEffect(() => {
@@ -67,7 +64,7 @@ export default function ClinicSettings() {
     (day, isOpen) => {
       updateDayField(day, "isOpen", isOpen);
     },
-    [updateDayField]
+    [updateDayField],
   );
 
   const addShift = useCallback((day) => {
@@ -108,7 +105,7 @@ export default function ClinicSettings() {
       if (!currentDayConfig?.shifts) return prev;
 
       const updatedShifts = currentDayConfig.shifts.filter(
-        (_, index) => index !== shiftIndex
+        (_, index) => index !== shiftIndex,
       );
 
       return {
@@ -159,7 +156,7 @@ export default function ClinicSettings() {
       if (!currentDayConfig?.breaks) return prev;
 
       const updatedBreaks = currentDayConfig.breaks.filter(
-        (_, index) => index !== breakIndex
+        (_, index) => index !== breakIndex,
       );
 
       return {
@@ -196,7 +193,7 @@ export default function ClinicSettings() {
       addShift,
       removeShift,
     }),
-    [updateShift, addShift, removeShift]
+    [updateShift, addShift, removeShift],
   );
 
   const breakHandlers = useMemo(
@@ -205,7 +202,7 @@ export default function ClinicSettings() {
       addBreak,
       removeBreak,
     }),
-    [updateBreak, addBreak, removeBreak]
+    [updateBreak, addBreak, removeBreak],
   );
 
   const hasClinicData = Object.keys(clinicHours).length > 0;

@@ -16,9 +16,8 @@ export function AuthProvider({ children }) {
   const checkUser = async () => {
     try {
       const user = await verifyUser();
-
-      setAuthUser(user);
-      setAuthClinic(user?.clinic);
+      setAuthUser(user?.data);
+      setAuthClinic(user?.data?.clinic);
     } catch (error) {
       setAuthUser(null);
     } finally {

@@ -27,11 +27,6 @@ export default function UserManagement() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // const { data: usersData = [], isLoading: loadingUsers } = useQuery({
-  //   queryKey: ["users", role],
-  //   queryFn: () => getUsers({ dbName: authClinic.databaseName, role: role }),
-  // });
-
   const { data: usersData = [], isLoading: loadingUsers } = useQueryWrapper({
     queryKey: ["users", role],
     queryFn: getUsers,

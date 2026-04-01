@@ -8,10 +8,14 @@ apiClient.interceptors.response.use(
     const res = response.data;
 
     if (res.message) {
-      toast.success(res.message);
+      toast.success(res.message, {
+        style: {
+          background: "green",
+          color: "#fff",
+        },
+      });
     }
-
-    return res.data; // return only data
+    return res; // return only data
   },
   (error) => {
     const message = error?.response?.data?.message || "Something went wrong";
