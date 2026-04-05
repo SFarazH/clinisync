@@ -18,7 +18,7 @@ const ErrorSchema = new Schema(
       messaging_product: { type: String },
       details: { type: String },
     },
-    fbtrace_id: { typr: String },
+    fbtrace_id: { type: String },
   },
   { _id: false },
 );

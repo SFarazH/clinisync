@@ -5,6 +5,7 @@ import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 
 export async function POST(req) {
+  const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(rolePermissions.procedures.createProcedure);
     if (!auth.ok) {

@@ -115,7 +115,7 @@ export async function sendWhatsappMessage(data) {
       template: "clinisync_appt_reminder",
       status: responseData.messages[0].message_status,
 
-      clinic: data.clinic,
+      clinicId: data.clinic,
       patientId: data.patientId,
       appointmentId: data.appointmentId,
 
