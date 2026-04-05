@@ -1,71 +1,100 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const WhatsappMessageSchema = new mongoose.Schema(
+const StatusTimelineSchema = new Schema(
   {
-    clinic: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Clinic",
-    },
-    messageSid: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    accountSid: {
-      type: String,
-      required: true,
-    },
+    status: { type: String, required: true },
+    timestamp: { type: Number, required: true },
+  },
+  { _id: false },
+);
 
-    body: {
-      type: String,
-      required: true,
+const ErrorSchema = new Schema(
+  {
+    code: { type: Number },
+    type: { type: String },
+    message: { type: String },
+    error_subcode: { type: String },
+    error_data: {
+      messaging_product: { type: String },
+      details: { type: String },
     },
-    from: {
-      type: String,
-      required: true,
-    },
-    to: {
-      type: String,
-      required: true,
-    },
+    fbtrace_id: { typr: String },
+  },
+  { _id: false },
+);
 
-    messageType: {
-      type: String,
-    },
+const WhatsappMessageSchema = new Schema(
+  {
+    messageId: { type: String, required: true, unique: true },
+    conversationId: { type: String },
+
+    // users
+    from: { type: String },
+    to: { type: String },
+    waId: { type: String, required: true },
 
     direction: {
       type: String,
-      enum: ["outbound-api", "inbound"],
-    },
-    status: {
-      type: String,
-      enum: [
-        "queued",
-        "sent",
-        "delivered",
-        "read",
-        "failed",
-        "undelivered",
-        "received",
-      ],
-    },
-
-    errorCode: {
-      type: Number,
-      default: null,
-    },
-    errorMessage: {
-      type: String,
-      default: null,
-    },
-
-    dateCreated: {
-      type: Date,
+      enum: ["incoming", "outgoing"],
       required: true,
     },
 
-    //outgoing specific
+    template: {
+      type: String,
+      required: false,
+    },
+
+    type: {
+      type: String,
+      enum: [
+        "text",
+        "image",
+        "video",
+        "audio",
+        "document",
+        "sticker",
+        "location",
+        "contacts",
+        "reaction",
+        "button",
+        "interactive",
+      ],
+
+      required: false,
+    },
+
+    status: {
+      type: String,
+      enum: ["accepted", "sent", "delivered", "read", "failed"],
+      default: "accepted",
+    },
+
+    content: Schema.Types.Mixed,
+    statusTimeline: [StatusTimelineSchema],
+
+    recipientId: { type: String },
+    contactProfileName: {
+      //contacts.profile.name
+      name: { type: String },
+    },
+
+    pricing: {
+      billable: { type: Boolean },
+      category: { type: String },
+      pricingModel: { type: String },
+      type: { type: String },
+    },
+
+    metadata: {
+      phoneNumberId: { type: String },
+      displayPhoneNumber: { type: String },
+    },
+
+    // clinisync specific
+    clinicId: {
+      type: String,
+      ref: "Clinic",
+    },
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
@@ -75,25 +104,11 @@ const WhatsappMessageSchema = new mongoose.Schema(
       ref: "Appointment",
     },
 
-    // incoming specific
-    profileName: {
-      type: String,
-      required: false,
-    },
-    waId: {
-      type: String,
-      required: false,
-    },
-
-    numMedia: {
-      type: Number,
-    },
-    mediaUrl: {
-      type: String,
-    },
     rawPayload: {
       type: Object,
     },
+
+    error: ErrorSchema,
   },
   {
     timestamps: true,
