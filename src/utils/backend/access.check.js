@@ -1,4 +1,4 @@
-import { responseHandler } from "@/utils/responseHandler";
+import { responseHandler } from "@/lib/responseHandler";
 
 export const checkAccess = (clinic, dbName, featureKey) => {
   if (!clinic) {
