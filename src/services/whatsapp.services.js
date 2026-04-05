@@ -1,124 +1,264 @@
 import WhatsappMessage from "@/models/WhatsappMessage";
 import { getMongooseModel } from "@/utils/dbConnect";
-import { twilio } from "twilio";
+import axios from "axios";
 
-export async function sendWhatsappMessage(data) {
-  const WhatsappMessagesModel = await getMongooseModel(
-    "clinisync",
-    "WhatsappMessage",
-    WhatsappMessage.schema,
-  );
+function buildWhatsAppContent(msg) {
+  const type = msg.type;
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  switch (type) {
+    case "text":
+      return {
+        text: msg.text?.body,
+      };
 
-  const client = twilio(accountSid, authToken);
-  const from = process.env.TWILIO_WHATSAPP_NUMBER;
+    case "image":
+      return { image: msg.image };
+    case "sticker":
+      return { sticker: msg.sticker };
+    case "video":
+      return { video: msg.video };
+    case "audio":
+      return { audio: msg.audio };
+    case "document":
+      return { document: msg.document };
+    case "reaction":
+      return {
+        reaction: msg.reaction,
+      };
 
-  const { clinic, to, patientName, doctorName, apptDate, apptTime } = data;
+    case "button":
+      return {
+        payload: msg.button?.payload,
+        text: msg.button?.text,
+      };
 
-  let contentSid = TWILIO_MSG_SID;
-  if (clinic.hasLocation) contentSid = process.env.TWILIO_LOCATION_MSG_SID;
+    case "interactive":
+      return {
+        payload:
+          msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id,
 
-  const messageBody = {
-    1: patientName,
-    2: doctorName,
-    3: apptDate,
-    4: apptTime,
-    5: clinic.name,
-    6: clinic.phone,
-  };
-  if (clinic.hasLocation) messageBody["7"] = clinic.mapsLocation;
-  try {
-    const message = await client.messages.create({
-      from: `whatsapp:+${from}`,
-      to: `whatsapp:+91${to}`,
-      contentSid: contentSid,
-      contentVariables: JSON.stringify(messageBody),
-      statusCallback: "https://b636d358e7d6.ngrok-free.app/twilio/status",
-    });
+        title:
+          msg.interactive?.button_reply?.title ||
+          msg.interactive?.list_reply?.title,
+      };
 
-    const outgoingWhatsappMessage = {
-      messageSid: message.sid,
-      accountSid: message.accountSid,
+    case "location":
+      return {
+        latitude: msg.location?.latitude,
+        longitude: msg.location?.longitude,
+        name: msg.location?.name,
+        address: msg.location?.address,
+      };
 
-      body: message.body,
-      from: message.from,
-      to: message.to,
+    case "contacts":
+      return {
+        contacts: msg.contacts,
+      };
 
-      messageType: "text",
-      direction: message.direction,
-      status: message.status,
-
-      numMedia: message.numMedia || "0",
-      mediaUrl: null,
-
-      errorCode: message.errorCode,
-      errorMessage: message.errorMessage,
-
-      dateCreated: message.dateCreated,
-
-      // clinic: clinicId || null,
-      // patientId: patientId || null,
-      // appointmentId: appointmentId || null,
-
-      rawPayload: message,
-    };
-
-    await WhatsappMessagesModel.create(outgoingWhatsappMessage);
-
-    return { success: true, message: "Whatsapp message sent" };
-  } catch (error) {
-    console.error("Error sending message:", error);
-    return { success: false, error: error.message };
+    default:
+      console.warn("Unhandled message type:", type);
+      return {};
   }
 }
 
-export async function handleIncomingMessage(data) {
-  if (!data?.AccountSid || !data?.MessageSid) return;
+export async function sendWhatsappMessage(data) {
+  const url = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`;
 
-  const WhatsappMessagesModel = await getMongooseModel(
+  const whatsappMessageModel = await getMongooseModel(
     "clinisync",
-    "WhatsappMessage",
+    "WhatsappMessages",
     WhatsappMessage.schema,
   );
 
-  const exists = await WhatsappMessagesModel.findOne({
-    messageSid: data.MessageSid,
-  });
-  if (exists) return;
-
-  const incomingWhatsappMessage = {
-    messageSid: data.MessageSid,
-    accountSid: data.AccountSid,
-    body: data.Body,
-    from: data.From,
-    to: data.To,
-    messageType: data.MessageType,
-    direction: "inbound",
-    status: data.SmsStatus,
-    profileName: data.ProfileName,
-    waId: data.WaId,
-    numMedia: Number(data.NumMedia || 0),
-    mediaUrl: data.NumMedia > 0 ? data.MediaUrl0 : null,
-    rawPayload: data,
+  const headers = {
+    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type": "application/json",
   };
-  await WhatsappMessagesModel.create(incomingWhatsappMessage);
+
+  const requestBody = {
+    messaging_product: "whatsapp",
+    to: `91${data.patientPhone}`,
+    type: "template",
+    template: {
+      name: "clinisync_appt_reminder",
+      language: {
+        code: "en",
+      },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: data.patientName },
+            { type: "text", text: data.doctorName },
+            { type: "text", text: data.appointmentDate },
+            { type: "text", text: data.appointmentTime },
+            { type: "text", text: data.clinicName },
+            { type: "text", text: data.clinicContact },
+            { type: "text", text: data.clinicLocation },
+          ],
+        },
+      ],
+    },
+  };
+  try {
+    const res = await axios.post(url, requestBody, { headers: headers });
+    const responseData = res.data;
+    const messageDoc = {
+      messageId: responseData.messages[0].id,
+
+      from: process.env.WHATSAPP_PHONE,
+      to: responseData.contacts[0].input,
+      waId: responseData.contacts[0].wa_id,
+
+      direction: "outgoing",
+
+      template: "clinisync_appt_reminder",
+      status: responseData.messages[0].message_status,
+
+      clinic: data.clinic,
+      patientId: data.patientId,
+      appointmentId: data.appointmentId,
+
+      rawPayload: requestBody,
+    };
+
+    const whatsappDoc = await whatsappMessageModel.create(messageDoc);
+
+    return { success: true, data: whatsappDoc };
+  } catch (error) {
+    console.dir(error);
+
+    return { success: false, data: error };
+  }
 }
 
-export async function handleStatusWebhook(data) {
-  const WhatsappMessagesModel = await getMongooseModel(
+export async function handleWebhook(data) {
+  const whatsappMessageModel = await getMongooseModel(
     "clinisync",
-    "WhatsappMessage",
+    "WhatsappMessages",
     WhatsappMessage.schema,
   );
+  const entry = data.entry[0];
+  const changes = entry.changes[0];
 
-  if (!data?.AccountSid || !data?.MessageSid) return;
+  if (changes.field === "messages") {
+    const value = changes.value;
 
-  const existingMessage = await WhatsappMessagesModel.findOne({
-    messageSid: data.MessageSid,
-  });
+    if (value.statuses) {
+      const msgId = value.statuses[0].id;
+      const statusObj = value.statuses[0];
 
-  existingMessage.status = data.SmsStatus;
-  await existingMessage.save();
+      await whatsappMessageModel.findOneAndUpdate(
+        {
+          messageId: msgId,
+        },
+        {
+          $set: {
+            status: statusObj.status,
+            recipientId: statusObj.recipient_id,
+
+            pricing: {
+              billable: statusObj.pricing?.billable,
+              category: statusObj.pricing?.category,
+              pricingModel: statusObj.pricing?.pricing_model,
+              type: statusObj.pricing?.type,
+            },
+
+            metadata: {
+              phoneNumberId: value.metadata.phone_number_id,
+              displayPhoneNumber: value.metadata.display_phone_number,
+            },
+          },
+
+          $addToSet: {
+            statusTimeline: {
+              status: statusObj.status,
+              timestamp: Number(statusObj.timestamp),
+            },
+          },
+        },
+        { new: true },
+      );
+    }
+
+    if (value.messages) {
+      const msg = value.messages[0];
+      const contact = value.contacts?.[0];
+
+      const content = buildWhatsAppContent(msg);
+      if (msg.type === "reaction") {
+        const reactionMsgId = msg.reaction?.message_id;
+        const emoji = msg.reaction?.emoji;
+
+        if (reactionMsgId) {
+          if (emoji) {
+            await whatsappMessageModel.findOneAndUpdate(
+              { messageId: reactionMsgId },
+              {
+                $set: {
+                  "content.reaction": {
+                    messageId: reactionMsgId,
+                    emoji,
+                    reactedBy: msg.from,
+                  },
+                },
+              },
+            );
+          } else {
+            await whatsappMessageModel.findOneAndUpdate(
+              { messageId: reactionMsgId },
+              {
+                $unset: {
+                  "content.reaction": "",
+                },
+              },
+            );
+          }
+        }
+
+        return {
+          success: true,
+        };
+      }
+
+      const createData = {
+        messageId: msg.id,
+        waId: msg.from,
+        from: msg.from,
+        to: value.metadata.display_phone_number,
+
+        direction: "incoming",
+        type: msg.type,
+        status: "sent",
+
+        content,
+
+        statusTimeline: [
+          {
+            status: "sent",
+            timestamp: Number(msg.timestamp),
+          },
+        ],
+
+        contactProfileName: {
+          name: contact?.profile?.name,
+        },
+
+        metadata: {
+          phoneNumberId: value.metadata.phone_number_id,
+          displayPhoneNumber: value.metadata.display_phone_number,
+        },
+
+        rawPayload: data,
+      };
+
+      await whatsappMessageModel.findOneAndUpdate(
+        { messageId: msg.id },
+        { $setOnInsert: createData },
+        { new: true, upsert: true },
+      );
+    }
+  }
+
+  return { success: true };
 }
