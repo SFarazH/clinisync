@@ -145,13 +145,13 @@ export async function handleWebhook(data) {
     const value = changes.value;
 
     if (value.statuses) {
-      const msgId = value.statuses[0].id;
       const statusObj = value.statuses[0];
+      const msgId = statusObj.id;
+
+      const errorObj = statusObj.errors?.[0];
 
       await whatsappMessageModel.findOneAndUpdate(
-        {
-          messageId: msgId,
-        },
+        { messageId: msgId },
         {
           $set: {
             status: statusObj.status,
@@ -168,6 +168,17 @@ export async function handleWebhook(data) {
               phoneNumberId: value.metadata.phone_number_id,
               displayPhoneNumber: value.metadata.display_phone_number,
             },
+
+            ...(errorObj && {
+              error: {
+                code: errorObj.code,
+                type: errorObj.title, // map title → type
+                message: errorObj.message,
+                error_data: {
+                  details: errorObj.error_data?.details,
+                },
+              },
+            }),
           },
 
           $addToSet: {
