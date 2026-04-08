@@ -92,9 +92,14 @@ const WhatsappMessageSchema = new Schema(
 
     // clinisync specific
     clinicId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Clinic",
     },
+
+    clinicDbName: {
+      type: String,
+    },
+
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",

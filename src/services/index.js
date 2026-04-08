@@ -11,3 +11,4 @@ export * from "./lab-work.service";
 export * from "./payments.service";
 export * from "./users.service";
 export * from "./clinic.service";
+export * from "./whatsapp.services";

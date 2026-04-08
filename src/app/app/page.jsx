@@ -15,6 +15,7 @@ import {
   ReceiptIndianRupee,
   ShieldUser,
   Building2,
+  MessageSquareText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/context/authcontext";
@@ -147,13 +148,6 @@ export default function ClinicDashboard() {
       featureKey: "prescriptions",
     },
     {
-      value: "settings",
-      label: "Settings",
-      icon: Settings,
-      roles: ["admin"],
-      featureKey: "settings",
-    },
-    {
       value: "users",
       label: "Users",
       icon: UserCog,
@@ -166,6 +160,20 @@ export default function ClinicDashboard() {
       icon: ReceiptIndianRupee,
       roles: ["admin", "receptionist"],
       featureKey: "invoices",
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: Settings,
+      roles: ["admin"],
+      featureKey: "settings",
+    },
+    {
+      value: "whatsapp",
+      label: "Messages",
+      icon: MessageSquareText,
+      roles: ["admin", "receptionist"],
+      featureKey: "whatsapp-reminders",
     },
   ];
 

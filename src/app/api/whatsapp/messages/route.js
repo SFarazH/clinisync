@@ -1,13 +1,14 @@
-import { sendWhatsappMessage } from "@/services/whatsapp.services";
-import { checkAccess, responseHandler } from "@/utils";
+import { getWhatsappMessagesByClinic } from "@/services/whatsapp.services";
+import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
+import { responseHandler } from "@/lib/responseHandler";
 
-export async function POST(req) {
+export async function GET(req) {
   const dbName = req.headers.get("db-name");
   try {
-    const auth = await requireAuth(rolePermissions.procedures.createProcedure);
+    const auth = await requireAuth(rolePermissions.whatsapp.getMessages);
     if (!auth.ok) {
       return responseHandler.error(auth.message, auth.status);
     }
@@ -19,21 +20,18 @@ export async function POST(req) {
     );
     if (accessError) return accessError;
 
-    const body = await req.json();
-    const result = await sendWhatsappMessage({ data: body, dbName });
+    const result = await getWhatsappMessagesByClinic(dbName);
 
     if (!result.success) {
-      return responseHandler.error("Error", 500, result.error);
+      return responseHandler.error(result.error, 400);
     }
 
     return responseHandler.success(
       result.data,
-      "Message sent successfully",
-      {},
-      200,
+      "WhatsApp messages fetched successfully",
     );
   } catch (error) {
-    console.error("Error in POST /api/whatsapp/send:", error);
+    console.error("Error in GET /api/whatsapp/messages:", error);
     return responseHandler.error(
       error.message || "Internal Server Error",
       500,

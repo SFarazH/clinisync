@@ -74,4 +74,7 @@ export const rolePermissions = {
     getUsersCount: [roles.ADMIN],
     listUsers: [roles.ADMIN],
   },
+  whatsapp: {
+    getMessages: [roles.ADMIN, roles.DOCTOR, roles.RECEPTIONIST],
+  },
 };

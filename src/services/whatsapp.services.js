@@ -1,3 +1,4 @@
+import Clinic from "@/models/Clinic";
 import WhatsappMessage from "@/models/WhatsappMessage";
 import { getMongooseModel } from "@/utils/dbConnect";
 import axios from "axios";
@@ -61,7 +62,7 @@ function buildWhatsAppContent(msg) {
   }
 }
 
-export async function sendWhatsappMessage(data) {
+export async function sendWhatsappMessage({ data, dbName }) {
   const url = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`;
 
   const whatsappMessageModel = await getMongooseModel(
@@ -115,7 +116,8 @@ export async function sendWhatsappMessage(data) {
       template: "clinisync_appt_reminder",
       status: responseData.messages[0].message_status,
 
-      clinicId: data.clinic,
+      clinicId: data.clinicId,
+      clinicDbName: dbName,
       patientId: data.patientId,
       appointmentId: data.appointmentId,
 
@@ -127,12 +129,43 @@ export async function sendWhatsappMessage(data) {
     return { success: true, data: whatsappDoc };
   } catch (error) {
     console.dir(error);
-
     return { success: false, data: error };
   }
 }
 
+export async function getWhatsappMessagesByClinic(dbName) {
+  const whatsappMessageModel = await getMongooseModel(
+    "clinisync",
+    "WhatsappMessages",
+    WhatsappMessage.schema,
+  );
+
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinics",
+    Clinic.schema,
+  );
+
+  const clinicDoc = await clinicsModel.findOne({ databaseName: dbName });
+  if (!clinicDoc) return { success: false, error: "Clinic not found" };
+
+  try {
+    const messages = await whatsappMessageModel
+      .find({
+        direction: "outgoing",
+        $or: [{ clinicId: clinicDoc._id }, { clinicDbName: dbName }],
+      })
+      .sort({ createdAt: -1 });
+
+    return { success: true, data: messages };
+  } catch (error) {
+    console.error("Error fetching WhatsApp messages for clinic:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function handleWebhook(data) {
+  console.dir(data, { depth: null });
   const whatsappMessageModel = await getMongooseModel(
     "clinisync",
     "WhatsappMessages",
