@@ -12,7 +12,7 @@ const patientSchema = new mongoose.Schema(
     medicalHistory: String,
     allergies: [String],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Patient ||

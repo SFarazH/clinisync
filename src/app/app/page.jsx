@@ -42,6 +42,7 @@ import { displayName } from "@/utils/helper";
 import logo from "../../../public/clinisync-t.png";
 import Loader from "@/components/loader";
 import { ClinicsTable } from "@/components/admin-section/clinic-management";
+import WhatsappMessageManagement from "@/components/whatsapp-message-management";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser, authClinic, setAuthClinic } = useAuth();
@@ -169,7 +170,7 @@ export default function ClinicDashboard() {
       featureKey: "settings",
     },
     {
-      value: "whatsapp",
+      value: "whatsapp-reminders",
       label: "Messages",
       icon: MessageSquareText,
       roles: ["admin", "receptionist"],
@@ -288,6 +289,16 @@ export default function ClinicDashboard() {
         return (
           <RoleBasedWrapper allowedRoles={["admin"]} featureKey="">
             <LabWorkManagement />
+          </RoleBasedWrapper>
+        );
+
+      case "whatsapp-reminders":
+        return (
+          <RoleBasedWrapper
+            allowedRoles={["admin", "receptionist"]}
+            featureKey=""
+          >
+            <WhatsappMessageManagement />
           </RoleBasedWrapper>
         );
       default:

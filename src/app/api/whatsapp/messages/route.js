@@ -26,10 +26,7 @@ export async function GET(req) {
       return responseHandler.error(result.error, 400);
     }
 
-    return responseHandler.success(
-      result.data,
-      "WhatsApp messages fetched successfully",
-    );
+    return responseHandler.success(result.data, "WhatsApp messages fetched");
   } catch (error) {
     console.error("Error in GET /api/whatsapp/messages:", error);
     return responseHandler.error(

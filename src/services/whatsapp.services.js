@@ -1,4 +1,6 @@
+import Appointment from "@/models/Appointment";
 import Clinic from "@/models/Clinic";
+import Patient from "@/models/Patient";
 import WhatsappMessage from "@/models/WhatsappMessage";
 import { getMongooseModel } from "@/utils/dbConnect";
 import axios from "axios";
@@ -134,10 +136,21 @@ export async function sendWhatsappMessage({ data, dbName }) {
 }
 
 export async function getWhatsappMessagesByClinic(dbName) {
+  console.log(dbName, "dbnameee");
   const whatsappMessageModel = await getMongooseModel(
     "clinisync",
     "WhatsappMessages",
     WhatsappMessage.schema,
+  );
+  const patientModel = await getMongooseModel(
+    dbName,
+    "Patient",
+    Patient.schema,
+  );
+  const appointmentModel = await getMongooseModel(
+    dbName,
+    "Appointment",
+    Appointment.schema,
   );
 
   const clinicsModel = await getMongooseModel(
@@ -154,6 +167,27 @@ export async function getWhatsappMessagesByClinic(dbName) {
       .find({
         direction: "outgoing",
         $or: [{ clinicId: clinicDoc._id }, { clinicDbName: dbName }],
+      })
+      .select({
+        messageId: 1,
+        to: 1,
+        waId: 1,
+        appointmentId: 1,
+        patientId: 1,
+        status: 1,
+        pricing: 1,
+        error: 1,
+        createdAt: 1,
+      })
+      .populate({
+        path: "patientId",
+        model: patientModel, // ✅ FIX
+        select: "name",
+      })
+      .populate({
+        path: "appointmentId",
+        model: appointmentModel, // ✅ FIX
+        select: "date startTime",
       })
       .sort({ createdAt: -1 });
 
