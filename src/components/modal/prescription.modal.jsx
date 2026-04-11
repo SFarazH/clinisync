@@ -14,7 +14,7 @@ export default function PrescriptionModal({
   viewOnly,
   appointmentDetails = {},
 }) {
-  const { authUser } = useAuth();
+  const { authUser, authClinic } = useAuth();
 
   const { patientName, doctorName, appointmentDate } = appointmentDetails || {};
 
@@ -43,18 +43,16 @@ export default function PrescriptionModal({
                 <div className="flex justify-between items-center">
                   <div>
                     <h1 className="text-2xl font-bold text-blue-800">
-                      {currentPrescription?.appointment?.doctorId?.clinicName ||
-                        "Sunrise Medical Clinic"}
+                      {authClinic?.name}
                     </h1>
                     <p className="text-sm text-gray-600">
-                      {currentPrescription?.appointment?.doctorId
-                        ?.clinicAddress || "123 Main Street, City, State"}
+                      {authClinic?.address}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      Contact:{" "}
-                      {currentPrescription?.appointment?.doctorId
-                        ?.clinicContact || "+91-9876543210"}
-                    </p>
+                    {authClinic?.phoneNumber && (
+                      <p className="text-sm text-gray-600">
+                        Contact: {authClinic?.phoneNumber}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
@@ -62,15 +60,6 @@ export default function PrescriptionModal({
                       {currentPrescription?.appointment?.doctorId?.name ??
                         doctorName}
                     </p>
-                    {/* <p className="text-sm text-gray-600">
-                      {currentPrescription?.appointment?.doctorId
-                        ?.qualification || "MBBS, MD"}
-                    </p> */}
-                    {/* <p className="text-sm text-gray-600">
-                      Reg. No:{" "}
-                      {currentPrescription?.appointment?.doctorId?.regNumber ||
-                        "MC-123456"}
-                    </p> */}
                   </div>
                 </div>
               </div>
@@ -142,7 +131,6 @@ export default function PrescriptionModal({
             </div>
 
             <div className="mt-6 flex justify-between items-end">
-              {/* Notes (only show if exists) */}
               {currentPrescription.generalNotes ? (
                 <div className="max-w-[70%]">
                   <h4 className="font-medium text-gray-900 mb-1">
@@ -153,19 +141,18 @@ export default function PrescriptionModal({
                   </p>
                 </div>
               ) : (
-                <div></div> // keeps flex spacing if no notes
+                <div></div>
               )}
 
-              {/* Signature */}
               <div className="text-center">
-                <Image
+                {/* <Image
                   src="/demosign.jpg"
                   alt="Doctor's Signature"
                   width={150}
                   height={50}
                   className="object-contain mx-auto"
                 />
-                <p className="text-sm text-gray-600">Doctor's Signature</p>
+                <p className="text-sm text-gray-600">Doctor's Signature</p> */}
               </div>
             </div>
           </div>

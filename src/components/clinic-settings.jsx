@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -15,11 +16,17 @@ import { daysOfWeek } from "./data";
 import { updateClinicConfig, getClinicConfig } from "@/lib";
 import Loader from "./loader";
 import { useMutationWrapper, useQueryWrapper } from "./wrappers";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 
 export default function ClinicSettings() {
   const queryClient = useQueryClient();
   const [selectedDay, setSelectedDay] = useState("monday");
   const [clinicHours, setClinicHours] = useState({});
+  const [isOpen, setIsOpen] = useState(false); // ✅ default closed
   const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
@@ -28,6 +35,7 @@ export default function ClinicSettings() {
       queryKey: ["clinicSettings"],
       queryFn: getClinicConfig,
     });
+
   const clinicSettings = clinicSettingsObject?.data;
 
   const updateClinicConfigMutation = useMutationWrapper({
@@ -209,88 +217,112 @@ export default function ClinicSettings() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Clinic Working Hours & Shifts</CardTitle>
-          <CardDescription>
-            Configure your clinic's operating hours, shifts, and break times for
-            each day
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-end mb-4">
-            {!isEditing ? (
-              <Button onClick={handleEdit} disabled={!hasClinicData}>
-                Edit
-              </Button>
-            ) : (
-              <div className="space-x-2">
-                <Button variant="outline" onClick={handleCancel}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={updateClinicConfigMutation.isPending}
-                >
-                  {updateClinicConfigMutation.isPending
-                    ? "Saving..."
-                    : "Save Changes"}
-                </Button>
-              </div>
-            )}
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="border rounded-md overflow-hidden">
+          {/* HEADER (acts as trigger) */}
+          <div
+            className="flex items-center justify-between px-4 py-3 cursor-pointer bg-muted/50 hover:bg-muted transition"
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            <span className="text-lg font-medium">Update Office</span>
+
+            <span
+              className={`transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            >
+              ▼
+            </span>
           </div>
 
-          {hasClinicData ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Select Day</h3>
-                <div className="grid gap-2">
-                  {daysOfWeek.map(({ key, label }) => (
-                    <div
-                      key={key}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedDay === key
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      onClick={() => setSelectedDay(key)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{label}</span>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={clinicHours[key]?.isOpen || false}
-                            onCheckedChange={(checked) =>
-                              updateDayOpen(key, checked)
-                            }
-                            onClick={(e) => e.stopPropagation()}
-                            disabled={!isEditing}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {clinicHours[key]?.isOpen ? "Open" : "Closed"}
-                          </span>
+          {/* CONTENT */}
+          <CollapsibleContent>
+            <div className="border-t">
+              <Card className="border-0 shadow-none">
+                <CardHeader>
+                  <CardTitle>Clinic Working Hours & Shifts</CardTitle>
+                  <CardDescription>
+                    Configure your clinic's operating hours, shifts, and break
+                    times
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="flex justify-end mb-4">
+                    {!isEditing ? (
+                      <Button onClick={handleEdit} disabled={!hasClinicData}>
+                        Edit
+                      </Button>
+                    ) : (
+                      <div className="space-x-2">
+                        <Button variant="outline" onClick={handleCancel}>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleSave}
+                          disabled={updateClinicConfigMutation.isPending}
+                        >
+                          {updateClinicConfigMutation.isPending
+                            ? "Saving..."
+                            : "Save Changes"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {hasClinicData ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* LEFT */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Select Day</h3>
+                        <div className="grid gap-2">
+                          {daysOfWeek.map(({ key, label }) => (
+                            <div
+                              key={key}
+                              className={`p-3 border rounded-lg cursor-pointer ${
+                                selectedDay === key
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-200"
+                              }`}
+                              onClick={() => setSelectedDay(key)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{label}</span>
+                                <Switch
+                                  checked={clinicHours[key]?.isOpen || false}
+                                  onCheckedChange={(checked) =>
+                                    updateDayOpen(key, checked)
+                                  }
+                                  disabled={!isEditing}
+                                />
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
+
+                      {/* RIGHT */}
+                      <ClinicDayConfiguration
+                        clinicHours={clinicHours}
+                        selectedDay={selectedDay}
+                        shift={shiftHandlers}
+                        breaks={breakHandlers}
+                        isEditing={isEditing}
+                      />
                     </div>
-                  ))}
-                </div>
-              </div>
-              <ClinicDayConfiguration
-                clinicHours={clinicHours}
-                selectedDay={selectedDay}
-                shift={shiftHandlers}
-                breaks={breakHandlers}
-                isEditing={isEditing}
-              />
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      No clinic configuration data available.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              No clinic configuration data available.
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+
       {loadingSettings && <Loader />}
-    </div>
+    </div>  
   );
 }

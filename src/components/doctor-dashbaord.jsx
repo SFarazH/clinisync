@@ -59,7 +59,7 @@ export default function DoctorDashboard() {
     };
   }, [doctorData]);
 
-  const { data: appointmentsData = [], isLoading: loadingAppointments } =
+  const { data: appointmentsDataObject = {}, isLoading: loadingAppointments } =
     useQueryWrapper({
       queryKey: ["appointments", queryParams],
       queryFn: fetchAppointments,
@@ -70,6 +70,8 @@ export default function DoctorDashboard() {
         !!queryParams.endDate &&
         !!doctorData,
     });
+
+  const appointmentsData = appointmentsDataObject.data ?? [];
 
   const addPrescriptionMutation = useMutationWrapper({
     mutationFn: addPrescription,
