@@ -205,9 +205,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
                 {errors.name && (
-                  <p className="text-[12px] text-red-500 mt-1">
-                    {errors.name}
-                  </p>
+                  <p className="text-[12px] text-red-500 mt-1">{errors.name}</p>
                 )}
               </div>
               <div>
@@ -391,9 +389,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
                 {errors.city && (
-                  <p className="text-[12px] text-red-500 mt-1">
-                    {errors.city}
-                  </p>
+                  <p className="text-[12px] text-red-500 mt-1">{errors.city}</p>
                 )}
               </div>
               <div>
@@ -442,9 +438,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
-                  Latitude
-                </Label>
+                <Label className="text-xs text-gray-600 mb-1">Latitude</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Latitude"
@@ -456,9 +450,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
-                  Longitude
-                </Label>
+                <Label className="text-xs text-gray-600 mb-1">Longitude</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Longitude"
