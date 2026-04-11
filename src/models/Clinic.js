@@ -43,16 +43,25 @@ const clinicSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function (v) {
-        if (!v) return true; // allow empty string or undefined
+        if (!v) return true;
         return /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/.+/.test(v);
       },
       message: "Enter a valid Google Maps URL",
     },
   },
 
+  // required for whatsapp message with location
+  latitude: {
+    type: String,
+  },
+  longitude: {
+    type: String,
+  },
+
   // address
   addressLine1: {
     type: String,
+    required: true,
     trim: true,
   },
 
@@ -63,11 +72,13 @@ const clinicSchema = new mongoose.Schema({
 
   city: {
     type: String,
+    required: true,
     trim: true,
   },
 
   state: {
     type: String,
+    required: true,
     trim: true,
   },
 

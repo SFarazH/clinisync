@@ -32,6 +32,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(emptyClinic);
+  const [errors, setErrors] = useState({});
 
   const isNew = !clinic;
   const canEdit = isNew || isEditing;
@@ -43,6 +44,42 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
       queryKey: ["users"],
       queryFn: getUnallottedUsersListApi,
     });
+
+  const validateForm = () => {
+    const nextErrors = {};
+
+    const requiredFields = [
+      { field: "name", label: "Clinic name" },
+      { field: "clinicName", label: "Clinic display name" },
+      { field: "databaseName", label: "Database name" },
+      { field: "phone", label: "Phone" },
+      { field: "addressLine1", label: "Address line 1" },
+      { field: "city", label: "City" },
+      { field: "state", label: "State" },
+    ];
+
+    requiredFields.forEach(({ field, label }) => {
+      if (!formData[field] || String(formData[field]).trim() === "") {
+        nextErrors[field] = `${label} is required`;
+      }
+    });
+
+    if (formData.phone && !/^[0-9]{10}$/.test(formData.phone.trim())) {
+      nextErrors.phone = "Phone must be a 10 digit number";
+    }
+
+    if (
+      formData.googleMapsLink &&
+      !/^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/.+/.test(
+        formData.googleMapsLink,
+      )
+    ) {
+      nextErrors.googleMapsLink = "Enter a valid Google Maps URL";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const addClinicMutation = useMutationWrapper({
     mutationFn: addClinicApi,
@@ -86,20 +123,29 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
+      setErrors({});
+
       if (isNew) {
         addClinicMutation.mutate({
           clinicData: formData,
         });
       } else {
         updateClinicMutation.mutateAsync({
-          clinicData: { ...formData, admin: formData.admin._id },
+          clinicData: {
+            ...formData,
+            admin: formData.admin?._id || formData.admin,
+          },
           id: clinic._id,
         });
       }
       setIsEditing(false);
-    } finally {
-      //to handle saving
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -148,7 +194,9 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Name</Label>
+                <Label className="text-xs text-gray-600 mb-1">
+                  Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Clinic name"
@@ -156,10 +204,15 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   onChange={(e) => handleFieldChange("name", e.target.value)}
                   disabled={!canEdit}
                 />
+                {errors.name && (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.name}
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="text-xs text-gray-600 mb-1">
-                  Clinic Display Name
+                  Clinic Display Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
@@ -170,10 +223,15 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   }
                   disabled={!canEdit}
                 />
+                {errors.clinicName && (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.clinicName}
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="text-xs text-gray-600 mb-1">
-                  Database Name
+                  Database Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
@@ -184,8 +242,13 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   }
                   disabled={!isNew}
                 />
+                {errors.databaseName && (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.databaseName}
+                  </p>
+                )}
               </div>
-              {/* <div>
+              <div>
                 <Label className="text-xs text-gray-600 mb-1">Plan</Label>
                 <select
                   className="h-8 text-sm border border-input rounded px-3 w-full focus-visible:ring-0 disabled:opacity-50"
@@ -196,7 +259,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   <option value="basic">Basic</option>
                   <option value="pro">Pro</option>
                 </select>
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -205,7 +268,9 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
             <h3 className="text-base font-medium">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Phone</Label>
+                <Label className="text-xs text-gray-600 mb-1">
+                  Phone <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="10 digit number"
@@ -214,9 +279,15 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                   maxLength={10}
                 />
-                <p className="text-[12px] text-red-500">
-                  Required for Whatsapp reminders
-                </p>
+                {errors.phone ? (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.phone}
+                  </p>
+                ) : (
+                  <p className="text-[12px] text-red-500">
+                    Required for Whatsapp reminders
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="text-xs text-gray-600 mb-1">Email</Label>
@@ -229,7 +300,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
               </div>
-              {!isNew && (
+              {(isNew || !hasAdmin) && (
                 <div>
                   <Label className="text-xs text-gray-600 mb-1">Admin</Label>
                   <Select
@@ -276,7 +347,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
             <h3 className="text-base font-medium">Address</h3>
             <div>
               <Label className="text-xs text-gray-600 mb-1">
-                Address Line 1
+                Address Line 1 <span className="text-red-500">*</span>
               </Label>
               <Input
                 className="h-8 text-sm focus-visible:ring-0"
@@ -287,6 +358,11 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 }
                 disabled={!canEdit}
               />
+              {errors.addressLine1 && (
+                <p className="text-[12px] text-red-500 mt-1">
+                  {errors.addressLine1}
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-xs text-gray-600 mb-1">
@@ -304,7 +380,9 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">City</Label>
+                <Label className="text-xs text-gray-600 mb-1">
+                  City <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="City"
@@ -312,9 +390,16 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   onChange={(e) => handleFieldChange("city", e.target.value)}
                   disabled={!canEdit}
                 />
+                {errors.city && (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.city}
+                  </p>
+                )}
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">State</Label>
+                <Label className="text-xs text-gray-600 mb-1">
+                  State <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="State"
@@ -322,6 +407,11 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   onChange={(e) => handleFieldChange("state", e.target.value)}
                   disabled={!canEdit}
                 />
+                {errors.state && (
+                  <p className="text-[12px] text-red-500 mt-1">
+                    {errors.state}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,6 +440,36 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-gray-600 mb-1">
+                  Latitude
+                </Label>
+                <Input
+                  className="h-8 text-sm focus-visible:ring-0"
+                  placeholder="Latitude"
+                  value={formData.latitude}
+                  onChange={(e) =>
+                    handleFieldChange("latitude", e.target.value)
+                  }
+                  disabled={!canEdit}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-600 mb-1">
+                  Longitude
+                </Label>
+                <Input
+                  className="h-8 text-sm focus-visible:ring-0"
+                  placeholder="Longitude"
+                  value={formData.longitude}
+                  onChange={(e) =>
+                    handleFieldChange("longitude", e.target.value)
+                  }
+                  disabled={!canEdit}
+                />
+              </div>
+            </div>
             <div>
               <Label className="text-xs text-gray-600 mb-1">
                 Google Maps Link
@@ -363,9 +483,15 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 }
                 disabled={!canEdit}
               />
-              <p className="text-[12px] text-red-500">
-                Required for Whatsapp reminders (with address)
-              </p>
+              {errors.googleMapsLink ? (
+                <p className="text-[12px] text-red-500 mt-1">
+                  {errors.googleMapsLink}
+                </p>
+              ) : (
+                <p className="text-[12px] text-red-500">
+                  Required for Whatsapp reminders (with address)
+                </p>
+              )}
             </div>
           </div>
 

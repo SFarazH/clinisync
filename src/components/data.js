@@ -161,6 +161,8 @@ export const emptyClinic = {
   phone: "",
   email: "",
   googleMapsLink: "",
+  latitude: "",
+  longitude: "",
   addressLine1: "",
   addressLine2: "",
   city: "",
