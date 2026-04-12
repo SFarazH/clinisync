@@ -26,7 +26,7 @@ export default function ClinicSettings() {
   const queryClient = useQueryClient();
   const [selectedDay, setSelectedDay] = useState("monday");
   const [clinicHours, setClinicHours] = useState({});
-  const [isOpen, setIsOpen] = useState(false); // ✅ default closed
+  const [isOpen, setIsOpen] = useState(false);
   const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 

@@ -1,6 +1,8 @@
 import Clinic from "@/models/Clinic";
 import User from "@/models/Users";
 import { getMongooseModel } from "@/utils/dbConnect";
+import { createOrUpdateAppSettings } from "./app-settings.service";
+import { defaultClinicSettings } from "@/components/data";
 
 export async function addClinic(clinicData) {
   const { name, databaseName } = clinicData;
@@ -30,6 +32,11 @@ export async function addClinic(clinicData) {
       ...clinicData,
       createdAt: new Date(),
     });
+
+    const settingsRes = await createOrUpdateAppSettings(
+      defaultClinicSettings,
+      databaseName,
+    );
 
     return { success: true, data: newClinic };
   } catch (err) {

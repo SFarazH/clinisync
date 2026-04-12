@@ -7,41 +7,53 @@ import { roles } from "@/utils/role-permissions.mapping";
 
 export async function registerUser(data, dbName) {
   try {
+    let doctorsModel = null;
+    let clinicDoc = null;
+
     const usersModel = await getMongooseModel(
       "clinisync",
       "Users",
       Users.schema,
     );
 
-    const doctorsModel = await getMongooseModel(
-      dbName,
-      "Doctor",
-      Doctor.schema,
-    );
+    if (data.role !== "admin") {
+      doctorsModel = await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
-    const clinicsModel = await getMongooseModel(
-      "clinisync",
-      "Clinic",
-      Clinic.schema,
-    );
-    const clinicDoc = await clinicsModel.findOne({ databaseName: dbName });
+      if (data.role === "doctor") {
+        if (!data.doctorId) {
+          return { success: false, error: "Doctor missing" };
+        }
 
-    if (data.role === "doctor") {
-      if (!data.doctorId) {
-        return { success: false, error: "Doctor missing" };
-      }
-      const alreadyAlotted = await usersModel.findOne({
-        doctorId: data.doctorId,
-      });
-      if (alreadyAlotted) {
-        return { success: false, error: "Doctor already registered" };
+        const alreadyAlotted = await usersModel.findOne({
+          doctorId: data.doctorId,
+        });
+
+        if (alreadyAlotted) {
+          return { success: false, error: "Doctor already registered" };
+        }
       }
     }
 
-    const existingEmailUsers = await usersModel.findOne({ email: data.email });
-    const existingEmailDoctors = await doctorsModel.findOne({
+    if (dbName) {
+      const clinicsModel = await getMongooseModel(
+        "clinisync",
+        "Clinic",
+        Clinic.schema,
+      );
+
+      clinicDoc = await clinicsModel.findOne({ databaseName: dbName });
+    }
+
+    const existingEmailUsers = await usersModel.findOne({
       email: data.email,
     });
+
+    let existingEmailDoctors = null;
+    if (doctorsModel) {
+      existingEmailDoctors = await doctorsModel.findOne({
+        email: data.email,
+      });
+    }
 
     if (
       existingEmailUsers ||
@@ -64,13 +76,20 @@ export async function registerUser(data, dbName) {
       data.password ?? process.env.TEST_PASSWORD,
       10,
     );
-    const user = await usersModel.create({
+
+    const userPayload = {
       ...data,
       password: hashedPassword,
-      clinic: clinicDoc._id,
-    });
-    if (data.role === "doctor") {
-      await doctorsModel.findByIdAndUpdate(data.doctorId, { userId: user._id });
+      ...(clinicDoc && { clinic: clinicDoc._id }), // 👈 only if exists
+    };
+
+    const user = await usersModel.create(userPayload);
+
+    // ✅ Link doctor if needed
+    if (data.role === "doctor" && doctorsModel) {
+      await doctorsModel.findByIdAndUpdate(data.doctorId, {
+        userId: user._id,
+      });
     }
 
     return { success: true, message: "" };

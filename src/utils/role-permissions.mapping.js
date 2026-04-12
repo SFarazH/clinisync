@@ -19,7 +19,12 @@ export const rolePermissions = {
     deleteAppointment: [roles.ADMIN, roles.RECEPTIONIST, roles.DOCTOR],
   },
   doctors: {
-    getAllDoctors: [roles.RECEPTIONIST, roles.ADMIN, roles.DOCTOR],
+    getAllDoctors: [
+      roles.RECEPTIONIST,
+      roles.ADMIN,
+      roles.DOCTOR,
+      roles.SUPER_ADMIN,
+    ],
     addDoctor: [roles.ADMIN],
     getDoctorById: [roles.RECEPTIONIST, roles.ADMIN, roles.DOCTOR],
     updateDoctor: [roles.RECEPTIONIST, roles.ADMIN, roles.DOCTOR],

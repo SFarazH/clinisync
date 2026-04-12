@@ -25,7 +25,12 @@ import Loader from "../loader";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { useMutationWrapper, useQueryWrapper } from "../wrappers";
 
-export default function UserForm({ isOpen, onClose, user = null }) {
+export default function UserForm({
+  isOpen,
+  onClose,
+  user = null,
+  superAdmin = false,
+}) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(user || emptyUser);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -41,7 +46,6 @@ export default function UserForm({ isOpen, onClose, user = null }) {
     }
   }, [user]);
 
-  // Optimized close handler using useCallback
   const handleCloseModal = useCallback(() => {
     setFormData(emptyUser);
     setSelectedDoctor(null);
@@ -53,6 +57,7 @@ export default function UserForm({ isOpen, onClose, user = null }) {
       queryKey: ["doctors"],
       queryFn: fetchDoctors,
       params: { getUnassigned: true },
+      enabled: !superAdmin,
     });
 
   const doctorsData = doctorsDataObject?.data ?? [];
@@ -162,10 +167,14 @@ export default function UserForm({ isOpen, onClose, user = null }) {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="receptionist">Receptionist</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="doctor">Doctor</SelectItem>
-                  <SelectItem value="pharmacist">Pharmacist</SelectItem>
+                  {!superAdmin && (
+                    <>
+                      <SelectItem value="doctor">Doctor</SelectItem>
+                      <SelectItem value="pharmacist">Pharmacist</SelectItem>
+                      <SelectItem value="receptionist">Receptionist</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>

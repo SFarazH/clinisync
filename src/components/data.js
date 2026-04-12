@@ -171,3 +171,59 @@ export const emptyClinic = {
   country: "India",
   isTrialActive: false,
 };
+
+export const defaultClinicSettings = {
+  timezone: "Asia/Kolkata",
+  openingHours: {
+    monday: {
+      isOpen: true,
+      shifts: [
+        { start: "09:00", end: "13:00" },
+        { start: "17:00", end: "20:00" },
+      ],
+      breaks: [{ start: "13:00", end: "17:00" }],
+    },
+    tuesday: {
+      isOpen: true,
+      shifts: [
+        { start: "09:00", end: "13:00" },
+        { start: "17:00", end: "20:00" },
+      ],
+      breaks: [{ start: "13:00", end: "17:00" }],
+    },
+    wednesday: {
+      isOpen: true,
+      shifts: [
+        { start: "09:00", end: "13:00" },
+        { start: "17:00", end: "20:00" },
+      ],
+      breaks: [{ start: "13:00", end: "17:00" }],
+    },
+    thursday: {
+      isOpen: true,
+      shifts: [
+        { start: "09:00", end: "13:00" },
+        { start: "17:00", end: "20:00" },
+      ],
+      breaks: [{ start: "13:00", end: "17:00" }],
+    },
+    friday: {
+      isOpen: true,
+      shifts: [
+        { start: "09:00", end: "13:00" },
+        { start: "17:00", end: "20:00" },
+      ],
+      breaks: [{ start: "13:00", end: "17:00" }],
+    },
+    saturday: {
+      isOpen: true,
+      shifts: [{ start: "09:00", end: "14:00" }],
+      breaks: [],
+    },
+    sunday: {
+      isOpen: false,
+      shifts: [],
+      breaks: [],
+    },
+  },
+};

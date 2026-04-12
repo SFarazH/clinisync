@@ -43,6 +43,7 @@ import logo from "../../../public/clinisync-t.png";
 import Loader from "@/components/loader";
 import { ClinicsTable } from "@/components/admin-section/clinic-management";
 import WhatsappMessageManagement from "@/components/whatsapp-message-management";
+import AdminUser from "@/components/admin-user";
 
 export default function ClinicDashboard() {
   const { authUser, setAuthUser, authClinic, setAuthClinic } = useAuth();
@@ -197,7 +198,7 @@ export default function ClinicDashboard() {
       case "admin-users":
         return (
           <RoleBasedWrapper allowedRoles={["super-admin"]}>
-            <h1></h1>
+            <AdminUser />
           </RoleBasedWrapper>
         );
 
