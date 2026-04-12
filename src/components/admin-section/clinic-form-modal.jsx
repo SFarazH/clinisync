@@ -39,11 +39,12 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
   const existingAdmin = clinic?.admin;
   const hasAdmin = !!existingAdmin;
 
-  const { data: unallottedUsers = [], isLoading: loadingUsers } =
+  const { data: unallottedUsersObject = {}, isLoading: loadingUsers } =
     useQueryWrapper({
       queryKey: ["users"],
       queryFn: getUnallottedUsersListApi,
     });
+  const unallottedUsers = unallottedUsersObject?.data ?? [];
 
   const validateForm = () => {
     const nextErrors = {};
@@ -298,7 +299,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
               </div>
-              {(isNew || !hasAdmin) && (
+              {!isNew && (
                 <div>
                   <Label className="text-xs text-gray-600 mb-1">Admin</Label>
                   <Select

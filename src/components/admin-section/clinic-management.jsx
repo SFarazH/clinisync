@@ -12,12 +12,13 @@ export function ClinicsTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState(null);
 
-  const { data: clinicsData = [], isLoading: loadingClinics } = useQueryWrapper(
-    {
+  const { data: clinicsDataObject = {}, isLoading: loadingClinics } =
+    useQueryWrapper({
       queryKey: ["clinics"],
       queryFn: getClinicsApi,
-    },
-  );
+    });
+
+  const clinicsData = clinicsDataObject?.data ?? [];
 
   const handleAddClinic = () => {
     setIsModalOpen(true);
