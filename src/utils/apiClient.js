@@ -20,7 +20,12 @@ apiClient.interceptors.response.use(
   (error) => {
     const message = error?.response?.data?.message || "Something went wrong";
 
-    toast.error(message);
+    toast.error(message, {
+      style: {
+        background: "red",
+        color: "#fff",
+      },
+    });
 
     return Promise.reject(error);
   },
