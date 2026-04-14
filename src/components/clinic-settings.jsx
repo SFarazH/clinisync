@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, Clock, Settings2 } from "lucide-react";
 import {
   getClinicById,
   getClinicConfig,
@@ -31,6 +30,15 @@ import {
   updateClinicConfig,
 } from "@/lib";
 import { useAuth } from "./context/authcontext";
+import {
+  ChevronDown,
+  Clock,
+  Settings2,
+  MessageSquare,
+  AlertTriangle,
+} from "lucide-react";
+import Image from "next/image";
+import { Alert, AlertDescription } from "./ui/alert";
 
 export default function ClinicSettings() {
   const queryClient = useQueryClient();
@@ -44,6 +52,10 @@ export default function ClinicSettings() {
   const [clinicData, setClinicData] = useState({});
   const [originalClinicData, setOriginalClinicData] = useState({});
   const [errors, setErrors] = useState({});
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [activeTemplate, setActiveTemplate] = useState(
+    "clinisync_appointment_location",
+  );
 
   const validateForm = () => {
     const nextErrors = {};
@@ -70,8 +82,8 @@ export default function ClinicSettings() {
 
     if (
       clinicData.googleMapsLink &&
-      !/^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/.+/.test(
-        clinicData.googleMapsLink,
+      !/^https?:\/\/(www\.)?(google\.[a-z.]+\/maps\/.+|maps\.app\.goo\.gl\/.+)/.test(
+        clinicData.googleMapsLink.trim(),
       )
     ) {
       nextErrors.googleMapsLink = "Enter a valid Google Maps URL";
@@ -82,8 +94,6 @@ export default function ClinicSettings() {
   };
 
   const { authClinic } = useAuth();
-
-  console.log(authClinic);
 
   const { data: clinicSettingsObject = {}, isLoading: loadingSettings } =
     useQueryWrapper({
@@ -872,6 +882,173 @@ export default function ClinicSettings() {
                   <p className="text-sm">No clinic data available.</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <Collapsible open={isTemplatesOpen} onOpenChange={setIsTemplatesOpen}>
+        <CollapsibleTrigger asChild className="cursor-pointer">
+          <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-input bg-background hover:bg-accent transition-colors">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <span className="text-base font-semibold">
+                WhatsApp Template Active
+              </span>
+            </div>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform ${
+                isTemplatesOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="mt-3">
+          <Card className="border">
+            <CardHeader className="pb-3">
+              <div>
+                <CardTitle>Select WhatsApp Template</CardTitle>
+                <CardDescription>
+                  Choose which appointment reminder template to use for WhatsApp
+                  notifications
+                </CardDescription>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Template 1: With Location Header */}
+                <div
+                  onClick={() => {
+                    // if (isBasicTemplateDisabled) return;
+                    setActiveTemplate("clinisync_appointment_location");
+                  }}
+                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                    activeTemplate === "clinisync_appointment_location"
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-primary/50"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">
+                      clinisync_appointment_location
+                    </h3>
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
+                      {/* <Image
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CXkqTC9Cyg2KAubJgMZ7tjvFHD6y9S.png"
+                        alt="WhatsApp template with location header"
+                        fill
+                        className="object-cover"
+                      /> */}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Includes location header with map and address display
+                    </p>
+                    <Alert variant="destructive" className="mt-2 py-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription className="text-xs">
+                        Enter latitude and longitude in Edit Clinic
+                      </AlertDescription>
+                    </Alert>
+                    <div
+                      className={`h-3 rounded-full transition-colors ${
+                        activeTemplate === "clinisync_appointment_location"
+                          ? "bg-primary"
+                          : "bg-input"
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Template 2: With Google Maps Link */}
+                <div
+                  onClick={() => {
+                    // if (isBasicTemplateDisabled) return;
+                    setActiveTemplate("clinisync_appointment_location");
+                  }}
+                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                    activeTemplate === "clinisync_appointment_gmap"
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-primary/50"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">
+                      clinisync_appointment_gmap
+                    </h3>
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
+                      {/* <Image
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Uw2XEdUOJjxqoJPGyWKlo67dLSzbHT.png"
+                        alt="WhatsApp template with Google Maps link"
+                        fill
+                        className="object-cover"
+                      /> */}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Includes clickable Google Maps link in message
+                    </p>
+                    <Alert variant="destructive" className="mt-2 py-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription className="text-xs">
+                        Enter Google Maps Link in Edit Clinic
+                      </AlertDescription>
+                    </Alert>
+
+                    <div
+                      className={`h-3 rounded-full transition-colors ${
+                        activeTemplate === "clinisync_appointment_gmap"
+                          ? "bg-primary"
+                          : "bg-input"
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Template 3: Basic (No Location) */}
+                <div
+                  onClick={() => {
+                    // if (isBasicTemplateDisabled) return;
+                    setActiveTemplate("clinisync_appointment_location");
+                  }}
+                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                    activeTemplate === "clinisync_appointment"
+                      ? "border-primary bg-primary/5"
+                      : "border-input hover:border-primary/50"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">
+                      clinisync_appointment
+                    </h3>
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
+                      {/* <Image
+                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ALY0ncQagvvviWQnfNLRmf3G8WUGVL.png"
+                        alt="WhatsApp template basic"
+                        fill
+                        className="object-cover"
+                      /> */}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Basic template without location details
+                    </p>
+                    <div
+                      className={`h-3 rounded-full transition-colors ${
+                        activeTemplate === "clinisync_appointment"
+                          ? "bg-primary"
+                          : "bg-input"
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-input">
+                <p className="text-sm font-medium">Active Template:</p>
+                <p className="text-sm text-primary font-semibold mt-1">
+                  {activeTemplate}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </CollapsibleContent>
