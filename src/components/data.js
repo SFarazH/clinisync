@@ -140,9 +140,9 @@ export const emptyLabWork = {
 export const emptyClinic = {
   name: "",
   clinicName: "",
+  admin: null,
   databaseName: "",
   plan: "basic",
-  admin: null,
   features: {
     calendar: true,
     patients: true,
@@ -169,6 +169,11 @@ export const emptyClinic = {
   state: "",
   postalCode: "",
   country: "India",
+  whatsappTemplate: "",
+  whatsappMsgFrequency: {
+    onBooking: false,
+    onAppointmentDay: false,
+  },
   isTrialActive: false,
 };
 
@@ -227,3 +232,26 @@ export const defaultClinicSettings = {
     },
   },
 };
+
+export const whatsappTemplates = [
+  {
+    key: "clinisync_appointment_location",
+    title: "Message with Location",
+    description: "Appointment Reminder with Location tag",
+    image: "/whatsapp/wa_loc.jpeg",
+    warning: "Enter latitude and longitude in Edit Clinic",
+  },
+  {
+    key: "clinisync_appointment_gmap",
+    title: "Message with Map Link",
+    description: "Appointment Reminder with Google map link",
+    image: "/whatsapp/wa_gmap.jpeg",
+    warning: "Enter Google Maps Link in Edit Clinic",
+  },
+  {
+    key: "clinisync_appointment",
+    title: "Normal Reminder Message",
+    description: "Basic Appointment Reminder",
+    image: "/whatsapp/wa.jpeg",
+  },
+];

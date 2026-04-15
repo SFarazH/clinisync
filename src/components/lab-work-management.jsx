@@ -82,7 +82,7 @@ export default function LabWorkManagement() {
   useEffect(() => {
     if (!loadingLabWork && labWorkDataObject && labWorkDataObject.data) {
       setLabWorkData(labWorkDataObject.data);
-      setPagination(labWorkDataObject.pagination);
+      setPagination(labWorkDataObject?.meta.pagination);
     }
   }, [loadingLabWork, labWorkDataObject]);
 
@@ -97,10 +97,6 @@ export default function LabWorkManagement() {
     mutationFn: updateLabWork,
     onSuccess: () => {
       queryClient.invalidateQueries(["labWork"]);
-      //   toast({
-      //     title: "Patient Updated",
-      //     description: "Patient details updated.",
-      //   });
     },
   });
 

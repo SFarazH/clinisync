@@ -32,7 +32,6 @@ export default function Providers({ children }) {
           </ToastBar>
         )}
       </Toaster>
-      ; ;
     </QueryClientProvider>
   );
 }

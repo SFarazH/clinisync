@@ -44,7 +44,9 @@ const clinicSchema = new mongoose.Schema({
     validate: {
       validator: function (v) {
         if (!v) return true;
-        return /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/.+/.test(v);
+        return /^https?:\/\/(www\.)?(google\.[a-z.]+\/maps\/.+|maps\.app\.goo\.gl\/.+)/.test(
+          v,
+        );
       },
       message: "Enter a valid Google Maps URL",
     },
@@ -91,6 +93,18 @@ const clinicSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: "India",
+  },
+
+  whatsappTemplate: { type: String },
+  whatsappMsgFrequency: {
+    onBooking: {
+      type: Boolean,
+      default: false,
+    },
+    onAppointmentDay: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   //trial

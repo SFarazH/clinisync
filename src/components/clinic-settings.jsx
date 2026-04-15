@@ -12,7 +12,7 @@ import {
 import ClinicDayConfiguration from "./forms/clinic-day-configuration.form";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { daysOfWeek } from "./data";
+import { daysOfWeek, defaultClinicSettings, whatsappTemplates } from "./data";
 import Loader from "./loader";
 import { useMutationWrapper, useQueryWrapper } from "./wrappers";
 import {
@@ -25,7 +25,6 @@ import { Label } from "@/components/ui/label";
 import {
   getClinicById,
   getClinicConfig,
-  getClinicsApi,
   updateClinicApi,
   updateClinicConfig,
 } from "@/lib";
@@ -36,6 +35,7 @@ import {
   Settings2,
   MessageSquare,
   AlertTriangle,
+  CircleCheck,
 } from "lucide-react";
 import Image from "next/image";
 import { Alert, AlertDescription } from "./ui/alert";
@@ -46,16 +46,12 @@ export default function ClinicSettings() {
   const [clinicHours, setClinicHours] = useState({});
   const [isTimingsOpen, setIsTimingsOpen] = useState(false);
   const [isClinicOpen, setIsClinicOpen] = useState(false);
-  const [originalClinicHours, setOriginalClinicHours] = useState({});
   const [isEditingTimings, setIsEditingTimings] = useState(false);
   const [isEditingClinic, setIsEditingClinic] = useState(false);
   const [clinicData, setClinicData] = useState({});
-  const [originalClinicData, setOriginalClinicData] = useState({});
   const [errors, setErrors] = useState({});
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
-  const [activeTemplate, setActiveTemplate] = useState(
-    "clinisync_appointment_location",
-  );
+  const [isEditingWhatsapp, setIsEditingWhatsapp] = useState(false);
 
   const validateForm = () => {
     const nextErrors = {};
@@ -112,6 +108,23 @@ export default function ClinicSettings() {
   const clinicSettings = clinicSettingsObject?.data;
   const clinic = clinicObject?.data;
 
+  const handleConfigChange = (field, value) => {
+    setClinicData((prev) => ({
+      ...prev,
+      whatsappMsgFrequency: {
+        ...prev.whatsappMsgFrequency,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleTemplateChange = (template) => {
+    setClinicData((prev) => ({
+      ...prev,
+      whatsappTemplate: template,
+    }));
+  };
+
   const updateClinicConfigMutation = useMutationWrapper({
     mutationFn: updateClinicConfig,
     onSuccess: () => {
@@ -128,6 +141,22 @@ export default function ClinicSettings() {
     },
   });
 
+  const handleSaveWhatsapp = async () => {
+    try {
+      await updateClinicMutation.mutateAsync({
+        clinicData,
+        id: clinic._id,
+      });
+
+      setIsEditingWhatsapp(false);
+    } catch (err) {}
+  };
+
+  const handleCancelWhatsapp = () => {
+    setIsEditingWhatsapp(false);
+    setClinicData(clinic);
+  };
+
   useEffect(() => {
     if (clinicSettings?.openingHours) {
       setClinicHours(clinicSettings.openingHours);
@@ -135,46 +164,10 @@ export default function ClinicSettings() {
   }, [clinicSettings]);
 
   useEffect(() => {
-    if (clinic) {
+    if (clinic && !isEditingClinic && !isEditingWhatsapp) {
       setClinicData(clinic);
-      // const {
-      //   name,
-      //   clinicName,
-      //   phone,
-      //   email,
-      //   addressLine1,
-      //   addressLine2,
-      //   city,
-      //   state,
-      //   postalCode,
-      //   country,
-      // } = clinic;
-      // setClinicData({
-      //   name,
-      //   clinicName,
-      //   phone,
-      //   email,
-      //   addressLine1,
-      //   addressLine2,
-      //   city,
-      //   state,
-      //   postalCode,
-      //   country,
-      // });
     }
-  }, [clinic]);
-
-  useEffect(() => {
-    if (isEditingTimings && Object.keys(clinicHours).length > 0) {
-      setOriginalClinicHours({ ...clinicHours });
-    }
-  }, [isEditingTimings, clinicHours]);
-
-  useEffect(() => {
-    if (isEditingClinic && Object.keys(clinicData).length > 0) {
-      setOriginalClinicData({ ...clinicData });
-    }
-  }, [isEditingClinic, clinicData]);
+  }, [clinic, isEditingClinic, isEditingWhatsapp]);
 
   const updateDayField = useCallback((day, field, value) => {
     setClinicHours((prev) => ({
@@ -300,14 +293,13 @@ export default function ClinicSettings() {
       await updateClinicConfigMutation.mutateAsync({
         configData: clinicHours,
       });
-      setOriginalClinicHours({ ...clinicHours });
     } catch (error) {}
   }, [clinicHours, updateClinicConfigMutation]);
 
   const handleCancelTimings = useCallback(() => {
-    setClinicHours({ ...originalClinicHours });
+    setClinicHours(clinicSettings.openingHours);
     setIsEditingTimings(false);
-  }, [originalClinicHours]);
+  }, []);
 
   const handleSaveClinic = useCallback(async () => {
     if (!validateForm()) return;
@@ -316,14 +308,13 @@ export default function ClinicSettings() {
         clinicData,
         id: clinic._id,
       });
-      setOriginalClinicData({ ...clinicData });
     } catch (error) {}
   }, [clinicData, clinic, updateClinicMutation]);
 
   const handleCancelClinic = useCallback(() => {
-    setClinicData({ ...originalClinicData });
+    setClinicData(clinic);
     setIsEditingClinic(false);
-  }, [originalClinicData]);
+  }, []);
 
   const handleClinicFieldChange = useCallback((field, value) => {
     setClinicData((prev) => ({
@@ -351,6 +342,19 @@ export default function ClinicSettings() {
   );
 
   const hasClinicData = Object.keys(clinicHours).length > 0;
+
+  const isTemplateDisabled = (template, clinicData) => {
+    switch (template) {
+      case "clinisync_appointment_location":
+        return !clinicData?.latitude || !clinicData?.longitude;
+
+      case "clinisync_appointment_gmap":
+        return !clinicData?.googleMapsLink;
+
+      default:
+        return false;
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -383,6 +387,7 @@ export default function ClinicSettings() {
                 <div className="flex gap-2">
                   {!isEditingTimings ? (
                     <Button
+                      className="cursor-pointer"
                       onClick={() => setIsEditingTimings(true)}
                       disabled={!hasClinicData}
                       size="sm"
@@ -392,6 +397,17 @@ export default function ClinicSettings() {
                   ) : (
                     <>
                       <Button
+                        className="cursor-pointer"
+                        variant="outline"
+                        onClick={() =>
+                          setClinicHours(defaultClinicSettings.openingHours)
+                        }
+                        size="sm"
+                      >
+                        Default
+                      </Button>
+                      <Button
+                        className="cursor-pointer"
                         variant="outline"
                         onClick={handleCancelTimings}
                         size="sm"
@@ -399,6 +415,7 @@ export default function ClinicSettings() {
                         Cancel
                       </Button>
                       <Button
+                        className="cursor-pointer"
                         onClick={handleSaveTimings}
                         disabled={updateClinicConfigMutation.isPending}
                         size="sm"
@@ -499,6 +516,7 @@ export default function ClinicSettings() {
                 <div className="flex gap-2">
                   {!isEditingClinic ? (
                     <Button
+                      className="cursor-pointer"
                       onClick={() => setIsEditingClinic(true)}
                       disabled={!clinic}
                       size="sm"
@@ -508,6 +526,7 @@ export default function ClinicSettings() {
                   ) : (
                     <>
                       <Button
+                        className="cursor-pointer"
                         variant="outline"
                         onClick={handleCancelClinic}
                         size="sm"
@@ -515,6 +534,7 @@ export default function ClinicSettings() {
                         Cancel
                       </Button>
                       <Button
+                        className="cursor-pointer"
                         onClick={handleSaveClinic}
                         disabled={updateClinicMutation.isPending}
                         size="sm"
@@ -892,9 +912,7 @@ export default function ClinicSettings() {
           <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-input bg-background hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-primary" />
-              <span className="text-base font-semibold">
-                WhatsApp Template Active
-              </span>
+              <span className="text-base font-semibold">WhatsApp Template</span>
             </div>
             <ChevronDown
               className={`w-5 h-5 transition-transform ${
@@ -906,155 +924,192 @@ export default function ClinicSettings() {
 
         <CollapsibleContent className="mt-3">
           <Card className="border">
-            <CardHeader className="pb-3">
-              <div>
-                <CardTitle>Select WhatsApp Template</CardTitle>
-                <CardDescription>
-                  Choose which appointment reminder template to use for WhatsApp
-                  notifications
-                </CardDescription>
+            <CardHeader className="">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle>Select WhatsApp Template</CardTitle>
+                  <CardDescription>
+                    Choose which appointment reminder template to use
+                  </CardDescription>
+                </div>
+
+                <div className="flex gap-2">
+                  {!isEditingWhatsapp ? (
+                    <Button
+                      className="cursor-pointer"
+                      onClick={() => setIsEditingWhatsapp(true)}
+                      size="sm"
+                    >
+                      Edit
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        className="cursor-pointer"
+                        variant="outline"
+                        onClick={handleCancelWhatsapp}
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="cursor-pointer"
+                        onClick={handleSaveWhatsapp}
+                        size="sm"
+                      >
+                        Save
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </CardHeader>
 
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Template 1: With Location Header */}
-                <div
-                  onClick={() => {
-                    // if (isBasicTemplateDisabled) return;
-                    setActiveTemplate("clinisync_appointment_location");
-                  }}
-                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                    activeTemplate === "clinisync_appointment_location"
-                      ? "border-primary bg-primary/5"
-                      : "border-input hover:border-primary/50"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">
-                      clinisync_appointment_location
-                    </h3>
-                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
-                      {/* <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-CXkqTC9Cyg2KAubJgMZ7tjvFHD6y9S.png"
-                        alt="WhatsApp template with location header"
-                        fill
-                        className="object-cover"
-                      /> */}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Includes location header with map and address display
-                    </p>
-                    <Alert variant="destructive" className="mt-2 py-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription className="text-xs">
-                        Enter latitude and longitude in Edit Clinic
-                      </AlertDescription>
-                    </Alert>
-                    <div
-                      className={`h-3 rounded-full transition-colors ${
-                        activeTemplate === "clinisync_appointment_location"
-                          ? "bg-primary"
-                          : "bg-input"
-                      }`}
-                    />
-                  </div>
+              {/* message frequency  */}
+              <div className="space-y-4 mb-4 w-fit border p-3 rounded-lg">
+                <h3 className="text-lg font-semibold m-0">Message Frequency</h3>
+                <p className="text-xs">
+                  Select how frequently you want messages to be sent
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={
+                      clinicData?.whatsappMsgFrequency?.onBooking || false
+                    }
+                    onCheckedChange={(val) =>
+                      handleConfigChange("onBooking", val)
+                    }
+                    disabled={!isEditingWhatsapp}
+                    className="
+              h-6 w-13
+    data-[state=checked]:bg-green-500 
+    data-[state=unchecked]:bg-red-500
+    disabled:bg-red-400 
+    disabled:opacity-100
+
+    [&>span]:h-5
+    [&>span]:w-5
+    [&>span]:bg-white
+    [&>span]:transition-transform
+    data-[state=checked]:[&>span]:translate-x-7
+    data-[state=unchecked]:[&>span]:translate-x-0.5
+  "
+                  />
+                  <span className="text-md font-semibold">Send on Booking</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={
+                      clinicData?.whatsappMsgFrequency?.onAppointmentDay ||
+                      false
+                    }
+                    onCheckedChange={(val) =>
+                      handleConfigChange("onAppointmentDay", val)
+                    }
+                    disabled={!isEditingWhatsapp}
+                    className="
+              h-6 w-13
+    data-[state=checked]:bg-green-500 
+    data-[state=unchecked]:bg-red-500
+    disabled:bg-red-400 
+    disabled:opacity-100
 
-                {/* Template 2: With Google Maps Link */}
-                <div
-                  onClick={() => {
-                    // if (isBasicTemplateDisabled) return;
-                    setActiveTemplate("clinisync_appointment_location");
-                  }}
-                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                    activeTemplate === "clinisync_appointment_gmap"
-                      ? "border-primary bg-primary/5"
-                      : "border-input hover:border-primary/50"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">
-                      clinisync_appointment_gmap
-                    </h3>
-                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
-                      {/* <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Uw2XEdUOJjxqoJPGyWKlo67dLSzbHT.png"
-                        alt="WhatsApp template with Google Maps link"
-                        fill
-                        className="object-cover"
-                      /> */}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Includes clickable Google Maps link in message
-                    </p>
-                    <Alert variant="destructive" className="mt-2 py-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription className="text-xs">
-                        Enter Google Maps Link in Edit Clinic
-                      </AlertDescription>
-                    </Alert>
-
-                    <div
-                      className={`h-3 rounded-full transition-colors ${
-                        activeTemplate === "clinisync_appointment_gmap"
-                          ? "bg-primary"
-                          : "bg-input"
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                {/* Template 3: Basic (No Location) */}
-                <div
-                  onClick={() => {
-                    // if (isBasicTemplateDisabled) return;
-                    setActiveTemplate("clinisync_appointment_location");
-                  }}
-                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                    activeTemplate === "clinisync_appointment"
-                      ? "border-primary bg-primary/5"
-                      : "border-input hover:border-primary/50"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">
-                      clinisync_appointment
-                    </h3>
-                    <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
-                      {/* <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ALY0ncQagvvviWQnfNLRmf3G8WUGVL.png"
-                        alt="WhatsApp template basic"
-                        fill
-                        className="object-cover"
-                      /> */}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Basic template without location details
-                    </p>
-                    <div
-                      className={`h-3 rounded-full transition-colors ${
-                        activeTemplate === "clinisync_appointment"
-                          ? "bg-primary"
-                          : "bg-input"
-                      }`}
-                    />
-                  </div>
+    [&>span]:h-5
+    [&>span]:w-5
+    [&>span]:bg-white
+    [&>span]:transition-transform
+    data-[state=checked]:[&>span]:translate-x-7
+    data-[state=unchecked]:[&>span]:translate-x-0.5
+  "
+                  />
+                  <span className="text-md font-semibold">
+                    Send on Appointment Day
+                  </span>
                 </div>
               </div>
 
-              <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-input">
-                <p className="text-sm font-medium">Active Template:</p>
-                <p className="text-sm text-primary font-semibold mt-1">
-                  {activeTemplate}
+              {clinicData?.whatsappTemplate && (
+                <p className="border p-2 w-fit mb-4 rounded-md border-gray-500 font-semibold flex gap-1">
+                  <CircleCheck color="green" /> Active Template:{" "}
+                  {
+                    whatsappTemplates.find(
+                      (t) => t.key === clinicData?.whatsappTemplate,
+                    ).title
+                  }
                 </p>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {whatsappTemplates.map((template) => {
+                  const isDisabled = isTemplateDisabled(
+                    template.key,
+                    clinicData,
+                  );
+                  return (
+                    <div
+                      key={template.key}
+                      onClick={() => {
+                        if (!isEditingWhatsapp) return;
+                        if (isDisabled) return;
+                        handleTemplateChange(template.key);
+                      }}
+                      className={`rounded-lg border p-2 transition-all ${
+                        clinicData?.whatsappTemplate === template.key
+                          ? "bg-primary/3 border-2 border-black"
+                          : "border-input"
+                      } ${isEditingWhatsapp ? (isDisabled ? "cursor-not-allowed" : "cursor-pointer hover:border-primary/50") : ""}`}
+                    >
+                      <div className="space-y-3 flex flex-col justify-between h-full">
+                        <h3 className="text-md font-semibold">
+                          {template.title}
+                        </h3>
+
+                        <div className="w-8/12 mx-auto rounded-lg flex flex-1 items-center justify-center">
+                          {template.image && (
+                            <Image
+                              src={template.image}
+                              alt={template.title}
+                              width={300}
+                              height={300}
+                              className="rounded-lg"
+                            />
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2 justify-end">
+                          {isDisabled && template.warning && (
+                            <Alert variant="destructive" className="">
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertDescription className="text-sm">
+                                {template.warning}
+                              </AlertDescription>
+                            </Alert>
+                          )}
+
+                          <div
+                            className={`h-3 mt-2 rounded-full transition-colors ${
+                              clinicData?.whatsappTemplate === template.key
+                                ? "bg-primary"
+                                : "bg-input"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
         </CollapsibleContent>
       </Collapsible>
 
-      {(loadingSettings || loadingClinic) && <Loader />}
+      {(loadingSettings ||
+        loadingClinic ||
+        updateClinicConfigMutation.isPending ||
+        updateClinicMutation.isPending) && <Loader />}
     </div>
   );
 }
