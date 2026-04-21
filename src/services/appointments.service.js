@@ -21,6 +21,25 @@ function calculateEndTime(startTime, durationMinutes) {
   return `${endHours}:${endMinutes}`;
 }
 
+function getAppointmentDateTime(date, startTime) {
+  const [hours, minutes] = startTime.split(":").map(Number);
+
+  const utcDate = new Date(date);
+
+  // Convert to IST manually
+  const istDate = new Date(
+    utcDate.getUTCFullYear(),
+    utcDate.getUTCMonth(),
+    utcDate.getUTCDate(),
+    hours,
+    minutes,
+    0,
+    0,
+  );
+
+  return istDate;
+}
+
 // add appointment
 export async function createAppointment(data, dbName) {
   const appointmentsModel = await getMongooseModel(
@@ -54,10 +73,16 @@ export async function createAppointment(data, dbName) {
 
     const totalAmount = procedure.cost;
 
+    const appointmentDateTime = getAppointmentDateTime(
+      data.date,
+      data.startTime,
+    );
+
     const appointment = await appointmentsModel.create(
       [
         {
           ...data,
+          appointmentDateTime,
           endTime: calculateEndTime(data.startTime, procedure.duration),
         },
       ],
@@ -222,6 +247,8 @@ export async function updateAppointment(id, data, dbName) {
     Invoice.schema,
   );
 
+  const appointmentDateTime = getAppointmentDateTime(data.date, data.startTime);
+
   await getMongooseModel(dbName, "Patient", Patient.schema);
   await getMongooseModel(dbName, "Doctor", Doctor.schema);
 
@@ -231,11 +258,15 @@ export async function updateAppointment(id, data, dbName) {
 
   try {
     const appointment = await appointmentsModel
-      .findByIdAndUpdate(id, data, {
-        new: true,
-        runValidators: true,
-        session,
-      })
+      .findByIdAndUpdate(
+        id,
+        { ...data, appointmentDateTime },
+        {
+          new: true,
+          runValidators: true,
+          session,
+        },
+      )
       .populate("patientId", "name")
       .populate("doctorId", "name")
       .populate("procedureId", "name duration color abbr cost");
