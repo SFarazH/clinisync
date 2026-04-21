@@ -1,4 +1,3 @@
-import { getWhatsappMessagesByClinic } from "@/services/whatsapp.services";
 import { checkAccess } from "@/utils";
 import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
@@ -20,7 +19,7 @@ export async function GET(req) {
     );
     if (accessError) return accessError;
 
-    const result = await getWhatsappMessagesByClinic(dbName);
+    const result = await getAppointmentsForReminder(dbName);
 
     if (!result.success) {
       return responseHandler.error(result.error, 400);

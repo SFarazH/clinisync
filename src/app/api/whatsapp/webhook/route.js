@@ -1,4 +1,4 @@
-import { handleWebhook } from "@/services/whatsapp.services";
+import { handleWebhook } from "@/services";
 
 export async function POST(req) {
   try {
