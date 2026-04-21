@@ -5,138 +5,7 @@ import WhatsappMessage from "@/models/WhatsappMessage";
 import { getMongooseModel } from "@/utils/dbConnect";
 import axios from "axios";
 
-function buildWhatsAppContent(msg) {
-  const type = msg.type;
-
-  switch (type) {
-    case "text":
-      return {
-        text: msg.text?.body,
-      };
-
-    case "image":
-      return { image: msg.image };
-    case "sticker":
-      return { sticker: msg.sticker };
-    case "video":
-      return { video: msg.video };
-    case "audio":
-      return { audio: msg.audio };
-    case "document":
-      return { document: msg.document };
-    case "reaction":
-      return {
-        reaction: msg.reaction,
-      };
-
-    case "button":
-      return {
-        payload: msg.button?.payload,
-        text: msg.button?.text,
-      };
-
-    case "interactive":
-      return {
-        payload:
-          msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id,
-
-        title:
-          msg.interactive?.button_reply?.title ||
-          msg.interactive?.list_reply?.title,
-      };
-
-    case "location":
-      return {
-        latitude: msg.location?.latitude,
-        longitude: msg.location?.longitude,
-        name: msg.location?.name,
-        address: msg.location?.address,
-      };
-
-    case "contacts":
-      return {
-        contacts: msg.contacts,
-      };
-
-    default:
-      console.warn("Unhandled message type:", type);
-      return {};
-  }
-}
-
-export async function sendWhatsappMessage({ data, dbName }) {
-  const url = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`;
-
-  const whatsappMessageModel = await getMongooseModel(
-    "clinisync",
-    "WhatsappMessages",
-    WhatsappMessage.schema,
-  );
-
-  const headers = {
-    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-    "Content-Type": "application/json",
-  };
-
-  const requestBody = {
-    messaging_product: "whatsapp",
-    to: `91${data.patientPhone}`,
-    type: "template",
-    template: {
-      name: "clinisync_appt_reminder",
-      language: {
-        code: "en",
-      },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            { type: "text", text: data.patientName },
-            { type: "text", text: data.doctorName },
-            { type: "text", text: data.appointmentDate },
-            { type: "text", text: data.appointmentTime },
-            { type: "text", text: data.clinicName },
-            { type: "text", text: data.clinicContact },
-            { type: "text", text: data.clinicLocation },
-          ],
-        },
-      ],
-    },
-  };
-  try {
-    const res = await axios.post(url, requestBody, { headers: headers });
-    const responseData = res.data;
-    const messageDoc = {
-      messageId: responseData.messages[0].id,
-
-      from: process.env.WHATSAPP_PHONE,
-      to: responseData.contacts[0].input,
-      waId: responseData.contacts[0].wa_id,
-
-      direction: "outgoing",
-
-      template: "clinisync_appt_reminder",
-      status: responseData.messages[0].message_status,
-
-      clinicId: data.clinicId,
-      clinicDbName: dbName,
-      patientId: data.patientId,
-      appointmentId: data.appointmentId,
-
-      rawPayload: requestBody,
-    };
-
-    const whatsappDoc = await whatsappMessageModel.create(messageDoc);
-
-    return { success: true, data: whatsappDoc };
-  } catch (error) {
-    console.dir(error);
-    return { success: false, data: error };
-  }
-}
-
 export async function getWhatsappMessagesByClinic(dbName) {
-  console.log(dbName, "dbnameee");
   const whatsappMessageModel = await getMongooseModel(
     "clinisync",
     "WhatsappMessages",
@@ -198,145 +67,264 @@ export async function getWhatsappMessagesByClinic(dbName) {
   }
 }
 
-export async function handleWebhook(data) {
-  console.dir(data, { depth: null });
+// --------------- SEND MESSAGE ----------------------------
+
+export function validateWhatsAppPayload(data) {
+  const {
+    to,
+    msgKey,
+    patientName,
+    doctorName,
+    date,
+    time,
+    clinicName,
+    clinicPhone,
+    latitude,
+    longitude,
+    address,
+    gmapLink,
+  } = data;
+
+  const errors = [];
+
+  // ---------- 1. CLINIC VALIDATION ----------
+  if (!clinicName) {
+    errors.push("Missing clinic name");
+  }
+
+  if (!clinicPhone) {
+    errors.push("Missing clinic phone");
+  }
+
+  // ---------- 2. PATIENT VALIDATION ----------
+  if (!patientName) {
+    errors.push("Missing patient name");
+  }
+
+  if (!to) {
+    errors.push("Missing patient phone number");
+  }
+
+  // ---------- 3. COMMON MESSAGE FIELDS ----------
+  if (!doctorName) {
+    errors.push("Missing doctor name");
+  }
+
+  if (!date) {
+    errors.push("Missing appointment date");
+  }
+
+  if (!time) {
+    errors.push("Missing appointment time");
+  }
+
+  if (!msgKey) {
+    errors.push("Missing template key");
+  }
+
+  // ---------- 4. TEMPLATE-SPECIFIC VALIDATION ----------
+
+  // 📍 Location template
+  if (msgKey === "clinisync_appointment_location") {
+    if (latitude == null || longitude == null) {
+      errors.push("Latitude and Longitude required for location template");
+    }
+
+    if (!address) {
+      errors.push("Address required for location template");
+    }
+  }
+
+  if (msgKey === "clinisync_appointment_gmap") {
+    if (!gmapLink) {
+      errors.push("Google Maps link required for gmap template");
+    }
+  }
+
+  // ---------- 5. SUCCESS ----------
+  if (errors.length > 0) {
+    return { valid: false, errors };
+  }
+
+  return { valid: true };
+}
+
+function buildWhatsAppPayload({
+  to,
+  msgKey,
+  patientName,
+  doctorName,
+  date,
+  time,
+  clinicName,
+  clinicPhone,
+  latitude,
+  longitude,
+  address,
+  gmapLink,
+}) {
+  const basePayload = {
+    messaging_product: "whatsapp",
+    to: `91${to}`,
+    type: "template",
+    template: {
+      name: msgKey,
+      language: { code: "en" },
+      components: [],
+    },
+  };
+
+  const bodyParams = [
+    { type: "text", text: patientName },
+    { type: "text", text: doctorName },
+    { type: "text", text: date },
+    { type: "text", text: time },
+    { type: "text", text: clinicName },
+    { type: "text", text: clinicPhone },
+  ];
+
+  // Case 1: Location template
+  if (msgKey === "clinisync_appointment_location" && latitude && longitude) {
+    basePayload.template.components.push({
+      type: "header",
+      parameters: [
+        {
+          type: "location",
+          location: {
+            latitude,
+            longitude,
+            name: clinicName,
+            address,
+          },
+        },
+      ],
+    });
+
+    basePayload.template.components.push({
+      type: "body",
+      parameters: bodyParams,
+    });
+
+    return basePayload;
+  }
+
+  // Case 2: Google Maps link
+  if (msgKey === "clinisync_appointment_gmap" && gmapLink) {
+    basePayload.template.components.push({
+      type: "body",
+      parameters: [...bodyParams, { type: "text", text: gmapLink }],
+    });
+
+    return basePayload;
+  }
+
+  // Case 3: Default
+  basePayload.template.components.push({
+    type: "body",
+    parameters: bodyParams,
+  });
+
+  return basePayload;
+}
+
+export async function sendWhatsappMessage({ data, dbName }) {
+  const url = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`;
+
   const whatsappMessageModel = await getMongooseModel(
     "clinisync",
     "WhatsappMessages",
     WhatsappMessage.schema,
   );
-  const entry = data.entry[0];
-  const changes = entry.changes[0];
 
-  if (changes.field === "messages") {
-    const value = changes.value;
+  const headers = {
+    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type": "application/json",
+  };
 
-    if (value.statuses) {
-      const statusObj = value.statuses[0];
-      const msgId = statusObj.id;
+  try {
+    const res = await axios.post(url, data, { headers: headers });
+    const responseData = res.data;
+    const messageDoc = {
+      messageId: responseData.messages[0].id,
 
-      const errorObj = statusObj.errors?.[0];
+      from: process.env.WHATSAPP_PHONE,
+      to: responseData.contacts[0].input,
+      waId: responseData.contacts[0].wa_id,
 
-      await whatsappMessageModel.findOneAndUpdate(
-        { messageId: msgId },
-        {
-          $set: {
-            status: statusObj.status,
-            recipientId: statusObj.recipient_id,
+      direction: "outgoing",
 
-            pricing: {
-              billable: statusObj.pricing?.billable,
-              category: statusObj.pricing?.category,
-              pricingModel: statusObj.pricing?.pricing_model,
-              type: statusObj.pricing?.type,
-            },
+      template: data.template.name,
+      status: responseData.messages[0].message_status,
 
-            metadata: {
-              phoneNumberId: value.metadata.phone_number_id,
-              displayPhoneNumber: value.metadata.display_phone_number,
-            },
+      clinicId: data.clinicId,
+      clinicDbName: dbName,
+      patientId: data.patientId,
+      appointmentId: data.appointmentId,
 
-            ...(errorObj && {
-              error: {
-                code: errorObj.code,
-                type: errorObj.title, // map title → type
-                message: errorObj.message,
-                error_data: {
-                  details: errorObj.error_data?.details,
-                },
-              },
-            }),
-          },
+      rawPayload: data,
+    };
 
-          $addToSet: {
-            statusTimeline: {
-              status: statusObj.status,
-              timestamp: Number(statusObj.timestamp),
-            },
-          },
-        },
-        { new: true },
-      );
-    }
+    const whatsappDoc = await whatsappMessageModel.create(messageDoc);
 
-    if (value.messages) {
-      const msg = value.messages[0];
-      const contact = value.contacts?.[0];
+    return { success: true, data: whatsappDoc };
+  } catch (error) {
+    console.dir(error.response.data, { depth: null });
+    return { success: false, data: error };
+  }
+}
 
-      const content = buildWhatsAppContent(msg);
-      if (msg.type === "reaction") {
-        const reactionMsgId = msg.reaction?.message_id;
-        const emoji = msg.reaction?.emoji;
+export async function sendAppointmentReminder({ appointment, clinic, isCron }) {
+  const payloadData = {
+    to: appointment.patient?.phone,
+    msgKey: clinic.whatsappTemplate,
+    patientName: appointment.patient?.name,
+    doctorName: appointment.doctor?.name,
+    date: appointment.formattedDateShort,
+    time: appointment.formattedTime,
+    clinicName: clinic.name,
+    clinicPhone: clinic.phone,
+    latitude: clinic?.latitude,
+    longitude: clinic?.longitude,
+    address: `${clinic.addressLine1}, ${clinic.city}`,
+    gmapLink: clinic?.googleMapsLink,
+  };
 
-        if (reactionMsgId) {
-          if (emoji) {
-            await whatsappMessageModel.findOneAndUpdate(
-              { messageId: reactionMsgId },
-              {
-                $set: {
-                  "content.reaction": {
-                    messageId: reactionMsgId,
-                    emoji,
-                    reactedBy: msg.from,
-                  },
-                },
-              },
-            );
-          } else {
-            await whatsappMessageModel.findOneAndUpdate(
-              { messageId: reactionMsgId },
-              {
-                $unset: {
-                  "content.reaction": "",
-                },
-              },
-            );
-          }
-        }
+  const validation = validateWhatsAppPayload(payloadData);
+  if (!validation.valid)
+    return { success: false, error: validation.errors.join(", ") };
 
-        return {
-          success: true,
-        };
-      }
+  const payload = buildWhatsAppPayload(payloadData);
 
-      const createData = {
-        messageId: msg.id,
-        waId: msg.from,
-        from: msg.from,
-        to: value.metadata.display_phone_number,
+  const result = await sendWhatsappMessage({
+    data: payload,
+    dbName: clinic.databaseName,
+  });
 
-        direction: "incoming",
-        type: msg.type,
-        status: "sent",
-
-        content,
-
-        statusTimeline: [
-          {
-            status: "sent",
-            timestamp: Number(msg.timestamp),
-          },
-        ],
-
-        contactProfileName: {
-          name: contact?.profile?.name,
-        },
-
-        metadata: {
-          phoneNumberId: value.metadata.phone_number_id,
-          displayPhoneNumber: value.metadata.display_phone_number,
-        },
-
-        rawPayload: data,
-      };
-
-      await whatsappMessageModel.findOneAndUpdate(
-        { messageId: msg.id },
-        { $setOnInsert: createData },
-        { new: true, upsert: true },
-      );
-    }
+  if (!result.success) {
+    return {
+      success: false,
+      error:
+        result?.data?.response?.data?.error?.message ||
+        result?.data?.message ||
+        "WhatsApp API error",
+    };
   }
 
-  return { success: true };
+  const appointmentModel = await getMongooseModel(
+    clinic.databaseName,
+    "Appointment",
+    Appointment.schema,
+  );
+
+  await appointmentModel.findByIdAndUpdate(appointment._id, {
+    $set: {
+      [isCron ? "remindersSent.onAppointmentDay" : "remindersSent.onBooking"]:
+        true,
+    },
+  });
+
+  return {
+    success: true,
+    data: result.data,
+  };
 }
