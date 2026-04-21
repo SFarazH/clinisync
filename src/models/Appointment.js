@@ -6,7 +6,7 @@ const attachmentSchema = new mongoose.Schema(
     s3FileKey: { type: String, required: false },
   },
   { timestamps: true },
-  { _id: false }
+  { _id: false },
 );
 
 const appointmentSchema = new mongoose.Schema(
@@ -27,6 +27,7 @@ const appointmentSchema = new mongoose.Schema(
       required: true,
     },
     date: { type: Date, required: true },
+    appointmentDateTime: { type: Date, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     status: {
@@ -47,9 +48,13 @@ const appointmentSchema = new mongoose.Schema(
       required: false,
       default: null,
     },
+    remindersSent: {
+      onBooking: { type: Boolean, default: false },
+      onAppointmentDay: { type: Boolean, default: false },
+    },
     notes: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Appointment ||

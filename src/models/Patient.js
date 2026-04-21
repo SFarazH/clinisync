@@ -4,7 +4,12 @@ const patientSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, unique: true, sparse: true },
-    phone: String,
+    phone: {
+      type: String,
+      trim: true,
+      required: true,
+      match: [/^\d{10}$/, "Phone number must be exactly 10 digits"],
+    },
     age: { type: Number, required: true },
     gender: String,
     dob: Date,
