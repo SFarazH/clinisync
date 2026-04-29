@@ -89,7 +89,7 @@ export default function AppointmentCalendar({ mode = "live" }) {
   const [clinicHours, setClinicHours] = useState({});
 
   const slotsStartHour = 9;
-  const slotsEndHour = 23;
+  const slotsEndHour = 24;
 
   const { weekStart, weekEnd } = useMemo(
     () => getWeekStartAndEnd(currentWeek),

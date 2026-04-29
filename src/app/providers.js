@@ -2,7 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import toast, { ToastBar, Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
+// import toast, { ToastBar, Toaster } from "react-hot-toast";
 
 export default function Providers({ children }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -11,27 +12,11 @@ export default function Providers({ children }) {
     <QueryClientProvider client={queryClient}>
       {children}
       <Toaster
-        position="top-right"
-        toastOptions={{
-          removeDelay: 1000,
-          duration: 2000,
-        }}
-      >
-        {(t) => (
-          <ToastBar toast={t}>
-            {({ message }) =>
-              t.type !== "loading" && (
-                <button
-                  className="cursor-pointer"
-                  onClick={() => toast.dismiss(t.id)}
-                >
-                  {message}
-                </button>
-              )
-            }
-          </ToastBar>
-        )}
-      </Toaster>
+        toastOptions={{ className: "text-red" }}
+        position="bottom-right"
+        duration={2000}
+        visibleToasts={3}
+      />
     </QueryClientProvider>
   );
 }

@@ -323,6 +323,8 @@ export default function ClinicSettings() {
     }));
   }, []);
 
+  console.log(clinicData);
+
   const shiftHandlers = useMemo(
     () => ({
       updateShift,
@@ -968,7 +970,7 @@ export default function ClinicSettings() {
             <CardContent>
               {/* message frequency  */}
               <div className="space-y-4 mb-4 w-fit border p-3 rounded-lg">
-                <h3 className="text-lg font-semibold m-0">Message Frequency</h3>
+                <h3 className="text-md font-semibold m-0">Message Frequency</h3>
                 <p className="text-xs">
                   Select how frequently you want messages to be sent
                 </p>
@@ -997,7 +999,7 @@ export default function ClinicSettings() {
     data-[state=unchecked]:[&>span]:translate-x-0.5
   "
                   />
-                  <span className="text-md font-semibold">Send on Booking</span>
+                  <span className="text-sm font-semibold">Send on Booking</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
@@ -1024,20 +1026,19 @@ export default function ClinicSettings() {
     data-[state=unchecked]:[&>span]:translate-x-0.5
   "
                   />
-                  <span className="text-md font-semibold">
+                  <span className="text-sm font-semibold">
                     Send on Appointment Day
                   </span>
                 </div>
               </div>
 
               {clinicData?.whatsappTemplate && (
-                <p className="border p-2 w-fit mb-4 rounded-md border-gray-500 font-semibold flex gap-1">
+                <p className="border p-2 w-fit mb-4 rounded-md border-gray-500 font-semibold flex gap-1 text-sm">
                   <CircleCheck color="green" /> Active Template:{" "}
-                  {
+                  {clinicData &&
                     whatsappTemplates.find(
-                      (t) => t.key === clinicData?.whatsappTemplate,
-                    ).title
-                  }
+                      (t) => t?.key === clinicData?.whatsappTemplate,
+                    )?.title}
                 </p>
               )}
 

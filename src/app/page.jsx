@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import logo from "../../public/clinisync-t.png";
 import Image from "next/image";
 import CarouselSection from "@/components/Features";
+import { toast } from "sonner";
 
 export default function Home() {
   const { authUser } = useAuth();

@@ -74,7 +74,7 @@ export const generateTimeSlots = (
   }
 
   // Add final boundary time (non-clickable) - one hour after the latest end time
-  const boundaryHour = endHour + 1;
+  const boundaryHour = endHour === 24 ? 24 : endHour + 1;
   const boundaryTime = `${boundaryHour.toString().padStart(2, "0")}:00`;
   slots.push({
     time: boundaryTime,

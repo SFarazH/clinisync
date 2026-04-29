@@ -249,7 +249,7 @@ export const whatsappTemplates = [
     warning: "Enter Google Maps Link in Edit Clinic",
   },
   {
-    key: "clinisync_appointment",
+    key: "clinicsync_appointment",
     title: "Normal Reminder Message",
     description: "Basic Appointment Reminder",
     image: "/whatsapp/wa.jpeg",
