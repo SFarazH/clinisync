@@ -137,12 +137,10 @@ async function getAppointmentsForReminder(dbName) {
           },
         },
 
-        // 👤 Patient
         "patient._id": 1,
         "patient.name": 1,
         "patient.phone": 1,
 
-        // 👨‍⚕️ Doctor
         "doctor._id": 1,
         "doctor.name": 1,
       },

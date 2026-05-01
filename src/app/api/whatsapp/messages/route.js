@@ -3,6 +3,7 @@ import { FeatureMapping } from "@/utils/feature.mapping";
 import { requireAuth } from "@/utils/require-auth";
 import { rolePermissions } from "@/utils/role-permissions.mapping";
 import { responseHandler } from "@/lib/responseHandler";
+import { getWhatsappMessagesByClinic } from "@/services";
 
 export async function GET(req) {
   const dbName = req.headers.get("db-name");
@@ -19,7 +20,7 @@ export async function GET(req) {
     );
     if (accessError) return accessError;
 
-    const result = await getAppointmentsForReminder(dbName);
+    const result = await getWhatsappMessagesByClinic(dbName);
 
     if (!result.success) {
       return responseHandler.error(result.error, 400);

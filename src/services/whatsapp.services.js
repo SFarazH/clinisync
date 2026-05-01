@@ -50,15 +50,17 @@ export async function getWhatsappMessagesByClinic(dbName) {
       })
       .populate({
         path: "patientId",
-        model: patientModel, // ✅ FIX
+        model: patientModel,
         select: "name",
       })
       .populate({
         path: "appointmentId",
-        model: appointmentModel, // ✅ FIX
+        model: appointmentModel,
         select: "date startTime",
       })
       .sort({ createdAt: -1 });
+
+    // console.log(messages, "mesages");
 
     return { success: true, data: messages };
   } catch (error) {
@@ -227,7 +229,7 @@ function buildWhatsAppPayload({
   return basePayload;
 }
 
-export async function sendWhatsappMessage({ data, dbName }) {
+export async function sendWhatsappMessage({ payload, dbName, data }) {
   const url = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`;
 
   const whatsappMessageModel = await getMongooseModel(
@@ -242,8 +244,9 @@ export async function sendWhatsappMessage({ data, dbName }) {
   };
 
   try {
-    const res = await axios.post(url, data, { headers: headers });
+    const res = await axios.post(url, payload, { headers: headers });
     const responseData = res.data;
+
     const messageDoc = {
       messageId: responseData.messages[0].id,
 
@@ -261,7 +264,7 @@ export async function sendWhatsappMessage({ data, dbName }) {
       patientId: data.patientId,
       appointmentId: data.appointmentId,
 
-      rawPayload: data,
+      rawPayload: payload,
     };
 
     const whatsappDoc = await whatsappMessageModel.create(messageDoc);
@@ -289,42 +292,59 @@ export async function sendAppointmentReminder({ appointment, clinic, isCron }) {
     gmapLink: clinic?.googleMapsLink,
   };
 
-  const validation = validateWhatsAppPayload(payloadData);
-  if (!validation.valid)
-    return { success: false, error: validation.errors.join(", ") };
+  try {
+    const validation = validateWhatsAppPayload(payloadData);
+    if (!validation.valid) {
+      return { success: false, error: validation.errors.join(", ") };
+    }
 
-  const payload = buildWhatsAppPayload(payloadData);
+    const payload = buildWhatsAppPayload(payloadData);
 
-  const result = await sendWhatsappMessage({
-    data: payload,
-    dbName: clinic.databaseName,
-  });
+    const result = await sendWhatsappMessage({
+      payload: payload,
+      data: {
+        template: {
+          name: clinic.whatsappTemplate,
+        },
+        clinicId: clinic._id,
+        patientId: appointment.patient?._id,
+        appointmentId: appointment?._id,
+      },
+      dbName: clinic.databaseName,
+    });
 
-  if (!result.success) {
+    if (!result.success) {
+      return {
+        success: false,
+        error:
+          result?.data?.response?.data?.error?.message ||
+          result?.data?.message ||
+          "WhatsApp API error",
+      };
+    }
+
+    const appointmentModel = await getMongooseModel(
+      clinic.databaseName,
+      "Appointment",
+      Appointment.schema,
+    );
+
+    await appointmentModel.findByIdAndUpdate(appointment._id, {
+      $set: {
+        [isCron ? "remindersSent.onAppointmentDay" : "remindersSent.onBooking"]:
+          true,
+      },
+    });
+
+    return {
+      success: true,
+      data: result.data,
+      message: "Whatsapp message sent",
+    };
+  } catch (error) {
     return {
       success: false,
-      error:
-        result?.data?.response?.data?.error?.message ||
-        result?.data?.message ||
-        "WhatsApp API error",
+      error: error.message ?? "Error",
     };
   }
-
-  const appointmentModel = await getMongooseModel(
-    clinic.databaseName,
-    "Appointment",
-    Appointment.schema,
-  );
-
-  await appointmentModel.findByIdAndUpdate(appointment._id, {
-    $set: {
-      [isCron ? "remindersSent.onAppointmentDay" : "remindersSent.onBooking"]:
-        true,
-    },
-  });
-
-  return {
-    success: true,
-    data: result.data,
-  };
 }

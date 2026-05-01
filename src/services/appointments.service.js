@@ -1,10 +1,12 @@
 import Appointment from "@/models/Appointment";
+import Prescription from "@/models/Prescription";
 import Doctor from "@/models/Doctor";
 import Invoice from "@/models/Invoice";
 import Patient from "@/models/Patient";
-import Prescription from "@/models/Prescription";
 import Procedure from "@/models/Procedure";
 import { getDatabaseConnection, getMongooseModel } from "@/utils/dbConnect";
+import { sendAppointmentReminder } from "./whatsapp.services";
+import Clinic from "@/models/Clinic";
 
 function calculateEndTime(startTime, durationMinutes) {
   const [hours, minutes] = startTime.split(":").map(Number);
@@ -40,12 +42,54 @@ function getAppointmentDateTime(date, startTime) {
   return istDate;
 }
 
+const formatIST = (date) => {
+  const d = new Date(date);
+
+  const optionsShort = {
+    day: "2-digit",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  };
+
+  const optionsLong = {
+    day: "2-digit",
+    month: "long",
+    timeZone: "Asia/Kolkata",
+  };
+
+  const formattedDateShort = new Intl.DateTimeFormat(
+    "en-IN",
+    optionsShort,
+  ).format(d);
+  const formattedDateLong = new Intl.DateTimeFormat(
+    "en-IN",
+    optionsLong,
+  ).format(d);
+
+  const timeFormatter = new Intl.DateTimeFormat("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  });
+
+  const formattedTime = timeFormatter.format(d).toUpperCase();
+
+  return { formattedDateShort, formattedDateLong, formattedTime };
+};
+
 // add appointment
 export async function createAppointment(data, dbName) {
   const appointmentsModel = await getMongooseModel(
     dbName,
     "Appointment",
     Appointment.schema,
+  );
+
+  const clinicsModel = await getMongooseModel(
+    "clinisync",
+    "Clinics",
+    Clinic.schema,
   );
 
   const proceduresModel = await getMongooseModel(
@@ -59,15 +103,20 @@ export async function createAppointment(data, dbName) {
     "Invoice",
     Invoice.schema,
   );
+
   const conn = await getDatabaseConnection(dbName);
   const session = await conn.startSession();
   session.startTransaction();
 
   try {
+    const clinic = await clinicsModel.findOne({ databaseName: dbName });
     const procedure = await proceduresModel
       .findById(data.procedureId)
       .session(session);
+
     if (!procedure) {
+      await session.abortTransaction();
+      session.endSession();
       return { success: false, message: "Procedure not found" };
     }
 
@@ -77,7 +126,6 @@ export async function createAppointment(data, dbName) {
       data.date,
       data.startTime,
     );
-
     const appointment = await appointmentsModel.create(
       [
         {
@@ -104,16 +152,68 @@ export async function createAppointment(data, dbName) {
       ],
       { session },
     );
-
     appointment[0].invoice = invoice[0]._id;
     await appointment[0].save({ session });
 
     await session.commitTransaction();
     session.endSession();
 
+    const populatedAppointment = await appointmentsModel
+      .findById(appointment[0]._id)
+      .select(
+        "patientId doctorId date appointmentDateTime startTime endTime status",
+      )
+      .populate({
+        path: "patientId",
+        select: "name phone",
+      })
+      .populate({
+        path: "doctorId",
+        select: "name",
+      })
+      .lean();
+
+    const { formattedDateShort, formattedDateLong, formattedTime } = formatIST(
+      populatedAppointment.appointmentDateTime,
+    );
+
+    const whatsappMessageObject = {
+      _id: populatedAppointment._id,
+      appointmentDateTime: populatedAppointment.appointmentDateTime,
+      startTime: populatedAppointment.startTime,
+      endTime: populatedAppointment.endTime,
+      status: populatedAppointment.status,
+
+      formattedDateShort,
+      formattedDateLong,
+      formattedTime,
+
+      patient: {
+        _id: populatedAppointment.patientId?._id,
+        name: populatedAppointment.patientId?.name,
+        phone: populatedAppointment.patientId?.phone,
+      },
+
+      doctor: {
+        _id: populatedAppointment.doctorId?._id,
+        name: populatedAppointment.doctorId?.name,
+      },
+    };
+
+    let whatsappResult = null;
+    whatsappResult = await sendAppointmentReminder({
+      appointment: whatsappMessageObject,
+      clinic,
+      isCron: false,
+    });
+
     return {
       success: true,
-      data: { appointment: appointment[0], invoice: invoice[0] },
+      data: {
+        appointment: appointment[0],
+        invoice: invoice[0],
+        whatsapp: whatsappResult,
+      },
     };
   } catch (err) {
     console.error("Error creating appointment/invoice:", err);

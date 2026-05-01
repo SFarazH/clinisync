@@ -10,7 +10,7 @@ export async function POST(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
-      rolePermissions.appointments.createAppointment
+      rolePermissions.appointments.createAppointment,
     );
     if (!auth.ok) {
       return responseHandler.error(auth.message, auth.status);
@@ -19,11 +19,13 @@ export async function POST(req) {
     const accessError = checkAccess(
       clinic,
       dbName,
-      FeatureMapping.APPOINTMENTS
+      FeatureMapping.APPOINTMENTS,
     );
     if (accessError) return accessError;
     const body = await req.json();
     const result = await createAppointment(body, dbName);
+
+    const appt = result.data.appointment;
 
     if (!result.success) {
       return responseHandler.error(result.error, 400);
@@ -37,7 +39,11 @@ export async function POST(req) {
     );
   } catch (error) {
     console.error("Error in POST /api/appointments:", error);
-    return responseHandler.error(error.message || "Internal Server Error", 500, error);
+    return responseHandler.error(
+      error.message || "Internal Server Error",
+      500,
+      error,
+    );
   }
 }
 
@@ -45,7 +51,7 @@ export async function GET(req) {
   const dbName = req.headers.get("db-name");
   try {
     const auth = await requireAuth(
-      rolePermissions.appointments.listAppointments
+      rolePermissions.appointments.listAppointments,
     );
     if (!auth.ok) {
       return responseHandler.error(auth.message, auth.status);
@@ -54,7 +60,7 @@ export async function GET(req) {
     const accessError = checkAccess(
       clinic,
       dbName,
-      FeatureMapping.APPOINTMENTS
+      FeatureMapping.APPOINTMENTS,
     );
     if (accessError) return accessError;
     const { searchParams } = new URL(req.url);
@@ -88,6 +94,10 @@ export async function GET(req) {
     );
   } catch (error) {
     console.error("Error in GET /api/appointments:", error);
-    return responseHandler.error(error.message || "Internal Server Error", 500, error);
+    return responseHandler.error(
+      error.message || "Internal Server Error",
+      500,
+      error,
+    );
   }
 }
