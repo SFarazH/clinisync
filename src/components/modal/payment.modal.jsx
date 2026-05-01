@@ -58,6 +58,12 @@ export default function PaymentModal({
     }
   }, [initialInvoice]);
 
+  useEffect(() => {
+    if (addPaymentMutation?.data?.data) {
+      setInvoice(addPaymentMutation?.data?.data);
+    }
+  }, [addPaymentMutation.isPending]);
+
   const remainingAmount = invoice?.totalAmount - invoice?.amountPaid;
 
   const handleMakePayment = async () => {
@@ -76,7 +82,9 @@ export default function PaymentModal({
         invoiceId: invoice?._id,
         paymentData: { amount: paymentAmount, method: paymentMethod },
       });
-      await getInvoiceMutation?.mutateAsync({ invoiceId: invoice?._id });
+      await getInvoiceMutation?.mutateAsync({
+        invoiceId: invoice?._id,
+      });
       setPaymentAmount("");
       setPaymentMethod("cash");
     } catch (error) {
