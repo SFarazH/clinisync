@@ -131,10 +131,15 @@ export default function PatientManagement() {
         description: "The new patient has been successfully added.",
       });
     }
-    setFormData(emptyPatient);
-    setEditingPatient(null);
-    setIsDialogOpen(false);
   };
+
+  useEffect(() => {
+    if (updatePatientMutation.isSuccess) {
+      setFormData(emptyPatient);
+      setEditingPatient(null);
+      setIsDialogOpen(false);
+    }
+  }, [updatePatientMutation.isPending]);
 
   return (
     <div className="space-y-6">
