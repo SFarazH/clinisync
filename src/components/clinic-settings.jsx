@@ -323,8 +323,6 @@ export default function ClinicSettings() {
     }));
   }, []);
 
-  console.log(clinicData);
-
   const shiftHandlers = useMemo(
     () => ({
       updateShift,
@@ -909,13 +907,35 @@ export default function ClinicSettings() {
         </CollapsibleContent>
       </Collapsible>
 
-      <Collapsible open={isTemplatesOpen} onOpenChange={setIsTemplatesOpen}>
-        <CollapsibleTrigger asChild className="cursor-pointer">
+      <Collapsible
+        open={isTemplatesOpen}
+        onOpenChange={setIsTemplatesOpen}
+        disabled={!authClinic.features["whatsapp-reminders"]}
+      >
+        <CollapsibleTrigger
+          asChild
+          className={
+            authClinic.features["whatsapp-reminders"]
+              ? "cursor-pointer"
+              : "cursor-not-allowed"
+          }
+        >
           <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-input bg-background hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              <span className="text-base font-semibold">WhatsApp Template</span>
+              <MessageSquare className="w-5 h-5 text-primary shrink-0" />
+              <div className="text-base font-semibold flex items-center gap-10 flex-1">
+                <span className="shrink-0">WhatsApp Template</span>
+              </div>
             </div>
+
+            <Alert variant="destructive" className="w-fit font-semibold">
+              <AlertTriangle className="h-4 w-4" />
+
+              <AlertDescription className="text-sm">
+                Whatsapp Messaging not enabled for this clinic
+              </AlertDescription>
+            </Alert>
+
             <ChevronDown
               className={`w-5 h-5 transition-transform ${
                 isTemplatesOpen ? "rotate-180" : ""
@@ -925,6 +945,9 @@ export default function ClinicSettings() {
         </CollapsibleTrigger>
 
         <CollapsibleContent className="mt-3">
+          <AlertDescription className="text-sm">
+            Whatsapp Messaging has not been enabled for this clinic
+          </AlertDescription>
           <Card className="border">
             <CardHeader className="">
               <div className="flex items-start justify-between">

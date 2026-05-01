@@ -289,7 +289,29 @@ export async function sendAppointmentReminder({
     dbName,
     FeatureMapping.WHATSAPP_REMINDERS,
   );
-  if (accessError) return accessError;
+  if (accessError) {
+    return {
+      success: false,
+      error: "Whatsapp messaging not enabled",
+    };
+  }
+
+  if (isCron) {
+    if (!clinic.whatsappMsgFrequency.onAppointmentDay) {
+      return {
+        success: false,
+        error: "Message on appointment day not enabled",
+      };
+    }
+  } else {
+    if (!clinic.whatsappMsgFrequency.onBooking) {
+      return {
+        success: false,
+        error: "Message on appointment booking not enabled",
+      };
+    }
+  }
+
   const payloadData = {
     to: appointment.patient?.phone,
     msgKey: clinic.whatsappTemplate,

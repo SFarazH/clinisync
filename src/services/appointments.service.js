@@ -160,59 +160,68 @@ export async function createAppointment(data, dbName) {
 
     let whatsappResult = null;
 
-    if (clinic.whatsappMsgFrequency.onAppointmentDay) {
-      const populatedAppointment = await appointmentsModel
-        .findById(appointment[0]._id)
-        .select(
-          "patientId doctorId date appointmentDateTime startTime endTime status",
-        )
-        .populate({
-          path: "patientId",
-          select: "name phone",
-        })
-        .populate({
-          path: "doctorId",
-          select: "name",
-        })
-        .lean();
+    if (clinic.features["whatsapp-reminders"]) {
+      if (clinic.whatsappMsgFrequency.onAppointmentDay) {
+        const populatedAppointment = await appointmentsModel
+          .findById(appointment[0]._id)
+          .select(
+            "patientId doctorId date appointmentDateTime startTime endTime status",
+          )
+          .populate({
+            path: "patientId",
+            select: "name phone",
+          })
+          .populate({
+            path: "doctorId",
+            select: "name",
+          })
+          .lean();
 
-      const { formattedDateShort, formattedDateLong, formattedTime } =
-        formatIST(populatedAppointment.appointmentDateTime);
+        const { formattedDateShort, formattedDateLong, formattedTime } =
+          formatIST(populatedAppointment.appointmentDateTime);
 
-      const whatsappMessageObject = {
-        _id: populatedAppointment._id,
-        appointmentDateTime: populatedAppointment.appointmentDateTime,
-        startTime: populatedAppointment.startTime,
-        endTime: populatedAppointment.endTime,
-        status: populatedAppointment.status,
+        const whatsappMessageObject = {
+          _id: populatedAppointment._id,
+          appointmentDateTime: populatedAppointment.appointmentDateTime,
+          startTime: populatedAppointment.startTime,
+          endTime: populatedAppointment.endTime,
+          status: populatedAppointment.status,
 
-        formattedDateShort,
-        formattedDateLong,
-        formattedTime,
+          formattedDateShort,
+          formattedDateLong,
+          formattedTime,
 
-        patient: {
-          _id: populatedAppointment.patientId?._id,
-          name: populatedAppointment.patientId?.name,
-          phone: populatedAppointment.patientId?.phone,
-        },
+          patient: {
+            _id: populatedAppointment.patientId?._id,
+            name: populatedAppointment.patientId?.name,
+            phone: populatedAppointment.patientId?.phone,
+          },
 
-        doctor: {
-          _id: populatedAppointment.doctorId?._id,
-          name: populatedAppointment.doctorId?.name,
-        },
-      };
+          doctor: {
+            _id: populatedAppointment.doctorId?._id,
+            name: populatedAppointment.doctorId?.name,
+          },
+        };
 
-      whatsappResult = await sendAppointmentReminder({
-        appointment: whatsappMessageObject,
-        clinic,
-        isCron: false,
-        dbName: clinic.databaseName,
-      });
+        whatsappResult = await sendAppointmentReminder({
+          appointment: whatsappMessageObject,
+          clinic,
+          isCron: false,
+          dbName: clinic.databaseName,
+        });
+      } else {
+        whatsappResult = {
+          success: false,
+          message: "Message on booking appointment not enabled!",
+        };
+      }
     } else {
       whatsappResult = {
-        message: "Message on booking appointment not enabled!",
+        success: false,
+        message: "Whatsapp messaging not enabled for clinic",
       };
     }
+
     return {
       success: true,
       data: {
