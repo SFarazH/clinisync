@@ -236,6 +236,7 @@ export async function whatsappCron() {
             appointment: appt,
             clinic,
             isCron: true,
+            dbName:clinic.databaseName
           });
 
           if (!result.success) {

@@ -206,6 +206,7 @@ export async function createAppointment(data, dbName) {
         appointment: whatsappMessageObject,
         clinic,
         isCron: false,
+        dbName: clinic.databaseName,
       });
     } else {
       whatsappResult = {

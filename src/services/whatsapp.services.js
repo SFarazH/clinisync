@@ -2,7 +2,9 @@ import Appointment from "@/models/Appointment";
 import Clinic from "@/models/Clinic";
 import Patient from "@/models/Patient";
 import WhatsappMessage from "@/models/WhatsappMessage";
+import { checkAccess } from "@/utils";
 import { getMongooseModel } from "@/utils/dbConnect";
+import { FeatureMapping } from "@/utils/feature.mapping";
 import axios from "axios";
 
 export async function getWhatsappMessagesByClinic(dbName) {
@@ -276,7 +278,18 @@ export async function sendWhatsappMessage({ payload, dbName, data }) {
   }
 }
 
-export async function sendAppointmentReminder({ appointment, clinic, isCron }) {
+export async function sendAppointmentReminder({
+  appointment,
+  clinic,
+  isCron,
+  dbName,
+}) {
+  const accessError = checkAccess(
+    clinic,
+    dbName,
+    FeatureMapping.WHATSAPP_REMINDERS,
+  );
+  if (accessError) return accessError;
   const payloadData = {
     to: appointment.patient?.phone,
     msgKey: clinic.whatsappTemplate,
