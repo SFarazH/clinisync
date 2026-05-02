@@ -50,7 +50,7 @@ export function ClinicsTable() {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <h3 className="text-lg font-semibold text-foreground truncate">
-                    {clinic.name}
+                    {clinic.clinicName}
                   </h3>
                   <span
                     className={`px-2 py-1 rounded-full text-md font-medium ${

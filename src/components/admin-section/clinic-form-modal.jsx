@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit } from "lucide-react";
+import { AlertTriangle, Edit } from "lucide-react";
 import { emptyClinic } from "../data";
 import { useMutationWrapper, useQueryWrapper } from "../wrappers";
 import {
@@ -27,6 +27,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useQueryClient } from "@tanstack/react-query";
+import { Switch } from "../ui/switch";
+import { Alert, AlertDescription } from "../ui/alert";
 
 export default function ClinicModal({ isOpen, clinic, onClose }) {
   const queryClient = useQueryClient();
@@ -50,8 +52,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
     const nextErrors = {};
 
     const requiredFields = [
-      { field: "name", label: "Clinic name" },
-      { field: "clinicName", label: "Clinic display name" },
+      { field: "clinicName", label: "Clinic name" },
       { field: "databaseName", label: "Database name" },
       { field: "phone", label: "Phone" },
       { field: "addressLine1", label: "Address line 1" },
@@ -260,15 +261,41 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 </select>
               </div>
             </div>
+            <div className="">
+              <h3 className="text-base font-medium">Status</h3>
+              <div className="flex items-center gap-3 rounded p-2">
+                <Switch
+                  className="h-6 w-13 disabled:bg-red-400 disabled:opacity-100 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 [&>span]:h-5 [&>span]:w-5 [&>span]:bg-white [&>span]:transition-transform data-[state=checked]:[&>span]:translate-x-7 data-[state=unchecked]:[&>span]:translate-x-0.5"
+                  checked={formData.isLiveClinic || false}
+                  onCheckedChange={(checked) =>
+                    handleFieldChange("isLiveClinic", checked)
+                  }
+                  disabled={!canEdit}
+                />
+                <Label className="cursor-pointer text-sm">Live Clinic</Label>
+              </div>
+            </div>
           </div>
 
           {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-base font-medium">Contact Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
-                  Phone <span className="text-red-500">*</span>
+                <Label className="mb-1 text-xs text-gray-600">
+                  <p>
+                    Phone <span className="text-red-500">*</span>{" "}
+                  </p>
+
+                  <Alert
+                    variant="warning"
+                    className="my-1 w-fit p-1 font-normal text-orange-500"
+                  >
+                    <AlertTriangle className="" />
+                    <AlertDescription className="text-xs text-orange-800">
+                      Required for Whatsapp reminders
+                    </AlertDescription>
+                  </Alert>
                 </Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
@@ -278,18 +305,14 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                   maxLength={10}
                 />
-                {errors.phone ? (
-                  <p className="text-[12px] text-red-500 mt-1">
+                {errors.phone && (
+                  <p className="mt-1 text-[12px] text-red-500">
                     {errors.phone}
-                  </p>
-                ) : (
-                  <p className="text-[12px] text-red-500">
-                    Required for Whatsapp reminders
                   </p>
                 )}
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Email</Label>
+                <Label className="mb-1 text-xs text-gray-600">Email</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   type="email"
@@ -301,13 +324,13 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
               </div>
               {!isNew && (
                 <div>
-                  <Label className="text-xs text-gray-600 mb-1">Admin</Label>
+                  <Label className="mb-1 text-xs text-gray-600">Admin</Label>
                   <Select
                     value={hasAdmin ? existingAdmin._id : formData.admin}
                     onValueChange={(value) => handleFieldChange("admin", value)}
                     disabled={!canEdit || hasAdmin}
                   >
-                    <SelectTrigger className="w-full !h-8">
+                    <SelectTrigger className="!h-8 w-full">
                       <SelectValue
                         placeholder={
                           hasAdmin ? existingAdmin.name : "Select Admin"
@@ -345,7 +368,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
           <div className="space-y-4">
             <h3 className="text-base font-medium">Address</h3>
             <div>
-              <Label className="text-xs text-gray-600 mb-1">
+              <Label className="mb-1 text-xs text-gray-600">
                 Address Line 1 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -358,13 +381,13 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 disabled={!canEdit}
               />
               {errors.addressLine1 && (
-                <p className="text-[12px] text-red-500 mt-1">
+                <p className="mt-1 text-[12px] text-red-500">
                   {errors.addressLine1}
                 </p>
               )}
             </div>
             <div>
-              <Label className="text-xs text-gray-600 mb-1">
+              <Label className="mb-1 text-xs text-gray-600">
                 Address Line 2
               </Label>
               <Input
@@ -377,9 +400,9 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 disabled={!canEdit}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
+                <Label className="mb-1 text-xs text-gray-600">
                   City <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -390,11 +413,11 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
                 {errors.city && (
-                  <p className="text-[12px] text-red-500 mt-1">{errors.city}</p>
+                  <p className="mt-1 text-[12px] text-red-500">{errors.city}</p>
                 )}
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
+                <Label className="mb-1 text-xs text-gray-600">
                   State <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -405,15 +428,15 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                   disabled={!canEdit}
                 />
                 {errors.state && (
-                  <p className="text-[12px] text-red-500 mt-1">
+                  <p className="mt-1 text-[12px] text-red-500">
                     {errors.state}
                   </p>
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">
+                <Label className="mb-1 text-xs text-gray-600">
                   Postal Code
                 </Label>
                 <Input
@@ -427,7 +450,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Country</Label>
+                <Label className="mb-1 text-xs text-gray-600">Country</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Country"
@@ -437,9 +460,53 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+              <Label className="mb-1 text-xs text-gray-600">
+                Google Maps Link
+                <Alert
+                  variant="warning"
+                  className="my-1 w-fit p-1 font-normal text-orange-500"
+                >
+                  <AlertTriangle className="" />
+                  <AlertDescription className="text-xs text-orange-800">
+                    Required for Whatsapp reminders with link
+                  </AlertDescription>
+                </Alert>
+              </Label>
+              <Input
+                className="h-8 text-sm focus-visible:ring-0"
+                placeholder="https://maps.google.com/..."
+                value={formData.googleMapsLink}
+                onChange={(e) =>
+                  handleFieldChange("googleMapsLink", e.target.value)
+                }
+                disabled={!canEdit}
+              />
+              {errors.googleMapsLink && (
+                <p className="mt-1 text-[12px] text-red-500">
+                  {errors.googleMapsLink}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="flex items-center gap-2 text-base font-medium">
+              Latitude / Longitude{" "}
+              <Alert
+                variant="warning"
+                className="my-1 w-fit p-1 font-normal text-orange-500"
+              >
+                <AlertTriangle className="" />
+                <AlertDescription className="text-xs text-orange-800">
+                  Required for Whatsapp reminders with address
+                </AlertDescription>
+              </Alert>
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Latitude</Label>
+                <Label className="mb-1 text-xs text-gray-600">Latitude</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Latitude"
@@ -451,7 +518,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
               <div>
-                <Label className="text-xs text-gray-600 mb-1">Longitude</Label>
+                <Label className="mb-1 text-xs text-gray-600">Longitude</Label>
                 <Input
                   className="h-8 text-sm focus-visible:ring-0"
                   placeholder="Longitude"
@@ -463,46 +530,23 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
                 />
               </div>
             </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1">
-                Google Maps Link
-              </Label>
-              <Input
-                className="h-8 text-sm focus-visible:ring-0"
-                placeholder="https://maps.google.com/..."
-                value={formData.googleMapsLink}
-                onChange={(e) =>
-                  handleFieldChange("googleMapsLink", e.target.value)
-                }
-                disabled={!canEdit}
-              />
-              {errors.googleMapsLink ? (
-                <p className="text-[12px] text-red-500 mt-1">
-                  {errors.googleMapsLink}
-                </p>
-              ) : (
-                <p className="text-[12px] text-red-500">
-                  Required for Whatsapp reminders (with address)
-                </p>
-              )}
-            </div>
           </div>
 
           {/* Features */}
           <div className="space-y-4">
             <h3 className="text-base font-medium">Features</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {Object.entries(formData.features).map(([feature, enabled]) => (
                 <label
                   key={feature}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                  className="flex cursor-pointer items-center gap-3 rounded p-2 hover:bg-gray-50"
                 >
                   <input
                     type="checkbox"
                     checked={enabled}
                     onChange={() => handleFeatureToggle(feature)}
                     disabled={!canEdit}
-                    className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                    className="h-4 w-4 cursor-pointer rounded border-gray-300"
                   />
                   <span className="text-sm capitalize">
                     {feature.replace("-", " ")}
@@ -544,7 +588,7 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
           </div> */}
         </div>
 
-        <DialogFooter className="flex justify-between pt-4 gap-2">
+        <DialogFooter className="flex justify-between gap-2 pt-4">
           <Button variant="outline" size="sm" onClick={handleClose}>
             {isEditing ? "Cancel" : "Close"}
           </Button>
