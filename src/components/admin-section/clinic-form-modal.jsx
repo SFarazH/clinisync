@@ -263,16 +263,31 @@ export default function ClinicModal({ isOpen, clinic, onClose }) {
             </div>
             <div className="">
               <h3 className="text-base font-medium">Status</h3>
-              <div className="flex items-center gap-3 rounded p-2">
-                <Switch
-                  className="h-6 w-13 disabled:bg-red-400 disabled:opacity-100 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 [&>span]:h-5 [&>span]:w-5 [&>span]:bg-white [&>span]:transition-transform data-[state=checked]:[&>span]:translate-x-7 data-[state=unchecked]:[&>span]:translate-x-0.5"
-                  checked={formData.isLiveClinic || false}
-                  onCheckedChange={(checked) =>
-                    handleFieldChange("isLiveClinic", checked)
-                  }
-                  disabled={!canEdit}
-                />
-                <Label className="cursor-pointer text-sm">Live Clinic</Label>
+              <div className="flex gap-12">
+                <div className="flex items-center gap-3 rounded p-2">
+                  <Switch
+                    className="h-6 w-13 disabled:bg-red-400 disabled:opacity-100 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 [&>span]:h-5 [&>span]:w-5 [&>span]:bg-white [&>span]:transition-transform data-[state=checked]:[&>span]:translate-x-7 data-[state=unchecked]:[&>span]:translate-x-0.5"
+                    checked={formData.isLiveClinic || false}
+                    onCheckedChange={(checked) =>
+                      handleFieldChange("isLiveClinic", checked)
+                    }
+                    disabled={!canEdit}
+                  />
+                  <Label className="cursor-pointer text-sm">Live Clinic</Label>
+                </div>
+                <div className="flex items-center gap-3 rounded p-2">
+                  <Switch
+                    className="h-6 w-13 disabled:bg-red-400 disabled:opacity-100 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 [&>span]:h-5 [&>span]:w-5 [&>span]:bg-white [&>span]:transition-transform data-[state=checked]:[&>span]:translate-x-7 data-[state=unchecked]:[&>span]:translate-x-0.5"
+                    checked={formData.isClinicActive || false}
+                    onCheckedChange={(checked) =>
+                      handleFieldChange("isClinicActive", checked)
+                    }
+                    disabled={!canEdit}
+                  />
+                  <Label className="cursor-pointer text-sm">
+                    Active Clinic
+                  </Label>
+                </div>
               </div>
             </div>
           </div>

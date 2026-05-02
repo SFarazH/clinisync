@@ -44,23 +44,51 @@ export function ClinicsTable() {
           clinicsData?.map((clinic) => (
             <Card
               key={clinic._id}
-              className="p-3 cursor-pointer hover:shadow-lg transition-shadow"
+              className="
+          relative overflow-hidden
+          cursor-pointer p-3
+          transition-shadow hover:shadow-lg
+        "
               onClick={() => handleClinicClick(clinic)}
             >
+              {!clinic.isLiveClinic && (
+                <div
+                  className="
+              absolute right-[-35px] top-[10px]
+              rotate-45
+
+              bg-red-500
+              px-10 py-1
+              text-center text-xs font-bold
+              tracking-wider text-white
+
+              shadow-md
+            "
+                >
+                  DEMO
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <h3 className="text-lg font-semibold text-foreground truncate">
-                    {clinic.clinicName}
-                  </h3>
-                  <span
-                    className={`px-2 py-1 rounded-full text-md font-medium ${
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`w-3 h-3  rounded-full ${clinic.isClinicActive ? "bg-green-500" : "bg-red-500"}`}
+                    ></p>
+                    <h3 className="truncate text-lg font-semibold text-foreground">
+                      {clinic.clinicName}
+                    </h3>
+                  </div>
+
+                  {/* <span
+                    className={`rounded-full px-2 py-1 text-md font-medium ${
                       clinic.isClinicActive
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                         : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
                     }`}
                   >
                     {clinic.isClinicActive ? "Active" : "Inactive"}
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </Card>
