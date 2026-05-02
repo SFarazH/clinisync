@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const clinicSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
     clinicName: { type: String, required: true },
     admin: {
       type: mongoose.Schema.Types.ObjectId,

@@ -319,7 +319,7 @@ export async function sendAppointmentReminder({
     doctorName: appointment.doctor?.name,
     date: appointment.formattedDateShort,
     time: appointment.formattedTime,
-    clinicName: clinic.name,
+    clinicName: clinic.clinicName,
     clinicPhone: clinic.phone,
     latitude: clinic?.latitude,
     longitude: clinic?.longitude,
