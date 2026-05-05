@@ -13,10 +13,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import logo from "../../public/clinisync-t.png";
-import Image from "next/image";
 import CarouselSection from "@/components/Features";
-import { toast } from "sonner";
+import Link from "next/link";
 
 export default function Home() {
   const { authUser } = useAuth();
@@ -30,65 +28,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
-                <Database className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-lg text-foreground">
-                CliniSync
-              </span>
-            </div> */}
-            <div className={`flex items-center`}>
-              <div className="cursor-pointer w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Image src={logo} alt="logo" />
-              </div>
-
-              <h2 className="ml-3 text-2xl font-bold text-gray-900">
-                ClinicSync
-              </h2>
-            </div>
-            <div className="hidden md:flex items-center gap-8">
-              <a
-                href="#features"
-                className="text-sm text-muted-foreground hover:text-foreground transition"
-              >
-                Features
-              </a>
-              {/* <a
-                href="#pricing"
-                className="text-sm text-muted-foreground hover:text-foreground transition"
-              >
-                Pricing
-              </a> */}
-              {/* <a
-                href="#testimonials"
-                className="text-sm text-muted-foreground hover:text-foreground transition"
-              >
-                Testimonials
-              </a> */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => router.push("/login")}
-              >
-                Sign In
-              </Button>
-
-              {/* <Button
-                size="sm"
-                className="bg-primary text-white hover:bg-blue-700"
-              >
-                Get Started
-              </Button> */}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-blue-50 pt-20 pb-32">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -121,26 +60,6 @@ export default function Home() {
                 professionals.
               </span>
             </p>
-
-            {/* <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button
-                size="lg"
-                className="bg-primary text-white hover:bg-blue-700 gap-2"
-              >
-                Get Started Free <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2 bg-transparent"
-              >
-                Request a Demo
-              </Button>
-            </div> */}
-
-            {/* <div className="pt-8 text-sm text-muted-foreground"> */}
-            {/* <p>• ✓ 14-day free trial •</p> */}
-            {/* </div> */}
           </div>
         </div>
       </section>
@@ -175,6 +94,56 @@ export default function Home() {
       </section>
 
       <CarouselSection />
+
+      <section className="py-16 bg-sky-50 border-b">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-foreground mb-8 text-balance">
+            Try It Out
+          </h2>
+
+          <div className="space-y-6 mb-10">
+            <p>What better way to know how it works than by testing it out?</p>
+            <div className="flex items-start gap-4 justify-center">
+              <div className="flex-shrink-0 mt-1">
+                <CheckCircle2 className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-lg text-foreground max-w-sm">
+                Manage your entire clinic operations from one intuitive
+                dashboard
+              </p>
+            </div>
+
+            <div className="flex items-start gap-4 justify-center">
+              <div className="flex-shrink-0 mt-1">
+                <CheckCircle2 className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-lg text-foreground max-w-sm">
+                Automate scheduling and reduce no-shows with smart appointment
+                management
+              </p>
+            </div>
+
+            <div className="flex items-start gap-4 justify-center">
+              <div className="flex-shrink-0 mt-1">
+                <CheckCircle2 className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-lg text-foreground max-w-sm">
+                Get real-time insights into your clinic&apos;s performance and
+                revenue
+              </p>
+            </div>
+          </div>
+
+          <Link href="/demo">
+            <Button
+              size="lg"
+              className=" text-white cursor-pointer bg-[#3878ca] hover:bg-[#0f51a6]"
+            >
+              Demo
+            </Button>
+          </Link>
+        </div>
+      </section>
 
       <section id="features" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -271,8 +240,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      {/* <section id="testimonials" className="py-20 bg-background">
+      <>
+        {/* Testimonials */}
+        {/* <section id="testimonials" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">
@@ -304,8 +274,8 @@ export default function Home() {
         </div>
       </section> */}
 
-      {/* Different plans */}
-      {/* <section id="pricing" className="py-20 bg-blue-50 border-y border-border">
+        {/* Different plans */}
+        {/* <section id="pricing" className="py-20 bg-blue-50 border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">
@@ -362,6 +332,7 @@ export default function Home() {
           </div>
         </div>
       </section> */}
+      </>
 
       <section className="py-20 bg-gradient-to-r from-primary to-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -390,7 +361,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* <footer className="bg-foreground text-white">
+      <>
+        {/* <footer className="bg-foreground text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-5 gap-8 mb-8">
             <div>
@@ -521,6 +493,7 @@ export default function Home() {
           </div>
         </div>
       </footer> */}
+      </>
     </div>
   );
 }
