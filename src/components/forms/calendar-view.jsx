@@ -178,9 +178,6 @@ export default function CalendarView({
                                         ? `${30 * mergedAppt.count - 3}px`
                                         : `${30 - 3}px`,
                                     zIndex: 10,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
                                     flexWrap: "wrap",
                                     gap: "2px",
                                   }}

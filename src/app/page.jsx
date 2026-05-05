@@ -98,50 +98,48 @@ export default function Home() {
       <section className="py-16 bg-sky-50 border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-foreground mb-8 text-balance">
-            Try It Out
+            Try It Out!
           </h2>
 
           <div className="space-y-6 mb-10">
-            <p>What better way to know how it works than by testing it out?</p>
+            <p className="text-xl font-semibold text-[#2f66ad]">
+              Experience the magic firsthand to see how it works.
+            </p>
             <div className="flex items-start gap-4 justify-center">
               <div className="flex-shrink-0 mt-1">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               </div>
               <p className="text-lg text-foreground max-w-sm">
-                Manage your entire clinic operations from one intuitive
-                dashboard
+                Manage appointments in a simple slot based calendar
               </p>
             </div>
 
             <div className="flex items-start gap-4 justify-center">
               <div className="flex-shrink-0 mt-1">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               </div>
               <p className="text-lg text-foreground max-w-sm">
-                Automate scheduling and reduce no-shows with smart appointment
-                management
+                Optimize scheduling by ensuring no time conflicts
               </p>
             </div>
 
             <div className="flex items-start gap-4 justify-center">
               <div className="flex-shrink-0 mt-1">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               </div>
               <p className="text-lg text-foreground max-w-sm">
-                Get real-time insights into your clinic&apos;s performance and
-                revenue
+                Easily shift appointments and update status
               </p>
             </div>
           </div>
 
-          <Link href="/demo">
-            <Button
-              size="lg"
-              className=" text-white cursor-pointer bg-[#3878ca] hover:bg-[#0f51a6]"
-            >
-              Demo
-            </Button>
-          </Link>
+          <Button
+            asChild
+            size="lg"
+            className="bg-[#3878ca] hover:bg-[#2f66ad] text-white px-5"
+          >
+            <Link href="/demo">Demo</Link>
+          </Button>
         </div>
       </section>
 
