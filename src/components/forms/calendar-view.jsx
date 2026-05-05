@@ -88,7 +88,7 @@ export default function CalendarView({
                   const isAvailable = isTimeSlotAvailable(
                     day,
                     time,
-                    clinicHours
+                    clinicHours,
                   );
                   const isOpen = isDayOpen(day, clinicHours);
 
@@ -120,7 +120,7 @@ export default function CalendarView({
                               getAppointmentsForCombinedSlot(
                                 appointmentsData,
                                 day,
-                                time
+                                time,
                               );
                             if (appointmentsInThisSlot.length === 0)
                               return null;
@@ -128,7 +128,7 @@ export default function CalendarView({
                               (appt) =>
                                 appt.apptId === appointmentsInThisSlot[0].id &&
                                 appt.timeStart === time &&
-                                appt.date === formattedDay
+                                appt.date === formattedDay,
                             );
 
                             const isCoveredByMergedAppt =
@@ -144,7 +144,7 @@ export default function CalendarView({
                                   isTimeWithinMergedAppt(
                                     time,
                                     appt.timeStart,
-                                    appt.count
+                                    appt.count,
                                   ) &&
                                   appt.timeStart !== time // ensure it's not the starting slot itself
                                 );
@@ -157,7 +157,7 @@ export default function CalendarView({
                             return (
                               appointmentsInThisSlot.length > 0 && (
                                 <div
-                                  className={`absolute inset-x-1 rounded-md p-1 text-sm overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center ${
+                                  className={`absolute inset-x-1 rounded-md p-1  overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex  items-center justify-center ${
                                     appointmentsInThisSlot.length === 1
                                       ? "text-white"
                                       : "text-black"
@@ -167,7 +167,7 @@ export default function CalendarView({
                                       appointmentsInThisSlot.length === 1
                                         ? getAppointmentColor(
                                             appointmentsInThisSlot[0],
-                                            proceduresData
+                                            proceduresData,
                                           )
                                         : "#FFEBC6"
                                     }`,
@@ -188,7 +188,7 @@ export default function CalendarView({
                                     e.stopPropagation();
                                     if (appointmentsInThisSlot.length === 1) {
                                       handleAppointmentClick(
-                                        appointmentsInThisSlot[0]
+                                        appointmentsInThisSlot[0],
                                       );
                                     } else {
                                       setOverlappingAppointmentsDialog({
@@ -206,7 +206,7 @@ export default function CalendarView({
                                         patientsData.find(
                                           (p) =>
                                             p._id ===
-                                            appointmentsInThisSlot[0].patientId
+                                            appointmentsInThisSlot[0].patientId,
                                         )?.name
                                       }
                                     </div>
@@ -215,26 +215,28 @@ export default function CalendarView({
                                       {appointmentsInThisSlot.length}{" "}
                                     </div>
                                   )}
-                                  {appointmentsInThisSlot.map((apt, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="w-3 h-3 rounded-full"
-                                      style={{
-                                        backgroundColor: proceduresData.find(
-                                          (proc) => proc._id === apt.procedureId
-                                        )?.color,
-                                      }}
-                                      title={`${
-                                        patientsData.find(
-                                          (p) => p._id === apt.patientId
-                                        )?.name
-                                      } (${
-                                        doctorsData.find(
-                                          (d) => d._id === apt.doctorId
-                                        )?.name
-                                      })`}
-                                    />
-                                  ))}
+                                  {appointmentsInThisSlot.length > 1 &&
+                                    appointmentsInThisSlot.map((apt, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="w-3 h-3 rounded-full"
+                                        style={{
+                                          backgroundColor: proceduresData.find(
+                                            (proc) =>
+                                              proc._id === apt.procedureId,
+                                          )?.color,
+                                        }}
+                                        title={`${
+                                          patientsData.find(
+                                            (p) => p._id === apt.patientId,
+                                          )?.name
+                                        } (${
+                                          doctorsData.find(
+                                            (d) => d._id === apt.doctorId,
+                                          )?.name
+                                        })`}
+                                      />
+                                    ))}
                                 </div>
                               )
                             );
@@ -244,7 +246,7 @@ export default function CalendarView({
                               appointmentsData,
                               selectedDoctorId,
                               day,
-                              time
+                              time,
                             );
                             return (
                               appointment &&
@@ -255,14 +257,14 @@ export default function CalendarView({
                                     handleDragStart(e, appointment)
                                   }
                                   onDragEnd={handleDragEnd}
-                                  className="absolute inset-x-1 rounded-md p-2 text-white text-xs overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow"
+                                  className="absolute inset-x-1 rounded-md p-1 text-white  overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow flex items-center justify-center"
                                   title={
                                     appointmentStatusConfig[appointment.status]
                                       .label
                                   }
                                   style={{
                                     backgroundColor: proceduresData.find(
-                                      (t) => t._id === appointment.procedureId
+                                      (t) => t._id === appointment.procedureId,
                                     )?.color,
                                     height: `${
                                       getAppointmentHeight(appointment) * 30 - 3
@@ -277,7 +279,7 @@ export default function CalendarView({
                                   <div className="font-medium truncate">
                                     {
                                       patientsData.find(
-                                        (p) => p._id === appointment.patientId
+                                        (p) => p._id === appointment.patientId,
                                       )?.name
                                     }
                                   </div>
@@ -292,7 +294,7 @@ export default function CalendarView({
                               appointmentsData,
                               selectedDoctorId,
                               day,
-                              time
+                              time,
                             )
                           : false) && (
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
