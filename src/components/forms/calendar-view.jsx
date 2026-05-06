@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   getAppointmentsForCombinedSlot,
   getSingleAppointmentForSlot,
@@ -45,8 +45,9 @@ export default function CalendarView({
     handleDragLeave,
     handleDrop,
     dragOverSlot,
-    handleDragEnd,
     handleDragStart,
+    handleDragEnd,
+    draggedAppointment,
   } = dragOptions;
 
   const {
@@ -54,6 +55,8 @@ export default function CalendarView({
     updateAppointmentLoading,
     deleteAppointmentLoading,
   } = loaders;
+
+  const isDragging = !!draggedAppointment;
 
   return (
     <div className="relative">
@@ -82,6 +85,7 @@ export default function CalendarView({
             >
               {slot.isBoundary ? `END - ${time}` : time}
             </div>
+
             {isClickable
               ? weekDays.map((day, dayIndex) => {
                   const formattedDay = format(day, "yyyy-MM-dd");
@@ -124,6 +128,7 @@ export default function CalendarView({
                               );
                             if (appointmentsInThisSlot.length === 0)
                               return null;
+
                             const mergedAppt = mergedAppointments.find(
                               (appt) =>
                                 appt.apptId === appointmentsInThisSlot[0].id &&
@@ -134,43 +139,37 @@ export default function CalendarView({
                             const isCoveredByMergedAppt =
                               appointmentsInThisSlot.length === 1 &&
                               mergedAppointments.some((appt) => {
-                                const slotDate = formattedDay;
-
-                                // Check same appointment and date
                                 return (
                                   appt.apptId ===
                                     appointmentsInThisSlot[0].id &&
-                                  appt.date === slotDate &&
+                                  appt.date === formattedDay &&
                                   isTimeWithinMergedAppt(
                                     time,
                                     appt.timeStart,
                                     appt.count,
                                   ) &&
-                                  appt.timeStart !== time // ensure it's not the starting slot itself
+                                  appt.timeStart !== time
                                 );
                               });
 
-                            if (isCoveredByMergedAppt) {
-                              return null; // skip rendering this slot as it's covered by a merged block rendered above
-                            }
+                            if (isCoveredByMergedAppt) return null;
 
                             return (
                               appointmentsInThisSlot.length > 0 && (
                                 <div
-                                  className={`absolute inset-x-1 rounded-md p-1  overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex  items-center justify-center ${
+                                  className={`absolute inset-x-1 rounded-md p-1 overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow flex items-center justify-center ${
                                     appointmentsInThisSlot.length === 1
                                       ? "text-white"
                                       : "text-black"
                                   }`}
                                   style={{
-                                    backgroundColor: `${
+                                    backgroundColor:
                                       appointmentsInThisSlot.length === 1
                                         ? getAppointmentColor(
                                             appointmentsInThisSlot[0],
                                             proceduresData,
                                           )
-                                        : "#FFEBC6"
-                                    }`,
+                                        : "#FFEBC6",
                                     height:
                                       mergedAppt &&
                                       mergedAppt.timeStart === time &&
@@ -245,45 +244,70 @@ export default function CalendarView({
                               day,
                               time,
                             );
+
+                            if (!appointment) return null;
+
+                            const isStart = isAppointmentStart(
+                              appointment,
+                              time,
+                            );
+                            const isThisBeingDragged =
+                              draggedAppointment?.id === appointment.id;
+
                             return (
-                              appointment &&
-                              isAppointmentStart(appointment, time) && (
-                                <div
-                                  draggable
-                                  onDragStart={(e) =>
-                                    handleDragStart(e, appointment)
-                                  }
-                                  onDragEnd={handleDragEnd}
-                                  className="absolute inset-x-1 rounded-md p-1 text-white  overflow-hidden shadow-sm cursor-move hover:shadow-md transition-shadow flex items-center justify-center"
-                                  title={
-                                    appointmentStatusConfig[appointment.status]
-                                      .label
-                                  }
-                                  style={{
-                                    backgroundColor: proceduresData.find(
-                                      (t) => t._id === appointment.procedureId,
-                                    )?.color,
-                                    height: `${
-                                      getAppointmentHeight(appointment) * 30 - 3
-                                    }px`,
-                                    zIndex: 10,
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAppointmentClick(appointment);
-                                  }}
-                                >
-                                  <div className="font-medium truncate">
+                              <div
+                                draggable
+                                onDragStart={(e) =>
+                                  handleDragStart(e, appointment)
+                                }
+                                onDragEnd={handleDragEnd}
+                                className="absolute inset-x-1 cursor-move flex items-center justify-center overflow-hidden"
+                                title={
+                                  appointmentStatusConfig[appointment.status]
+                                    ?.label
+                                }
+                                style={{
+                                  backgroundColor: isStart
+                                    ? proceduresData.find(
+                                        (t) =>
+                                          t._id === appointment.procedureId,
+                                      )?.color
+                                    : "transparent",
+
+                                  height: `${
+                                    getAppointmentHeight(appointment) * 30 - 3
+                                  }px`,
+                                  zIndex: isStart ? 10 : 11,
+                                  borderRadius: isStart ? "6px" : "0",
+                                  color: "white",
+
+                                  pointerEvents:
+                                    isDragging && !isThisBeingDragged
+                                      ? "none"
+                                      : "auto",
+
+                                  opacity: isThisBeingDragged ? 0.6 : 1,
+                                  transition:
+                                    "opacity 0.18s cubic-bezier(0.4,0,0.2,1)",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAppointmentClick(appointment);
+                                }}
+                              >
+                                {isStart && (
+                                  <div className="font-medium truncate px-1">
                                     {
                                       patientsData.find(
                                         (p) => p._id === appointment.patientId,
                                       )?.name
                                     }
                                   </div>
-                                </div>
-                              )
+                                )}
+                              </div>
                             );
                           })()}
+
                       {isOpen &&
                         isAvailable &&
                         !(selectedDoctorId !== "all"
@@ -294,15 +318,14 @@ export default function CalendarView({
                               time,
                             )
                           : false) && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
                             <Plus className="w-3 h-3 text-blue-600" />
                           </div>
                         )}
                     </div>
                   );
                 })
-              : // Render non-clickable boundary slots
-                weekDays.map((_, dayIndex) => (
+              : weekDays.map((_, dayIndex) => (
                   <div
                     key={`${dayIndex}-${timeIndex}`}
                     className={`border-r last:border-r-0 ${
@@ -313,6 +336,7 @@ export default function CalendarView({
           </div>
         );
       })}
+
       {(loadingPatients ||
         addAppointmentLoading ||
         updateAppointmentLoading ||

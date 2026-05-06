@@ -223,11 +223,6 @@ export default function AppointmentCalendar({ mode = "live" }) {
     setDraggedAppointment(appointment);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", appointment.id);
-
-    // Add some visual feedback
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = "0.5";
-    }
   };
 
   const handleDragEnd = (e) => {
@@ -783,6 +778,7 @@ export default function AppointmentCalendar({ mode = "live" }) {
                     handleDragEnd,
                     handleDragStart,
                     dragOverSlot,
+                    draggedAppointment,
                   }}
                   loaders={{
                     addAppointmentLoading: addAppointmentMutation.isPending,
