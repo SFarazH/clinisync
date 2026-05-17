@@ -328,7 +328,7 @@ export async function sendAppointmentReminder({
     address: `${clinic.addressLine1}, ${clinic.city}`,
     gmapLink: clinic?.googleMapsLink,
   };
-  console.log(payload, "from appt reminder");
+  console.log(payloadData, "from appt reminder");
 
   try {
     const validation = validateWhatsAppPayload(payloadData);
