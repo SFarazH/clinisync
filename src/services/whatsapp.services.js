@@ -240,6 +240,8 @@ export async function sendWhatsappMessage({ payload, dbName, data }) {
     WhatsappMessage.schema,
   );
 
+  console.log(payload, "from send whatsapp msg");
+
   const headers = {
     Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
     "Content-Type": "application/json",
@@ -326,6 +328,7 @@ export async function sendAppointmentReminder({
     address: `${clinic.addressLine1}, ${clinic.city}`,
     gmapLink: clinic?.googleMapsLink,
   };
+  console.log(payload, "from appt reminder");
 
   try {
     const validation = validateWhatsAppPayload(payloadData);
@@ -334,7 +337,8 @@ export async function sendAppointmentReminder({
     }
 
     const payload = buildWhatsAppPayload(payloadData);
-
+    console.dir(payload, { depth: null });
+    console.dir("after building whatsapp payload");
     const result = await sendWhatsappMessage({
       payload: payload,
       data: {

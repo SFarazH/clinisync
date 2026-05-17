@@ -927,14 +927,15 @@ export default function ClinicSettings() {
                 <span className="shrink-0">WhatsApp Template</span>
               </div>
             </div>
+            {!authClinic.features["whatsapp-reminders"] && (
+              <Alert variant="destructive" className="w-fit font-semibold">
+                <AlertTriangle className="h-4 w-4" />
 
-            <Alert variant="destructive" className="w-fit font-semibold">
-              <AlertTriangle className="h-4 w-4" />
-
-              <AlertDescription className="text-sm">
-                Whatsapp Messaging not enabled for this clinic
-              </AlertDescription>
-            </Alert>
+                <AlertDescription className="text-sm">
+                  Whatsapp Messaging not enabled for this clinic
+                </AlertDescription>
+              </Alert>
+            )}
 
             <ChevronDown
               className={`w-5 h-5 transition-transform ${
@@ -945,9 +946,6 @@ export default function ClinicSettings() {
         </CollapsibleTrigger>
 
         <CollapsibleContent className="mt-3">
-          <AlertDescription className="text-sm">
-            Whatsapp Messaging has not been enabled for this clinic
-          </AlertDescription>
           <Card className="border">
             <CardHeader className="">
               <div className="flex items-start justify-between">
