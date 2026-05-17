@@ -314,6 +314,8 @@ export async function sendAppointmentReminder({
     }
   }
 
+  console.log(appointment, "this is appointment");
+
   const payloadData = {
     to: appointment.patient?.phone,
     msgKey: clinic.whatsappTemplate,
