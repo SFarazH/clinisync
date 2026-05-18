@@ -26,20 +26,12 @@ function calculateEndTime(startTime, durationMinutes) {
 function getAppointmentDateTime(date, startTime) {
   const [hours, minutes] = startTime.split(":").map(Number);
 
-  const utcDate = new Date(date);
+  const d = new Date(date);
 
-  // Convert to IST manually
-  const istDate = new Date(
-    utcDate.getUTCFullYear(),
-    utcDate.getUTCMonth(),
-    utcDate.getUTCDate(),
-    hours,
-    minutes,
-    0,
-    0,
-  );
+  // Save EXACT values without timezone conversion
+  d.setUTCHours(hours, minutes, 0, 0);
 
-  return istDate;
+  return d;
 }
 
 const formatIST = (date) => {
@@ -48,13 +40,13 @@ const formatIST = (date) => {
   const optionsShort = {
     day: "2-digit",
     month: "short",
-    timeZone: "Asia/Kolkata",
+    timeZone: "UTC",
   };
 
   const optionsLong = {
     day: "2-digit",
     month: "long",
-    timeZone: "Asia/Kolkata",
+    timeZone: "UTC",
   };
 
   const formattedDateShort = new Intl.DateTimeFormat(
@@ -70,7 +62,7 @@ const formatIST = (date) => {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: "Asia/Kolkata",
+    timeZone: "UTC",
   });
 
   const formattedTime = timeFormatter.format(d).toUpperCase();

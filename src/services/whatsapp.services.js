@@ -62,8 +62,6 @@ export async function getWhatsappMessagesByClinic(dbName) {
       })
       .sort({ createdAt: -1 });
 
-    // console.log(messages, "mesages");
-
     return { success: true, data: messages };
   } catch (error) {
     console.error("Error fetching WhatsApp messages for clinic:", error);
@@ -240,8 +238,6 @@ export async function sendWhatsappMessage({ payload, dbName, data }) {
     WhatsappMessage.schema,
   );
 
-  console.log(payload, "from send whatsapp msg");
-
   const headers = {
     Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
     "Content-Type": "application/json",
@@ -314,8 +310,6 @@ export async function sendAppointmentReminder({
     }
   }
 
-  console.log(appointment, "this is appointment");
-
   const payloadData = {
     to: appointment.patient?.phone,
     msgKey: clinic.whatsappTemplate,
@@ -330,7 +324,6 @@ export async function sendAppointmentReminder({
     address: `${clinic.addressLine1}, ${clinic.city}`,
     gmapLink: clinic?.googleMapsLink,
   };
-  console.log(payloadData, "from appt reminder");
 
   try {
     const validation = validateWhatsAppPayload(payloadData);
